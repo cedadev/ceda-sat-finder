@@ -51,41 +51,41 @@ String.prototype.truncatePath = function (levels) {
 };
 
 // ------------------------------Variable Filter-------------------------------
-function clearAggregatedVariables() {
-    var select = $('#multiselect').html('');
-    select.multiSelect('refresh');
-}
-
-function displayAggregatedVariables(aggregations) {
-    var select, i, buckets;
-
-    select = $('#multiselect');
-    buckets = aggregations.variables.buckets;
-    for (i = 0; i < buckets.length; i += 1) {
-        select.multiSelect('addOption', {
-            value: buckets[i].key,
-            text: (buckets[i].key + ' (' + buckets[i].doc_count + ')')
-        });
-    }
-}
-
-function requestFromMultiselect() {
-    var i, vars, req;
-    req = [];
-    vars = $('#multiselect').val();
-
-    if (vars) {
-        for (i = 0; i < vars.length; i += 1) {
-            req.push({
-                term: {
-                    _all: vars[i]
-                }
-            });
-        }
-        return req;
-    }
-    return '';
-}
+// function clearAggregatedVariables() {
+//     var select = $('#multiselect').html('');
+//     select.multiSelect('refresh');
+// }
+//
+// function displayAggregatedVariables(aggregations) {
+//     var select, i, buckets;
+//
+//     select = $('#multiselect');
+//     buckets = aggregations.variables.buckets;
+//     for (i = 0; i < buckets.length; i += 1) {
+//         select.multiSelect('addOption', {
+//             value: buckets[i].key,
+//             text: (buckets[i].key + ' (' + buckets[i].doc_count + ')')
+//         });
+//     }
+// }
+//
+// function requestFromMultiselect() {
+//     var i, vars, req;
+//     req = [];
+//     vars = $('#multiselect').val();
+//
+//     if (vars) {
+//         for (i = 0; i < vars.length; i += 1) {
+//             req.push({
+//                 term: {
+//                     _all: vars[i]
+//                 }
+//             });
+//         }
+//         return req;
+//     }
+//     return '';
+// }
 
 // ---------------------------'Export Results' Modal---------------------------
 function updateExportResultsModal(hits) {
@@ -304,22 +304,15 @@ function createInfoWindow(hit) {
                    hit.temporal.end_time + '</p>';
     }
 
-    if (hit.misc.flight_info) {
-        if (hit.misc.flight_info.flight_num) {
-            content += '<p><strong>Flight Num: </strong>"' +
-                       hit.misc.flight_info.flight_num + '"</p>';
+    if (hit.misc.platform) {
+        if (hit.misc.platform.Mission) {
+            content += '<p><strong>Mission: </strong>"' +
+                       hit.misc.platform.Mission + '"</p>';
         }
 
-        if (hit.misc.flight_info.organisation) {
-            content += '<p><strong>Organisation: </strong>"' +
-                       hit.misc.flight_info.organisation + '"</p>';
-        }
-    }
-
-    if (hit.misc.instrument) {
-        if (hit.misc.instrument.instrument) {
-            content += '<p><strong>Instrument: </strong>"' +
-                       hit.misc.instrument.instrument + '"</p>';
+        if (hit.misc.platform.Satellite) {
+            content += '<p><strong>Satellite: </strong>"' +
+                       hit.misc.platform.Satellite + '"</p>';
         }
     }
 
@@ -492,7 +485,7 @@ function sendHistogramRequest() {
                 'filter': {
                     'range': {
                         'temporal.start_time': {
-                            'gt': '2000-01-01'
+                            'gt': '1990-01-01'
                         }
                     }
                 },
@@ -500,8 +493,8 @@ function sendHistogramRequest() {
                     'docs_over_time': {
                         'date_histogram': {
                             'field': 'temporal.start_time',
-                            'format': 'MM-yyyy',
-                            'interval': 'month',
+                            'format': 'yyyy',
+                            'interval': 'year',
                             'min_doc_count': 0
                         }
                     }
