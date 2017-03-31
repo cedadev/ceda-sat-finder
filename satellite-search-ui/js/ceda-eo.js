@@ -138,6 +138,7 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
                 'data_format.format',
                 'file.filename',
                 'file.path',
+                'file.data_file',
                 'misc',
                 'spatial.geometries.display',
                 'temporal'
@@ -234,10 +235,10 @@ function updateMap(response, gmap) {
         displayLoadingModal()
     }
 
-    if (response.aggregations) {
-        // Generate variable aggregation on map and display
-        displayAggregatedVariables(response.aggregations);
-    }
+    // if (response.aggregations) {
+    //     // Generate variable aggregation on map and display
+    //     displayAggregatedVariables(response.aggregations);
+    // }
 }
 
 function updateRawJSON(response) {
@@ -314,13 +315,19 @@ function createInfoWindow(hit) {
             content += '<p><strong>Satellite: </strong>"' +
                        hit.misc.platform.Satellite + '"</p>';
         }
+
+        if (hit.misc.platform["Instrument Abbreviation"]) {
+            content += '<p><strong>Instrument: </strong>"' +
+                       hit.misc.platform["Instrument Abbreviation"] + '"</p>';
+        }
     }
 
-    content += '<p><a target="_blank" href="http://data.ceda.ac.uk' +
-               hit.file.path + '">Get this data file</a></p>';
 
     content += '<p><a target="_blank" href="http://data.ceda.ac.uk' +
-               hit.file.path.truncatePath(2) + '">Get data for this flight</a></p>';    
+               hit.file.path.truncatePath(1) + '/' + hit.file.data_file + '">Get this data file</a></p>';
+
+    content += '<p><a target="_blank" href="http://data.ceda.ac.uk' +
+               hit.file.path.truncatePath(1) + '">View directory for this scene</a></p>';
 
     content += '</section>';
     info = new google.maps.InfoWindow(
@@ -379,7 +386,7 @@ function drawFlightTracks(gmap, hits) {
 
                     window.setTimeout(function () {
                         addBoundsChangedListener(gmap);
-                    }, 500);
+                    }, 1000);
                 };
             }
         )(i));
@@ -578,7 +585,7 @@ window.onload = function () {
             $('#start_time').val('');
             $('#end_time').val('');
             $('#ftext').val('');
-            clearAggregatedVariables();
+            // clearAggregatedVariables();
             cleanup();
             redrawMap(map, false);
         }
