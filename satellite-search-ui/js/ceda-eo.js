@@ -14,7 +14,7 @@ function getParameterByName(name) {
 
 // Window constants
 var REQUEST_SIZE = 400;
-var INDEX = getParameterByName('index') || 'eufar';
+var INDEX = getParameterByName('index') || 'ceda-eo';
 var ES_URL = 'http://jasmin-es1.ceda.ac.uk:9000/' + INDEX + '/_search';
 var TRACK_COLOURS = [
     '#4D4D4D', '#5DA5DA', '#FAA43A',
@@ -92,6 +92,15 @@ function updateExportResultsModal(hits) {
     $('#results').html(JSON.stringify(hits, null, '    '));
 }
 
+
+// ---------------------------'Loading' Modal---------------------------
+
+function displayLoadingModal() {
+    var $loading = $('#loading_modal');
+    $loading.css("display", $loading.css("display") === 'none' ? 'block' : 'none');
+
+}
+
 // -------------------------------ElasticSearch--------------------------------
 function requestFromFilters(full_text) {
     var i, ft, req;
@@ -113,6 +122,9 @@ function requestFromFilters(full_text) {
 function createElasticsearchRequest(gmaps_corners, full_text, size) {
     var i, end_time, tmp_ne, tmp_sw, no_photography, nw,
         se, start_time, request, temporal, tf, vars;
+
+    // Present loading modal
+    displayLoadingModal()
 
     tmp_ne = gmaps_corners.getNorthEast();
     tmp_sw = gmaps_corners.getSouthWest();
@@ -244,6 +256,9 @@ function updateMap(response, gmap) {
 
         // Draw flight tracks on a map
         drawFlightTracks(gmap, response.hits.hits);
+
+        // Toggle loading modal
+        displayLoadingModal()
     }
 
     if (response.aggregations) {
@@ -432,7 +447,7 @@ function redrawMap(gmap, add_listener) {
     if (add_listener === true) {
         window.setTimeout(function () {
             addBoundsChangedListener(gmap);
-        }, 500);
+        }, 1000);
     }
 }
 
@@ -541,7 +556,7 @@ window.onload = function () {
     // Google Maps geocoder and map object
     geocoder = new google.maps.Geocoder();
     map = new google.maps.Map(
-        document.getElementById('map'),
+        document.getElementById('map-container').getElementsByClassName('map')[0],
         {
             mapTypeId: google.maps.MapTypeId.TERRAIN,
             zoom: 4
