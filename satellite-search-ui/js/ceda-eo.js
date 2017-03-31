@@ -177,18 +177,6 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
         'size': size
     };
 
-    no_photography = {
-        'not': {
-            'term': {
-                'spatial.geometries.display.type': 'point'
-            }
-        }
-    };
-
-    if (!$('#photography_checkbox').prop('checked')) {
-        request.filter.and.must.push(no_photography);
-    }
-
     // Add other filters from page to query
     tf = requestFromFilters(full_text);
     if (tf) {
