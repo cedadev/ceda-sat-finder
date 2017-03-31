@@ -274,7 +274,7 @@ function updateDownloadPaths(response) {
 
     paths = [];
     for (i = 0; i < h.length; i += 1) {
-        paths.push('http://badc.nerc.ac.uk/browse' + h[i]._source.file.path);
+        paths.push('http://data.ceda.ac.uk' + h[i]._source.file.path);
     }
 
     updateExportResultsModal(paths);
@@ -335,10 +335,10 @@ function createInfoWindow(hit) {
         }
     }
 
-    content += '<p><a target="_blank" href="http://badc.nerc.ac.uk/browse' +
+    content += '<p><a target="_blank" href="http://data.ceda.ac.uk' +
                hit.file.path + '">Get this data file</a></p>';
 
-    content += '<p><a target="_blank" href="http://badc.nerc.ac.uk/browse' +
+    content += '<p><a target="_blank" href="http://data.ceda.ac.uk' +
                hit.file.path.truncatePath(2) + '">Get data for this flight</a></p>';    
 
     content += '</section>';
