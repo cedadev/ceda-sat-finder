@@ -166,14 +166,6 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
                 ]
             }
         },
-        'aggs': {
-            'variables': {
-                'terms': {
-                    'field': 'parameters.value',
-                    'size': 30
-                }
-            }
-        },
         'size': size
     };
 
@@ -182,13 +174,6 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
     if (tf) {
         for (i = 0; i < tf.length; i += 1) {
             request.filter.and.must.push(tf[i]);
-        }
-    }
-
-    vars = requestFromMultiselect();
-    if (vars) {
-        for (i = 0; i < vars.length; i += 1) {
-            request.filter.and.must.push(vars[i]);
         }
     }
 
