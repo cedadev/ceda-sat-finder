@@ -140,7 +140,7 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
                 'file.path',
                 'file.data_file',
                 'misc',
-                'spatial.geometries.display',
+                'spatial.geometries.search',
                 'temporal'
             ]
         },
@@ -358,7 +358,7 @@ function drawFlightTracks(gmap, hits) {
         };
 
         // Create GeoJSON object
-        display = hit._source.spatial.geometries.display;
+        display = hit._source.spatial.geometries.search;
         geom = GeoJSON(display, options);
 
         geom.setMap(gmap);
@@ -623,16 +623,16 @@ window.onload = function () {
     );
 
     //----------------------------- UI Widgets -------------------------------
-    $('#multiselect').multiSelect(
-        {
-            afterSelect: function () {
-                redrawMap(map, false);
-            },
-            afterDeselect: function () {
-                redrawMap(map, false);
-            }
-        }
-    );
+    // $('#multiselect').multiSelect(
+    //     {
+    //         afterSelect: function () {
+    //             redrawMap(map, false);
+    //         },
+    //         afterDeselect: function () {
+    //             redrawMap(map, false);
+    //         }
+    //     }
+    // );
 
     // Kick off help text popovers
     // http://stackoverflow.com/a/18537617
@@ -651,10 +651,6 @@ window.onload = function () {
     // Draw histogram
     sendHistogramRequest();
 
-    // 'Include photography' checkbox
-    $('#photography_checkbox').change(function () {
-        redrawMap(map, false);
-    });
 
     //---------------------------- Map main loop ------------------------------
     addBoundsChangedListener(map);
