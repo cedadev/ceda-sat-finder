@@ -545,6 +545,8 @@ window.onload = function () {
 		$('#mouse').html(lat + ', ' + lon);
 	});
 
+
+
     //------------------------------- Buttons -------------------------------
     $('#location_search').click(
         function () {
@@ -650,6 +652,13 @@ window.onload = function () {
 
     // Draw histogram
     sendHistogramRequest();
+
+    // Auto-fill temporal filter to select the last year.
+    var today = new Date();
+    var datestring = (today.getFullYear() -1) + "-" + (today.getMonth() +1) + "-" + today.getDate();
+
+    $('#start_time').datepicker('setDate', datestring);
+    $('#end_time').datepicker('setDate',today);
 
 
     //---------------------------- Map main loop ------------------------------
