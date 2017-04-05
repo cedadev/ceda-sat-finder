@@ -117,3 +117,14 @@ div .logo {
 #loading-text {
     margin: 0px
 }
+
+.polygon { width: 35px;}
+
+.low-padding {
+    padding: 2px;
+}
+
+.eightypc {
+    width: 82% !important;
+}
+
