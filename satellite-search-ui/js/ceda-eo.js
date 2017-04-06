@@ -609,7 +609,7 @@ window.onload = function () {
             $('#ftext').val('');
             // clearAggregatedVariables();
             cleanup();
-            if (window.rectangle !== undefined) clearRect();
+            clearRect();
             $('#polygon_draw').bootstrapToggle('off')
             redrawMap(map, false);
         }
@@ -621,9 +621,6 @@ window.onload = function () {
     $('#polygon_draw').change(
         function () {
 
-
-            // $('#polygon_draw').toggleClass('active');
-            // if ($('#polygon_draw').hasClass('active')) {\
             if ($('#polygon_draw').prop('checked')) {
 
                 if (window.rectangle !== undefined) clearRect();
@@ -671,22 +668,25 @@ window.onload = function () {
                     var maxLng = lng1 < lng2 ? lng2 : lng1;
                     bounds = [[minLng, maxLat], [maxLng, minLat]]
 
-
-                    cleanup()
+                    // remove all the data objects drawn on the map, create ES request, send and draw results.
+                    cleanup();
                     var request = createElasticsearchRequest(bounds, $('#ftext').val(), 100, true);
-                    sendElasticsearchRequest(request, updateMap, map)
+                    sendElasticsearchRequest(request, updateMap, map);
 
-
+                    // zoom map to new rectangle
+                    var sw = new google.maps.LatLng(minLat,minLng);
+                    var ne = new google.maps.LatLng(maxLat,maxLng);
+                    map.fitBounds(new google.maps.LatLngBounds(sw,ne));
+                    map.setZoom(map.getZoom()-2);
 
                 })
             }
             else {
-                map.setOptions({'draggable': true});
-                map.setOptions({'keyboardShortcuts': true});
+                // clear rectangle drawing listeners and reinstate boundschanged listener.
 
-                google.maps.event.clearListeners(map, 'mousedown')
-                // google.maps.event.clearListeners(map, 'mousemove')
-                google.maps.event.clearListeners(map, 'mouseup')
+                google.maps.event.clearListeners(map, 'mousedown');
+                google.maps.event.clearListeners(map, 'mouseup');
+                addBoundsChangedListener(map)
 
                 dragging = false;
                 map.draggable = true;
@@ -716,7 +716,6 @@ window.onload = function () {
 
     function clearRect() {
         window.rectangle.setMap(null);
-
         window.rectangle = undefined;
 
     }
