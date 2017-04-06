@@ -139,6 +139,7 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
                 'file.filename',
                 'file.path',
                 'file.data_file',
+                'file.quicklook_file',
                 'misc',
                 'spatial.geometries.search',
                 'temporal'
@@ -296,7 +297,7 @@ function createInfoWindow(hit) {
 
     hit = hit._source;
     content = '<section><p><strong>Filename: </strong>' +
-              hit.file.filename + '</p>';
+              hit.file.data_file + '</p>';
 
     if (hit.temporal) {
         content += '<p><strong>Start Time: </strong>' +
@@ -321,6 +322,10 @@ function createInfoWindow(hit) {
                        hit.misc.platform["Instrument Abbreviation"] + '"</p>';
         }
     }
+
+    // if (hit.file.quicklook_file) {
+    //     content += '<img src="http://data.ceda.ac.uk' + hit.file.path.truncatePath(1)+ '/' + hit.file.quicklook_file + '"> '
+    // }
 
 
     content += '<p><a target="_blank" href="http://data.ceda.ac.uk' +
