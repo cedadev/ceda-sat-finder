@@ -274,6 +274,7 @@ function updateDownloadPaths(response) {
 // -----------------------------------Map--------------------------------------
 var geometries = [];
 var info_windows = [];
+var quicklooks = [];
 
 function centreMap(gmap, geocoder, loc) {
     if (loc !== '') {
@@ -323,9 +324,12 @@ function createInfoWindow(hit) {
         }
     }
 
-    // if (hit.file.quicklook_file) {
-    //     content += '<img src="http://data.ceda.ac.uk' + hit.file.path.truncatePath(1)+ '/' + hit.file.quicklook_file + '"> '
-    // }
+    if (hit.file.quicklook_file) {
+        quicklooks.push('http://data.ceda.ac.uk' + hit.file.path.truncatePath(1)+ '/' + hit.file.quicklook_file)
+    }
+    else {
+        quicklooks.push('')
+    }
 
 
     content += '<p><a target="_blank" href="http://data.ceda.ac.uk' +
@@ -376,8 +380,8 @@ function drawFlightTracks(gmap, hits) {
 
     for (i = 0; i < geometries.length; i += 1) {
         google.maps.event.addListener(geometries[i], 'click',
-            (function (i, e) {
-                return function (e) {
+            (function (i, e, hits) {
+                return function (e, hits) {
                     var j;
 
                     google.maps.event.clearListeners(gmap, 'bounds_changed');
@@ -387,6 +391,7 @@ function drawFlightTracks(gmap, hits) {
                     }
 
                     info_windows[i].setPosition(e.latLng);
+                    getQuickLook(info_windows[i],i);
                     info_windows[i].open(gmap, null);
 
                     window.setTimeout(function () {
@@ -397,6 +402,7 @@ function drawFlightTracks(gmap, hits) {
         )(i));
     }
 }
+
 
 function cleanup() {
     var i;
@@ -433,6 +439,36 @@ function addBoundsChangedListener(gmap) {
     google.maps.event.addListenerOnce(gmap, 'bounds_changed', function () {
         redrawMap(gmap, true);
     });
+}
+
+    // ------------------------------ Info window quicklook -------------
+    function getQuickLook(info_window, i) {
+        content = info_window.getContent()
+
+        if (quicklooks[i]) {
+
+            content += "<img class='thumbnail quicklook' src='" + quicklooks[i] + "' alt='You need to be signed in at data.ceda.ac.uk to view this image'> "
+            info_window.setContent(content)
+
+
+        }
+
+
+    }
+
+
+
+
+
+
+    function displayPopup(x) {
+        var $popup = $('#quicklook-modal');
+        var imgElement = $('#quicklook-modal-popup');
+
+        alert(x.src)
+
+
+
 }
 
 // ---------------------------------Histogram----------------------------------

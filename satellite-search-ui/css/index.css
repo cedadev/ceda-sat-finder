@@ -117,3 +117,13 @@ div .logo {
 #loading-text {
     margin: 0px
 }
+
+.gm-style-iw {
+    max-height: 300px!important;
+    overflow: auto!important;
+}
+
+.quicklook {
+    height: 100px;
+}
+
