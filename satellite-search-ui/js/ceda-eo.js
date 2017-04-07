@@ -328,7 +328,7 @@ function createInfoWindow(hit) {
         quicklooks.push('http://data.ceda.ac.uk' + hit.file.path.truncatePath(1)+ '/' + hit.file.quicklook_file)
     }
     else {
-        quicklooks.push('')
+        quicklooks.push('-')
     }
 
 
@@ -445,7 +445,7 @@ function addBoundsChangedListener(gmap) {
     function getQuickLook(info_window, i) {
         content = info_window.getContent()
 
-        if (quicklooks[i]) {
+        if (quicklooks[i] !== '-') {
 
             content += "<img class='thumbnail quicklook' src='" + quicklooks[i] + "' alt='You need to be signed in at data.ceda.ac.uk to view this image'> "
             info_window.setContent(content)
