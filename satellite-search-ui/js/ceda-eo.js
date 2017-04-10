@@ -50,43 +50,6 @@ String.prototype.truncatePath = function (levels) {
     return t_path;
 };
 
-// ------------------------------Variable Filter-------------------------------
-// function clearAggregatedVariables() {
-//     var select = $('#multiselect').html('');
-//     select.multiSelect('refresh');
-// }
-//
-// function displayAggregatedVariables(aggregations) {
-//     var select, i, buckets;
-//
-//     select = $('#multiselect');
-//     buckets = aggregations.variables.buckets;
-//     for (i = 0; i < buckets.length; i += 1) {
-//         select.multiSelect('addOption', {
-//             value: buckets[i].key,
-//             text: (buckets[i].key + ' (' + buckets[i].doc_count + ')')
-//         });
-//     }
-// }
-//
-// function requestFromMultiselect() {
-//     var i, vars, req;
-//     req = [];
-//     vars = $('#multiselect').val();
-//
-//     if (vars) {
-//         for (i = 0; i < vars.length; i += 1) {
-//             req.push({
-//                 term: {
-//                     _all: vars[i]
-//                 }
-//             });
-//         }
-//         return req;
-//     }
-//     return '';
-// }
-
 // ---------------------------'Export Results' Modal---------------------------
 function updateExportResultsModal(hits) {
     $('#results').html(JSON.stringify(hits, null, '    '));
@@ -456,20 +419,6 @@ function addBoundsChangedListener(gmap) {
 
     }
 
-
-
-
-
-
-    function displayPopup(x) {
-        var $popup = $('#quicklook-modal');
-        var imgElement = $('#quicklook-modal-popup');
-
-        alert(x.src)
-
-
-
-}
 
 // ---------------------------------Histogram----------------------------------
 function drawHistogram(request) {
