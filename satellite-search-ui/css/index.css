@@ -104,9 +104,13 @@ div .logo {
     to {opacity: 1;}
 }
 
-.modal-dialog {
+.modal-dialog.load {
     top: 40vh !important;
     width: 30% !important;
+}
+
+.modal-dialog.zoom {
+    width: 83vh !important;
 }
 
 .icon-md {
@@ -125,6 +129,7 @@ div .logo {
 
 .quicklook {
     height: 100px;
+    cursor: pointer;
 }
 
 .eightypc {

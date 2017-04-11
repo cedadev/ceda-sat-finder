@@ -70,6 +70,16 @@ function displayLoadingModal() {
 
 }
 
+// ---------------------------'Quicklook' Modal---------------------------
+
+function displayquicklookModal(i) {
+    $('#modal-quicklook-image').attr('src', quicklooks[i])
+    var $loading = $('#quicklook_modal');
+    $loading.modal()
+
+}
+
+
 // -------------------------------ElasticSearch--------------------------------
 function requestFromFilters(full_text) {
     var i, ft, req;
@@ -431,14 +441,13 @@ function addBoundsChangedListener(gmap) {
 
         if (quicklooks[i] !== '-') {
 
-            content += "<img class='thumbnail quicklook' src='" + quicklooks[i] + "' alt='You need to be signed in at data.ceda.ac.uk to view this image'> "
+            content += "<img class='thumbnail quicklook' src='" + quicklooks[i] + "' alt='You need to be signed in at data.ceda.ac.uk to view this image' onclick='displayquicklookModal(" + i + ")'> "
             info_window.setContent(content)
 
 
         }
-
-
     }
+
 
 
 // ---------------------------------Histogram----------------------------------
