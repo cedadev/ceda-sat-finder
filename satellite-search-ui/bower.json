@@ -22,6 +22,7 @@
     "geojson": "charlienewey/geojson-google-maps",
     "highcharts": "http://code.highcharts.com/highcharts.js",
     "jquery": "~2.1.1",
-    "multiselect": "~0.9.12"
+    "multiselect": "~0.9.12",
+    "bootstrap-toggle": "^2.2.2"
   }
 }

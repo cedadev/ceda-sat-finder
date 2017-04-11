@@ -22,6 +22,8 @@ var TRACK_COLOURS = [
     '#B276B2', '#DECF3F', '#F15854'
 ];
 
+var rectangle
+
 // -----------------------------------String-----------------------------------
 String.prototype.hashCode = function () {
     // Please see: http://bit.ly/1dSyf18 for original
@@ -49,6 +51,10 @@ String.prototype.truncatePath = function (levels) {
     t_path = parts.slice(0, parts.length - levels).join('/');
     return t_path;
 };
+
+// ------------------------------ Custom Events -------------------------------
+    var rectangleComplete = new CustomEvent('rectangleComplete');
+
 
 // ---------------------------'Export Results' Modal---------------------------
 function updateExportResultsModal(hits) {
@@ -82,17 +88,29 @@ function requestFromFilters(full_text) {
     }
 }
 
-function createElasticsearchRequest(gmaps_corners, full_text, size) {
+function createElasticsearchRequest(gmaps_corners, full_text, size, drawing) {
     var i, end_time, tmp_ne, tmp_sw, no_photography, nw,
         se, start_time, request, temporal, tf, vars;
 
     // Present loading modal
     displayLoadingModal()
 
-    tmp_ne = gmaps_corners.getNorthEast();
-    tmp_sw = gmaps_corners.getSouthWest();
-    nw = [tmp_sw.lng().toString(), tmp_ne.lat().toString()];
-    se = [tmp_ne.lng().toString(), tmp_sw.lat().toString()];
+    if (drawing) {
+        nw = gmaps_corners[0]
+        se = gmaps_corners[1]
+    }
+    else{
+
+        tmp_ne = gmaps_corners.getNorthEast();
+        tmp_sw = gmaps_corners.getSouthWest();
+        nw = [tmp_sw.lng().toString(), tmp_ne.lat().toString()];
+        se = [tmp_ne.lng().toString(), tmp_sw.lat().toString()];
+    }
+
+
+
+
+
 
     // ElasticSearch request
     request = {
@@ -104,7 +122,7 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
                 'file.data_file',
                 'file.quicklook_file',
                 'misc',
-                'spatial.geometries.search',
+                'spatial.geometries',
                 'temporal'
             ]
         },
@@ -379,6 +397,7 @@ function cleanup() {
         info_windows[i].close();
     }
     info_windows = [];
+
 }
 
 function redrawMap(gmap, add_listener) {
@@ -400,6 +419,8 @@ function redrawMap(gmap, add_listener) {
 
 function addBoundsChangedListener(gmap) {
     google.maps.event.addListenerOnce(gmap, 'bounds_changed', function () {
+
+        if (window.rectangle === undefined)
         redrawMap(gmap, true);
     });
 }
@@ -579,9 +600,116 @@ window.onload = function () {
             $('#ftext').val('');
             // clearAggregatedVariables();
             cleanup();
+            clearRect();
+            $('#polygon_draw').bootstrapToggle('off')
             redrawMap(map, false);
         }
     );
+
+
+    //---------------------------- Map drawing tool ---------------------------
+
+    $('#polygon_draw').change(
+        function () {
+
+            if ($('#polygon_draw').prop('checked')) {
+
+                if (window.rectangle !== undefined) clearRect();
+
+                map.setOptions({'draggable': false});
+                map.setOptions({'keyboardShortcuts': false});
+
+                var dragging = false;
+                var rect;
+
+
+                rect = new google.maps.Rectangle({
+                    map: map
+                });
+
+                google.maps.event.addListener(map, 'mousedown', function (mEvent) {
+                    map.draggable = false;
+                    latlng1 = mEvent.latLng;
+                    dragging = true;
+                    pos1 = mEvent.pixel;
+                });
+
+                google.maps.event.addListener(map, 'mousemove', function (mEvent) {
+                    latlng2 = mEvent.latLng;
+                    showRect();
+                });
+
+                google.maps.event.addListener(map, 'mouseup', function (mEvent) {
+                    map.draggable = true;
+                    dragging = false;
+
+                });
+
+                google.maps.event.addListener(rect, 'mouseup', function (data) {
+                    map.draggable = true;
+                    dragging = false;
+
+                    var lat1 = latlng1.lat();
+                    var lat2 = latlng2.lat();
+                    var minLat = lat1 < lat2 ? lat1 : lat2;
+                    var maxLat = lat1 < lat2 ? lat2 : lat1;
+                    var lng1 = latlng1.lng();
+                    var lng2 = latlng2.lng();
+                    var minLng = lng1 < lng2 ? lng1 : lng2;
+                    var maxLng = lng1 < lng2 ? lng2 : lng1;
+                    bounds = [[minLng, maxLat], [maxLng, minLat]]
+
+                    // remove all the data objects drawn on the map, create ES request, send and draw results.
+                    cleanup();
+                    var request = createElasticsearchRequest(bounds, $('#ftext').val(), 100, true);
+                    sendElasticsearchRequest(request, updateMap, map);
+
+                    // zoom map to new rectangle
+                    var sw = new google.maps.LatLng(minLat,minLng);
+                    var ne = new google.maps.LatLng(maxLat,maxLng);
+                    map.fitBounds(new google.maps.LatLngBounds(sw,ne));
+                    map.setZoom(map.getZoom()-2);
+
+                })
+            }
+            else {
+                // clear rectangle drawing listeners and reinstate boundschanged listener.
+
+                google.maps.event.clearListeners(map, 'mousedown');
+                google.maps.event.clearListeners(map, 'mouseup');
+                addBoundsChangedListener(map)
+
+                dragging = false;
+                map.draggable = true;
+                map.keyboardShortcuts = true;
+
+
+
+            }
+
+            function showRect() {
+                if (dragging) {
+                    if (rect === undefined) {
+                        rect = new google.maps.Rectangle({
+                            map: map
+                        });
+                    }
+                    var latLngBounds = new google.maps.LatLngBounds(latlng1, latlng2);
+                    rect.setBounds(latLngBounds);
+
+                    window.rectangle = rect
+
+                }
+
+            }
+        }
+    );
+
+    function clearRect() {
+        window.rectangle.setMap(null);
+        window.rectangle = undefined;
+
+    }
 
     //--------------------------- 'Export Results' ---------------------------
     $('#raw_json').click(
