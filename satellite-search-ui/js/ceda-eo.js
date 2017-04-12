@@ -131,6 +131,7 @@ function createElasticsearchRequest(gmaps_corners, full_text, size, drawing) {
                 'file.path',
                 'file.data_file',
                 'file.quicklook_file',
+                'file.location',
                 'misc',
                 'spatial.geometries',
                 'temporal'
@@ -291,6 +292,7 @@ function createInfoWindow(hit) {
     content = '<section><p><strong>Filename: </strong>' +
               hit.file.data_file + '</p>';
 
+
     if (hit.temporal) {
         content += '<p><strong>Start Time: </strong>' +
                    hit.temporal.start_time + '</p>' +
@@ -322,14 +324,19 @@ function createInfoWindow(hit) {
         quicklooks.push('-')
     }
 
+    if (hit.file.location === "on_disk") {
+        content += '<p><a target="_blank" href="http://data.ceda.ac.uk' +
+            hit.file.path.truncatePath(1) + '/' + hit.file.data_file + '">Get this data file</a></p>';
 
-    content += '<p><a target="_blank" href="http://data.ceda.ac.uk' +
-               hit.file.path.truncatePath(1) + '/' + hit.file.data_file + '">Get this data file</a></p>';
+        content += '<p><a target="_blank" href="http://data.ceda.ac.uk' +
+            hit.file.path.truncatePath(1) + '">View directory for this scene</a></p>';
+    } else {
+        content += '<p>This file is stored on tape, please click <a target="_blank" href="http://help.ceda.ac.uk/article/265-nla">here</a> for information about access to this file.</p>'
+    }
 
-    content += '<p><a target="_blank" href="http://data.ceda.ac.uk' +
-               hit.file.path.truncatePath(1) + '">View directory for this scene</a></p>';
 
     content += '</section>';
+
     info = new google.maps.InfoWindow(
         {
             content: content,
@@ -339,6 +346,19 @@ function createInfoWindow(hit) {
 
     return info;
 }
+
+    // ------------------------------ Info window quicklook -------------
+    function getQuickLook(info_window, i) {
+        content = info_window.getContent()
+
+        if (quicklooks[i] !== '-') {
+
+            content += "<img class='quicklook' src='" + quicklooks[i] + "' alt='Data quicklook image' onclick='displayquicklookModal(" + i + ")'> "
+            info_window.setContent(content)
+
+
+        }
+    }
 
 function drawFlightTracks(gmap, hits) {
     var colour_index, geom, hit, i, info_window, options, display;
@@ -435,18 +455,6 @@ function addBoundsChangedListener(gmap) {
     });
 }
 
-    // ------------------------------ Info window quicklook -------------
-    function getQuickLook(info_window, i) {
-        content = info_window.getContent()
-
-        if (quicklooks[i] !== '-') {
-
-            content += "<img class='thumbnail quicklook' src='" + quicklooks[i] + "' alt='You need to be signed in at data.ceda.ac.uk to view this image' onclick='displayquicklookModal(" + i + ")'> "
-            info_window.setContent(content)
-
-
-        }
-    }
 
 
 

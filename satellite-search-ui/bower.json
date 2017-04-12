@@ -23,6 +23,7 @@
     "highcharts": "http://code.highcharts.com/highcharts.js",
     "jquery": "~2.1.1",
     "multiselect": "~0.9.12",
-    "bootstrap-toggle": "^2.2.2"
+    "bootstrap-toggle": "^2.2.2",
+    "mustache.js": "mustache#^2.3.0"
   }
 }

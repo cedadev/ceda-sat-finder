@@ -128,8 +128,17 @@ div .logo {
 }
 
 .quicklook {
-    height: 100px;
+    height: 110px;
     cursor: pointer;
+    padding: 3px;
+    border: solid;
+    border-radius: 5px;
+    border-width: 1px;
+    border-color: rgba(0, 0, 0, 0.2);
+
+}
+.left {
+    padding-left: 0px !important;
 }
 
 .eightypc {
