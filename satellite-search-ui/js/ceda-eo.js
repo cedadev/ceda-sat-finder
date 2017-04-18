@@ -73,12 +73,16 @@ function displayLoadingModal() {
 // ---------------------------'Quicklook' Modal---------------------------
 
 function displayquicklookModal(i) {
+
     $('#modal-quicklook-image').attr('src', quicklooks[i])
     var $loading = $('#quicklook_modal');
     $loading.modal()
 
 }
 
+$('#quicklook_modal').on('hidden.bs.modal', function () {
+    $('#modal-quicklook-image').attr('onerror', 'imgError(this)')
+})
 
 // -------------------------------ElasticSearch--------------------------------
 function requestFromFilters(full_text) {
@@ -289,33 +293,18 @@ function createInfoWindow(hit) {
     var content, info;
 
     hit = hit._source;
-    content = '<section><p><strong>Filename: </strong>' +
-              hit.file.data_file + '</p>';
 
+    view = {
+        filename: hit.file.data_file,
+        start_time: hit.temporal.start_time,
+        end_time: hit.temporal.end_time,
+        mission: hit.misc.platform.Mission,
+        satellite: hit.misc.platform.Satellite,
+        instrument: hit.misc.platform["Instrument Abbreviation"]
+    };
 
-    if (hit.temporal) {
-        content += '<p><strong>Start Time: </strong>' +
-                   hit.temporal.start_time + '</p>' +
-                   '<p><strong>End Time: </strong>' +
-                   hit.temporal.end_time + '</p>';
-    }
-
-    if (hit.misc.platform) {
-        if (hit.misc.platform.Mission) {
-            content += '<p><strong>Mission: </strong>"' +
-                       hit.misc.platform.Mission + '"</p>';
-        }
-
-        if (hit.misc.platform.Satellite) {
-            content += '<p><strong>Satellite: </strong>"' +
-                       hit.misc.platform.Satellite + '"</p>';
-        }
-
-        if (hit.misc.platform["Instrument Abbreviation"]) {
-            content += '<p><strong>Instrument: </strong>"' +
-                       hit.misc.platform["Instrument Abbreviation"] + '"</p>';
-        }
-    }
+    var template = $('#infowindowTemplate').html();
+    content = Mustache.render(template, view);
 
     if (hit.file.quicklook_file) {
         quicklooks.push('http://data.ceda.ac.uk' + hit.file.path.truncatePath(1)+ '/' + hit.file.quicklook_file)
@@ -349,15 +338,22 @@ function createInfoWindow(hit) {
 
     // ------------------------------ Info window quicklook -------------
     function getQuickLook(info_window, i) {
-        content = info_window.getContent()
+        var content = $(info_window.getContent());
 
         if (quicklooks[i] !== '-') {
 
-            content += "<img class='quicklook' src='" + quicklooks[i] + "' alt='Data quicklook image' onclick='displayquicklookModal(" + i + ")'> "
+            var quicklook = "<img class='quicklook' src='" + quicklooks[i] + "' alt='Data quicklook image' onclick='displayquicklookModal(" + i + ")' onerror='imgError(this)'> ";
+            content.find("#quicklooks_placeholder").first().html(quicklook);
+            content = content.prop('outerHTML');
+
             info_window.setContent(content)
 
-
         }
+    }
+
+    function imgError(image) {
+        image.onerror = "";
+        image.src = "./img/unavailable.png"
     }
 
 function drawFlightTracks(gmap, hits) {
