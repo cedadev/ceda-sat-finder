@@ -137,7 +137,7 @@ function createElasticsearchRequest(gmaps_corners, full_text, size, drawing) {
                 'file.quicklook_file',
                 'file.location',
                 'misc',
-                'spatial.geometries',
+                'spatial.geometries.display',
                 'temporal'
             ]
         },
@@ -374,7 +374,7 @@ function drawFlightTracks(gmap, hits) {
         };
 
         // Create GeoJSON object
-        display = hit._source.spatial.geometries.search;
+        display = hit._source.spatial.geometries.display;
         geom = GeoJSON(display, options);
 
         geom.setMap(gmap);
