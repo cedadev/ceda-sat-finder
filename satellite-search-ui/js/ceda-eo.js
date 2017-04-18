@@ -556,7 +556,7 @@ window.onload = function () {
         document.getElementById('map-container').getElementsByClassName('map')[0],
         {
             mapTypeId: google.maps.MapTypeId.TERRAIN,
-            zoom: 4
+            zoom: 3
         }
     );
 
