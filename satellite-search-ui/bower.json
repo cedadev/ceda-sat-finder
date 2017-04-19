@@ -1,12 +1,12 @@
 {
-  "name": "eufar-ui",
+  "name": "satellite-search-ui",
   "version": "0.1.0",
-  "homepage": "https://github.com/cedadev/eufar-ui",
+  "homepage": "https://github.com/cedadev/ceda-map-uis",
   "authors": [
     "Charles Newey <charles.newey@stfc.ac.uk>"
   ],
-  "description": "Web interface for the EUFAR metadata search system",
-  "main": "js/eufar.js",
+  "description": "Web interface so search for CEDA Satellite data",
+  "main": "js/ceda-eo.js",
   "license": "BSD",
   "private": true,
   "ignore": [
