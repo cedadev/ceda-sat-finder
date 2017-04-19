@@ -423,6 +423,7 @@ function cleanup() {
         info_windows[i].close();
     }
     info_windows = [];
+    quicklooks = [];
 
 }
 
