@@ -73,8 +73,14 @@ function displayLoadingModal() {
 // ---------------------------'Quicklook' Modal---------------------------
 
 function displayquicklookModal(i) {
-
+    // set quicklook image
     $('#modal-quicklook-image').attr('src', quicklooks[i])
+
+    // set modal title to data filename
+    var title = $(info_windows[i].getContent()).find("#iw-title").first().html()
+    title = title.replace(/^<strong>.+<\/strong>/g,'');
+    $('#file_nameQL').html(title)
+
     var $loading = $('#quicklook_modal');
     $loading.modal()
 

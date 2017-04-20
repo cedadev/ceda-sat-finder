@@ -218,9 +218,9 @@
         <div id="quicklook_modal" class="modal">
             <div class="modal-dialog zoom">
                 <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                                aria-hidden="true">&times;</span></button>
+                    <div class="modal-header" style="overflow: hidden;">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">&times;</button>
+                        <h4 id="file_nameQL"></h4>
                     </div>
                     <div class="modal-body">
                             <img id="modal-quicklook-image" src="" onerror="imgError(this)">
@@ -235,7 +235,7 @@
 
 <script id="infowindowTemplate" type="text/html">
     <section>
-    <p><strong>Filename: </strong>{{filename}}</p>
+    <p id="iw-title"><strong>Filename: </strong>{{filename}}</p>
     <table>
         <tr>
             <td class="col-md-6 left"><p><strong>Start Time: </strong>{{start_time}}</p></td>
