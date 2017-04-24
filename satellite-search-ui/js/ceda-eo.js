@@ -700,7 +700,7 @@ window.onload = function () {
                 addBoundsChangedListener(map)
 
                 dragging = false;
-                map.draggable = true;
+                map.setOptions({draggable: true});
                 map.keyboardShortcuts = true;
 
 
