@@ -22,8 +22,6 @@ var TRACK_COLOURS = [
     '#B276B2', '#DECF3F', '#F15854'
 ];
 
-var rectangle
-
 // -----------------------------------String-----------------------------------
 String.prototype.hashCode = function () {
     // Please see: http://bit.ly/1dSyf18 for original
@@ -51,9 +49,6 @@ String.prototype.truncatePath = function (levels) {
     t_path = parts.slice(0, parts.length - levels).join('/');
     return t_path;
 };
-
-// ------------------------------ Custom Events -------------------------------
-    var rectangleComplete = new CustomEvent('rectangleComplete');
 
 
 // ---------------------------'Export Results' Modal---------------------------
@@ -590,7 +585,11 @@ window.onload = function () {
             var charcode = e.charCode || e.keyCode || e.which;
             if (charcode === 13) {
                 cleanup();
-                redrawMap(map, false);
+                if (window.rectangle !== undefined) {
+                    queryRect();
+                } else {
+                    redrawMap(map, false);
+                }
                 return false;
             }
         }
@@ -609,7 +608,11 @@ window.onload = function () {
     $('#applyfil').click(
         function () {
             cleanup();
-            redrawMap(map, false);
+            if (window.rectangle !== undefined) {
+                queryRect();
+            } else {
+                redrawMap(map, false);
+            }
         }
     );
 
@@ -634,7 +637,19 @@ window.onload = function () {
 
             if ($('#polygon_draw').prop('checked')) {
 
-                if (window.rectangle !== undefined) clearRect();
+                if (window.rectangle !== undefined) {
+
+
+                    clearRect();
+                }
+
+
+                // Clear all the satellite product objects to allow user to draw.
+                for (i = 0; i < geometries.length; i += 1) {
+                    geom = geometries[i];
+                    geom.setMap(null)
+
+                }
 
                 map.setOptions({'draggable': false});
                 map.setOptions({'keyboardShortcuts': false});
@@ -669,27 +684,32 @@ window.onload = function () {
                     map.draggable = true;
                     dragging = false;
 
-                    var lat1 = latlng1.lat();
-                    var lat2 = latlng2.lat();
-                    var minLat = lat1 < lat2 ? lat1 : lat2;
-                    var maxLat = lat1 < lat2 ? lat2 : lat1;
-                    var lng1 = latlng1.lng();
-                    var lng2 = latlng2.lng();
-                    var minLng = lng1 < lng2 ? lng1 : lng2;
-                    var maxLng = lng1 < lng2 ? lng2 : lng1;
-                    bounds = [[minLng, maxLat], [maxLng, minLat]]
+                    // Allow the user to resize and drag the rectangle.
+                    rect.setEditable(true);
+                    rect.setDraggable(true);
 
-                    // remove all the data objects drawn on the map, create ES request, send and draw results.
-                    cleanup();
-                    var request = createElasticsearchRequest(bounds, $('#ftext').val(), 100, true);
-                    sendElasticsearchRequest(request, updateMap, map);
+                    // var lat1 = latlng1.lat();
+                    // var lat2 = latlng2.lat();
+                    // var minLat = lat1 < lat2 ? lat1 : lat2;
+                    // var maxLat = lat1 < lat2 ? lat2 : lat1;
+                    // var lng1 = latlng1.lng();
+                    // var lng2 = latlng2.lng();
+                    // var minLng = lng1 < lng2 ? lng1 : lng2;
+                    // var maxLng = lng1 < lng2 ? lng2 : lng1;
+                    // bounds = [[minLng, maxLat], [maxLng, minLat]]
 
-                    // zoom map to new rectangle
-                    var sw = new google.maps.LatLng(minLat,minLng);
-                    var ne = new google.maps.LatLng(maxLat,maxLng);
-                    map.fitBounds(new google.maps.LatLngBounds(sw,ne));
-                    map.setZoom(map.getZoom()-2);
+                    // // remove all the data objects drawn on the map, create ES request, send and draw results.
+                    // cleanup();
+                    // var request = createElasticsearchRequest(bounds, $('#ftext').val(), 100, true);
+                    // sendElasticsearchRequest(request, updateMap, map);
+                    //
+                    // // zoom map to new rectangle
+                    // var sw = new google.maps.LatLng(minLat,minLng);
+                    // var ne = new google.maps.LatLng(maxLat,maxLng);
+                    // map.fitBounds(new google.maps.LatLngBounds(sw,ne));
+                    // map.setZoom(map.getZoom()-2);
 
+                    // queryRect()
                 })
             }
             else {
@@ -738,6 +758,22 @@ window.onload = function () {
             }
         }
     );
+
+    function queryRect() {
+        current_bounds = window.rectangle.getBounds();
+        ne = current_bounds.getNorthEast();
+        sw = current_bounds.getSouthWest();
+
+        bounds = [[sw.lng(),ne.lat()], [ne.lng(),sw.lat()]]
+
+        // create ES request, send and draw results.
+        var request = createElasticsearchRequest(bounds, $('#ftext').val(), 100, true);
+        sendElasticsearchRequest(request, updateMap, map);
+
+        // zoom map to new rectangle
+        map.fitBounds(current_bounds);
+        map.setZoom(map.getZoom() - 2);
+    }
 
     function clearRect() {
         window.rectangle.setMap(null);
