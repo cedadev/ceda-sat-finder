@@ -714,7 +714,21 @@ window.onload = function () {
                             map: map
                         });
                     }
-                    var latLngBounds = new google.maps.LatLngBounds(latlng1, latlng2);
+                    // allow rectangle drawing from any angle, has issues on the international date line.
+                    var lat1 = latlng1.lat();
+                    var lat2 = latlng2.lat();
+                    var minLat = lat1 < lat2 ? lat1 : lat2;
+                    var maxLat = lat1 < lat2 ? lat2 : lat1;
+                    var lng1 = latlng1.lng();
+                    var lng2 = latlng2.lng();
+                    var minLng = lng1 < lng2 ? lng1 : lng2;
+                    var maxLng = lng1 < lng2 ? lng2 : lng1;
+                    var latLngBounds = new google.maps.LatLngBounds(
+                        //ne
+                        new google.maps.LatLng(maxLat,minLng),
+                        //sw
+                        new google.maps.LatLng(minLat,maxLng)
+                    );
                     rect.setBounds(latLngBounds);
 
                     window.rectangle = rect
