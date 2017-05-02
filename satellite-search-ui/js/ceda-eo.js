@@ -778,7 +778,6 @@ window.onload = function () {
     // http://stackoverflow.com/a/18537617
     $('[data-toggle="popover"]').popover({
         'trigger': 'hover',
-        'placement': 'top'
     });
 
     // Datepicker

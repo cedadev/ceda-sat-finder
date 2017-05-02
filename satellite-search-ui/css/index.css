@@ -79,11 +79,9 @@ div .logo {
     float: left;
 }
 
-/* Loading Modal Css
-*/
 
 
-/* The Modal (background) */
+/* Loading Modal CSS */
 .load-modal {
     display: none; /* Hidden by default */
     position: absolute; /* Stay in place */
@@ -109,6 +107,8 @@ div .logo {
     width: 30% !important;
 }
 
+
+/* Qiocklook Modal CSS */
 .modal-dialog.zoom {
     width: 85vh !important;
 }
@@ -153,3 +153,14 @@ div .logo {
     width: 82% !important;
 }
 
+
+/* Map tools CSS */
+.tools {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    z-index: 100;
+    background-color: white;
+    padding: 3px;
+    border-radius: 3px;
+}
