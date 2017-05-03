@@ -85,7 +85,7 @@ div .logo {
 .load-modal {
     display: none; /* Hidden by default */
     position: absolute; /* Stay in place */
-    z-index: 1; /* Sit on top */
+    z-index: 2; /* Sit on top */
     left: 30vw;
     top: 0;
     width: 70vw; /* Full width */
@@ -159,7 +159,7 @@ div .logo {
     position: absolute;
     right: 10px;
     top: 10px;
-    z-index: 100;
+    z-index: 1;
     background-color: white;
     padding: 3px;
     border-radius: 3px;

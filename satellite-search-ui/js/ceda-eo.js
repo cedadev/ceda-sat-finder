@@ -548,6 +548,11 @@ function sendHistogramRequest() {
     };
 }
 
+// ------------------------------window.unload---------------------------------
+
+    // makes sure that the drawing tool is always off on page load.
+    $(window).unload($('#polygon_draw').bootstrapToggle('off'));
+
 // ------------------------------window.onload---------------------------------
 window.onload = function () {
     var geocoder, lat, lon, map;
@@ -570,6 +575,7 @@ window.onload = function () {
         lon = event.latLng.lng().toFixed(4);
 		$('#mouse').html(lat + ', ' + lon);
 	});
+
 
 
 
@@ -632,23 +638,20 @@ window.onload = function () {
 
     //---------------------------- Map drawing tool ---------------------------
 
+
     $('#polygon_draw').change(
         function () {
 
             if ($('#polygon_draw').prop('checked')) {
 
                 if (window.rectangle !== undefined) {
-
-
                     clearRect();
                 }
-
 
                 // Clear all the satellite product objects to allow user to draw.
                 for (i = 0; i < geometries.length; i += 1) {
                     geom = geometries[i];
                     geom.setMap(null)
-
                 }
 
                 map.setOptions({'draggable': false});
@@ -684,37 +687,13 @@ window.onload = function () {
                     map.draggable = true;
                     dragging = false;
 
-                    // Allow the user to resize and drag the rectangle.
+                    // Allow the user to resize and drag the rectangle at the conclusion of drawing.
                     rect.setEditable(true);
                     rect.setDraggable(true);
-
-                    // var lat1 = latlng1.lat();
-                    // var lat2 = latlng2.lat();
-                    // var minLat = lat1 < lat2 ? lat1 : lat2;
-                    // var maxLat = lat1 < lat2 ? lat2 : lat1;
-                    // var lng1 = latlng1.lng();
-                    // var lng2 = latlng2.lng();
-                    // var minLng = lng1 < lng2 ? lng1 : lng2;
-                    // var maxLng = lng1 < lng2 ? lng2 : lng1;
-                    // bounds = [[minLng, maxLat], [maxLng, minLat]]
-
-                    // // remove all the data objects drawn on the map, create ES request, send and draw results.
-                    // cleanup();
-                    // var request = createElasticsearchRequest(bounds, $('#ftext').val(), 100, true);
-                    // sendElasticsearchRequest(request, updateMap, map);
-                    //
-                    // // zoom map to new rectangle
-                    // var sw = new google.maps.LatLng(minLat,minLng);
-                    // var ne = new google.maps.LatLng(maxLat,maxLng);
-                    // map.fitBounds(new google.maps.LatLngBounds(sw,ne));
-                    // map.setZoom(map.getZoom()-2);
-
-                    // queryRect()
-                })
+                });
             }
             else {
                 // clear rectangle drawing listeners and reinstate boundschanged listener.
-
                 google.maps.event.clearListeners(map, 'mousedown');
                 google.maps.event.clearListeners(map, 'mouseup');
                 addBoundsChangedListener(map)
@@ -722,9 +701,6 @@ window.onload = function () {
                 dragging = false;
                 map.setOptions({draggable: true});
                 map.keyboardShortcuts = true;
-
-
-
             }
 
             function showRect() {
@@ -733,7 +709,11 @@ window.onload = function () {
                         rect = new google.maps.Rectangle({
                             map: map
                         });
+
+                    } else {
+                        rect.setEditable(false)
                     }
+
                     // allow rectangle drawing from any angle, has issues on the international date line.
                     var lat1 = latlng1.lat();
                     var lat2 = latlng2.lat();
@@ -752,9 +732,7 @@ window.onload = function () {
                     rect.setBounds(latLngBounds);
 
                     window.rectangle = rect
-
                 }
-
             }
         }
     );
@@ -772,7 +750,7 @@ window.onload = function () {
 
         // zoom map to new rectangle
         map.fitBounds(current_bounds);
-        map.setZoom(map.getZoom() - 2);
+        map.setZoom(map.getZoom() - 1);
     }
 
     function clearRect() {
