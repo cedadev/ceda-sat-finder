@@ -164,3 +164,19 @@ div .logo {
     padding: 3px;
     border-radius: 3px;
 }
+
+
+/* Export modal loading animation */
+.loading_block {
+    display: none;
+    position: absolute;
+    left: 16px;
+    top: 79px;
+    background-color: rgba(255, 255, 255, 0.63);
+    width: 95%;
+    height: 50%;
+
+}
+.loading_img {
+    height:100%;
+}

@@ -24,7 +24,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">
+                <button id="export_x" type="button" class="close" data-dismiss="modal">
                     <span aria-hidden="true">&times;</span>
                     <span class="sr-only">Close</span>
                 </button>
@@ -36,6 +36,9 @@
                     <button type="button" class="btn" id="raw_json">Raw JSON</button>
                     <button type="button" class="btn" id="file_paths">File Paths</button>
                     <button type="button" class="btn" id="dl_urls">Download URLs</button>
+                    <div class="loading_block">
+                        <img class="loading_img" src="img/loading.gif">
+                    </div>
                 </div>
                 <div>
                     <textarea id="results" placeholder="Results will appear here..."></textarea>

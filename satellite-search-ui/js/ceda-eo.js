@@ -21,7 +21,7 @@ var TRACK_COLOURS = [
     '#60BD68', '#F17CB0', '#B2912F',
     '#B276B2', '#DECF3F', '#F15854'
 ];
-
+var export_modal_open = false
 // -----------------------------------String-----------------------------------
 String.prototype.hashCode = function () {
     // Please see: http://bit.ly/1dSyf18 for original
@@ -53,17 +53,23 @@ String.prototype.truncatePath = function (levels) {
 
 // ---------------------------'Export Results' Modal---------------------------
 function updateExportResultsModal(hits) {
+    loading()
     $('#results').html(JSON.stringify(hits, null, '    '));
 }
 
 
 // ---------------------------'Loading' Modal---------------------------
 
-function displayLoadingModal() {
-    var $loading = $('#loading_modal');
-    $loading.css("display", $loading.css("display") === 'none' ? 'block' : 'none');
+    function displayLoadingModal() {
+        var $loading = $('#loading_modal');
+        $loading.css("display", $loading.css("display") === 'none' ? 'block' : 'none');
 
-}
+    }
+
+    // loading gif inside export modal
+    function loading(){
+            $('.loading_block').css("display", $('.loading_block').css("display") === 'none' ? 'block' : 'none');
+        }
 
 // ---------------------------'Quicklook' Modal---------------------------
 
@@ -108,7 +114,9 @@ function createElasticsearchRequest(gmaps_corners, full_text, size, drawing) {
         se, start_time, request, temporal, tf, vars;
 
     // Present loading modal
-    displayLoadingModal()
+    if (!export_modal_open){
+        displayLoadingModal()
+    }
 
     if (drawing) {
         nw = gmaps_corners[0]
@@ -230,7 +238,9 @@ function updateMap(response, gmap) {
         drawFlightTracks(gmap, response.hits.hits);
 
         // Toggle loading modal
-        displayLoadingModal()
+        if (!export_modal_open){
+            displayLoadingModal()
+        }
     }
 
     // if (response.aggregations) {
@@ -576,6 +586,8 @@ window.onload = function () {
 		$('#mouse').html(lat + ', ' + lon);
 	});
 
+    $('#export_modal').modal('show')
+
 
 
 
@@ -614,6 +626,7 @@ window.onload = function () {
     $('#applyfil').click(
         function () {
             cleanup();
+            console.log(export_modal_open)
             if (window.rectangle !== undefined) {
                 queryRect();
             } else {
@@ -629,7 +642,9 @@ window.onload = function () {
             $('#ftext').val('');
             // clearAggregatedVariables();
             cleanup();
-            clearRect();
+            if (window.rectangle !== undefined){
+                clearRect();
+            }
             $('#polygon_draw').bootstrapToggle('off')
             redrawMap(map, false);
         }
@@ -737,15 +752,17 @@ window.onload = function () {
         }
     );
 
-    function queryRect() {
+    function rectBounds() {
         current_bounds = window.rectangle.getBounds();
-        ne = current_bounds.getNorthEast();
-        sw = current_bounds.getSouthWest();
+        var ne = current_bounds.getNorthEast();
+        var sw = current_bounds.getSouthWest();
 
-        bounds = [[sw.lng(),ne.lat()], [ne.lng(),sw.lat()]]
+        return [[sw.lng(),ne.lat()], [ne.lng(),sw.lat()]]
+    }
 
+    function queryRect() {
         // create ES request, send and draw results.
-        var request = createElasticsearchRequest(bounds, $('#ftext').val(), 100, true);
+        var request = createElasticsearchRequest(rectBounds(), $('#ftext').val(), 100, true);
         sendElasticsearchRequest(request, updateMap, map);
 
         // zoom map to new rectangle
@@ -762,33 +779,57 @@ window.onload = function () {
     //--------------------------- 'Export Results' ---------------------------
     $('#raw_json').click(
         function () {
+            loading()
             var req;
-            req = createElasticsearchRequest(map.getBounds(), $('#ftext').val(), 100);
+            if (window.rectangle !== undefined) {
+                req = createElasticsearchRequest(rectBounds(), $('#ftext').val(), 100, true);
+
+            } else {
+                req = createElasticsearchRequest(map.getBounds(), $('#ftext').val(), 100);
+            }
             sendElasticsearchRequest(req, updateRawJSON);
         }
     );
 
     $('#file_paths').click(
         function () {
+            loading()
             var req;
+            if (window.rectangle !== undefined) {
+                req = createElasticsearchRequest(rectBounds(), $('#ftext').val(), 100, true);
+
+            } else {
+                req = createElasticsearchRequest(map.getBounds(), $('#ftext').val(), 100);
+            }
             sendElasticsearchRequest(req, updateFilePaths);
-            req = createElasticsearchRequest(map.getBounds(), $('#ftext').val(), 100);
         }
     );
 
     $('#dl_urls').click(
         function () {
+            loading()
             var req;
+            if (window.rectangle !== undefined) {
+                req = createElasticsearchRequest(rectBounds(), $('#ftext').val(), 100, true);
+
+            } else {
+                req = createElasticsearchRequest(map.getBounds(), $('#ftext').val(), 100);
+            }
             sendElasticsearchRequest(req, updateDownloadPaths);
-            req = createElasticsearchRequest(map.getBounds(), $('#ftext').val(), 100);
         }
     );
 
-    $('#export_modal_close').click(
-        function () {
-            updateExportResultsModal(null);
-        }
-    );
+    // When the modal is dismissed either by the x in corner, close button or by clicking outside; clear previous
+    // results and set the export_modal_open variable to false to allow the loading modal to fire.
+    $('#export_modal').on('hidden.bs.modal', function (e) {
+        $('#results').html('')
+        export_modal_open = false
+    });
+
+    // When the modal is displayed, set the export_modal_open variable to supress firing the loading modal.
+    $('#export_modal').on('shown.bs.modal', function (e) {
+        export_modal_open = true
+    });
 
     //----------------------------- UI Widgets -------------------------------
     // $('#multiselect').multiSelect(
