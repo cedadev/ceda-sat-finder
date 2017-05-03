@@ -586,8 +586,6 @@ window.onload = function () {
 		$('#mouse').html(lat + ', ' + lon);
 	});
 
-    $('#export_modal').modal('show')
-
 
 
 
