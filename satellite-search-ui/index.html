@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="./bower_components/bootstrap/dist/css/bootstrap-theme.min.css" type="text/css"/>
     <link rel="stylesheet" href="./bower_components/datepicker/dist/css/bootstrap-datepicker.min.css" type="text/css"/>
     <link rel="stylesheet" href="./bower_components/bootstrap-toggle/css/bootstrap-toggle.min.css" type="text/css"/>
+    <link rel="stylesheet" href="./bower_components/jstree/dist/themes/default/style.min.css" type="text/css">
     <link rel="stylesheet" href="./css/index.css" type="text/css"/>
 
 
@@ -76,7 +77,7 @@
                             </a>
                         </h4>
                     </div>
-                    <div id="collapse_temporal" class="panel-collapse collapse in">
+                    <div id="collapse_temporal" class="panel-collapse collapse">
                         <div class="text-center panel-body">
                             <label class="control-label">Refine Search via Time Range</label>
                             <span data-toggle="popover"
@@ -129,12 +130,13 @@
                             </form>
                             <p>Use the "Rectangle Search" tool on the map
                                 <span data-toggle="popover"
-                                              data-placement="top"
-                                              data-content="Top right corner"
-                                              class="glyphicon glyphicon-question-sign">
+                                      data-placement="top"
+                                      data-content="Top right corner"
+                                      class="glyphicon glyphicon-question-sign">
 
                                 </span>
-                                to define a rectangular bounding box. Once drawn, click "Apply Filters" to draw the results.</p>
+                                to define a rectangular bounding box. Once drawn, click "Apply Filters" to draw the
+                                results.</p>
                         </div>
                     </div>
                 </div>
@@ -167,6 +169,31 @@
                                 </fieldset>
                             </form>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Tree -->
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a data-toggle="collapse" data-parent="#accordions" href="#collapse_tree">
+                            Tree
+                        </a>
+                    </h4>
+                </div>
+                <div id="collapse_tree" class="panel-collapse collapse in">
+                    <div class="text-center panel-body">
+                        <label class="control-label">Use tree to filter data</label>
+                        <span data-toggle="popover"
+                              data-content="Tick options to filter results."
+                              data-placement="top"
+                              class="glyphicon glyphicon-question-sign"></span>
+
+                        <div class="text-left" id="tree_menu">
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -244,43 +271,42 @@
                         <h4 id="file_nameQL"></h4>
                     </div>
                     <div class="modal-body">
-                            <img id="modal-quicklook-image" src="" onerror="imgError(this)">
+                        <img id="modal-quicklook-image" src="" onerror="imgError(this)">
                     </div>
                 </div>
             </div>
         </div>
 
-</div>
+    </div>
 </div>
 
 
 <script id="infowindowTemplate" type="text/html">
     <section>
-    <p id="iw-title"><strong>Filename: </strong>{{filename}}</p>
-    <table>
-        <tr>
-            <td class="col-md-6 left"><p><strong>Start Time: </strong>{{start_time}}</p></td>
-            <td id="quicklooks_placeholder" class="col-md-6" style="text-align: center" rowspan="5"></td>
-        </tr>
-        <tr>
-            <td><p><strong>End Time: </strong>{{end_time}}</p></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td><p><strong>Mission: </strong>{{mission}}</p></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td><p><strong>Satellite: </strong>{{satellite}}</p></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td><p><strong>Instrument: </strong>{{instrument}}</p></td>
-            <td></td>
-        </tr>
-    </table>
+        <p id="iw-title"><strong>Filename: </strong>{{filename}}</p>
+        <table>
+            <tr>
+                <td class="col-md-6 left"><p><strong>Start Time: </strong>{{start_time}}</p></td>
+                <td id="quicklooks_placeholder" class="col-md-6" style="text-align: center" rowspan="5"></td>
+            </tr>
+            <tr>
+                <td><p><strong>End Time: </strong>{{end_time}}</p></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td><p><strong>Mission: </strong>{{mission}}</p></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td><p><strong>Satellite: </strong>{{satellite}}</p></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td><p><strong>Instrument: </strong>{{instrument}}</p></td>
+                <td></td>
+            </tr>
+        </table>
 </script>
-
 
 
 <script src="./bower_components/jquery/dist/jquery.min.js" type="text/javascript"></script>
@@ -291,6 +317,7 @@
 <script src="./bower_components/geojson/GeoJSON.js" type="text/javascript"></script>
 <script src="./bower_components/bootstrap-toggle/js/bootstrap-toggle.min.js"></script>
 <script src="./bower_components/mustache.js/mustache.min.js" type="text/javascript"></script>
+<script src="./bower_components/jstree/dist/jstree.min.js" type="text/javascript"></script>
 <script src="js/ceda-eo.js" type="text/javascript"></script>
 </body>
 </html>

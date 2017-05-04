@@ -108,7 +108,7 @@ div .logo {
 }
 
 
-/* Qiocklook Modal CSS */
+/* Quicklook Modal CSS */
 .modal-dialog.zoom {
     width: 85vh !important;
 }
@@ -163,4 +163,12 @@ div .logo {
     background-color: white;
     padding: 3px;
     border-radius: 3px;
+}
+
+#tree_menu {
+    border: dotted;
+    border-width: 1px;
+    margin: 10px;
+    padding: 10px;
+    border-radius: 5px;
 }

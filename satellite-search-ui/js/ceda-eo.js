@@ -85,6 +85,72 @@ $('#quicklook_modal').on('hidden.bs.modal', function () {
     $('#modal-quicklook-image').attr('onerror', 'imgError(this)')
 })
 
+// -------------------------------Hierarchy tree ------------------------------
+
+    function titleCase(string){
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+
+    function updateTreeDisplay(aggregratedData) {
+
+        if ("satellites" in aggregratedData) {
+            var satellites = aggregratedData['satellites']['buckets'];
+
+
+            var i, j, children = [];
+            for (i = 0, j = satellites.length; i < j; i++) {
+                var child = satellites[i]
+                var childName = child['key'] + ' (' + child['doc_count'] + ')'
+
+                var child_JSON = {
+                    'text': titleCase(childName),
+                    'icon': 'glyphicon glyphicon-tag'
+                }
+
+                children.push(child_JSON)
+            }
+
+            var tree_data = [
+                {
+                    'text': 'Satellite',
+                    'state': {
+                        'opened': true,
+                        'selected': true
+                    },
+                    'children': children
+                }
+            ]
+
+        }
+        $('#tree_menu').jstree(
+            {
+                "core": {
+                    "themes": {
+                        "variant": "large"
+                    },
+                    'data': tree_data
+                },
+                "checkbox": {
+                    "keep_selected_style": false
+                },
+                "plugins": ["wholerow", "checkbox"]
+            }
+        );
+    }
+
+
+$('#tree_menu')  // listen for event
+  .on('changed.jstree', function (e, data) {
+    var i, j, r = [];
+    for(i = 0, j = data.selected.length; i < j; i++) {
+      r.push(data.instance.get_node(data.selected[i]).text);
+    }
+    console.log('Selected: ' + r.join(', '));
+  })
+
+
+    // $('#tree_menu').jstree(tree_data)
+
 // -------------------------------ElasticSearch--------------------------------
 function requestFromFilters(full_text) {
     var i, ft, req;
@@ -165,6 +231,20 @@ function createElasticsearchRequest(gmaps_corners, full_text, size, drawing) {
                 ]
             }
         },
+        'aggs': {
+            'satellites': {
+                'terms': {
+                    'field': 'misc.platform.Satellite',
+                    'size': 30
+                }
+            },
+            'missions': {
+                'terms': {
+                    'field': 'misc.platform.Mission',
+                    'size': 30
+                }
+            }
+        },
         'size': size
     };
 
@@ -232,11 +312,10 @@ function updateMap(response, gmap) {
         // Toggle loading modal
         displayLoadingModal()
     }
-
-    // if (response.aggregations) {
-    //     // Generate variable aggregation on map and display
-    //     displayAggregatedVariables(response.aggregations);
-    // }
+    if (response.aggregations) {
+        // Generate variable aggregation on map and display
+        updateTreeDisplay(response.aggregations);
+    }
 }
 
 function updateRawJSON(response) {
@@ -371,7 +450,8 @@ function drawFlightTracks(gmap, hits) {
         options = {
             strokeColor: TRACK_COLOURS[colour_index],
             strokeWeight: 5,
-            strokeOpacity: 0.6
+            strokeOpacity: 0.6,
+            fillOpacity: 0.1
         };
 
         // Create GeoJSON object
