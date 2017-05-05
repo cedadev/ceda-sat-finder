@@ -121,13 +121,8 @@ div .logo {
     margin-right: auto;
 }
 
-.icon-md {
-    height: 60px;
-    width: 60px;
-}
-
-#loading-text {
-    margin: 0px
+#main_load {
+    height: 10vh;
 }
 
 .gm-style-iw {
@@ -188,3 +183,4 @@ div .logo {
     top: 79px;
     color: white;
 }
+

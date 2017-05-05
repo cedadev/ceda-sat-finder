@@ -21,14 +21,8 @@ var TRACK_COLOURS = [
     '#60BD68', '#F17CB0', '#B2912F',
     '#B276B2', '#DECF3F', '#F15854'
 ];
-var export_modal_open = false
+var export_modal_open = false;
 
-function sleep(miliseconds) {
-    var currentTime = new Date().getTime();
-
-    while (currentTime + miliseconds >= new Date().getTime()) {
-    }
-}
 // -----------------------------------String-----------------------------------
 String.prototype.hashCode = function () {
     // Please see: http://bit.ly/1dSyf18 for original
@@ -59,6 +53,13 @@ String.prototype.truncatePath = function (levels) {
 
 
 // ---------------------------'Export Results' Modal---------------------------
+    function sleep(miliseconds) {
+        var currentTime = new Date().getTime();
+
+        while (currentTime + miliseconds >= new Date().getTime()) {
+        }
+    }
+
     function updateExportResultsModal(hits) {
         loading()
         $('#results').html(JSON.stringify(hits, null, '    '));
@@ -69,11 +70,23 @@ String.prototype.truncatePath = function (levels) {
 
         try {
             var successful = document.execCommand('copy');
-            var msg = successful ? 'successful' : 'unsuccessful';
-            console.log('Copying text command was ' + msg);
         } catch (err) {
             console.log('Oops, unable to copy');
         }
+    });
+
+    // Handle popover trigger and release
+    $('#copy[data-toggle="popover"]')
+        .on('focus', function(event) {
+            $(this).popover({
+                placement:'bottom',
+                trigger:'manual'
+            });
+            $(this).popover('show');
+    })
+        .on('blur', function(event) {
+            sleep(700);
+            $(this).popover('hide');
     });
 
 
@@ -400,7 +413,8 @@ function drawFlightTracks(gmap, hits) {
         options = {
             strokeColor: TRACK_COLOURS[colour_index],
             strokeWeight: 5,
-            strokeOpacity: 0.6
+            strokeOpacity: 0.6,
+            fillOpactiy: 0.1
         };
 
         // Create GeoJSON object
@@ -799,10 +813,10 @@ window.onload = function () {
             loading()
             var req;
             if (window.rectangle !== undefined) {
-                req = createElasticsearchRequest(rectBounds(), $('#ftext').val(), 100, true);
+                req = createElasticsearchRequest(rectBounds(), $('#ftext').val(), REQUEST_SIZE, true);
 
             } else {
-                req = createElasticsearchRequest(map.getBounds(), $('#ftext').val(), 100);
+                req = createElasticsearchRequest(map.getBounds(), $('#ftext').val(), REQUEST_SIZE);
             }
             sendElasticsearchRequest(req, updateRawJSON);
         }
@@ -813,10 +827,10 @@ window.onload = function () {
             loading()
             var req;
             if (window.rectangle !== undefined) {
-                req = createElasticsearchRequest(rectBounds(), $('#ftext').val(), 100, true);
+                req = createElasticsearchRequest(rectBounds(), $('#ftext').val(), REQUEST_SIZE, true);
 
             } else {
-                req = createElasticsearchRequest(map.getBounds(), $('#ftext').val(), 100);
+                req = createElasticsearchRequest(map.getBounds(), $('#ftext').val(), REQUEST_SIZE);
             }
             sendElasticsearchRequest(req, updateFilePaths);
         }
@@ -827,10 +841,10 @@ window.onload = function () {
             loading()
             var req;
             if (window.rectangle !== undefined) {
-                req = createElasticsearchRequest(rectBounds(), $('#ftext').val(), 100, true);
+                req = createElasticsearchRequest(rectBounds(), $('#ftext').val(), REQUEST_SIZE, true);
 
             } else {
-                req = createElasticsearchRequest(map.getBounds(), $('#ftext').val(), 100);
+                req = createElasticsearchRequest(map.getBounds(), $('#ftext').val(), REQUEST_SIZE);
             }
             sendElasticsearchRequest(req, updateDownloadPaths);
         }
@@ -866,26 +880,6 @@ window.onload = function () {
         'trigger': 'hover',
     });
 
-    // $('#copy[data-toggle="popover"]').popover({
-    //     'trigger': 'focus',
-    //     'placement': 'manual',
-    // });
-
-    $('#copy[data-toggle="popover"]').on('focus', function(event) {
-            if (!$(this).data("bs.popover")) {
-                $(this).popover({
-                    placement:'bottom',
-                    trigger:'manual',
-                    content: 'Copied!'
-                });
-            }
-            $(this).popover('show');
-        });
-
-    $('#copy[data-toggle="popover"]').on('blur', function hidepop(event) {
-        sleep(700)
-        $(this).popover('hide');
-    });
 
     // Datepicker
     picker = $('#datepicker').datepicker({
