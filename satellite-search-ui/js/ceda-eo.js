@@ -13,7 +13,7 @@ function getParameterByName(name) {
 }
 
 // Window constants
-var REQUEST_SIZE = 400;
+var REQUEST_SIZE = 1000;
 var INDEX = getParameterByName('index') || 'ceda-eo';
 var ES_URL = 'http://jasmin-es1.ceda.ac.uk:9000/' + INDEX + '/_search';
 var TRACK_COLOURS = [
