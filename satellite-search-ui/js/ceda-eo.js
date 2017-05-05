@@ -22,6 +22,13 @@ var TRACK_COLOURS = [
     '#B276B2', '#DECF3F', '#F15854'
 ];
 var export_modal_open = false
+
+function sleep(miliseconds) {
+    var currentTime = new Date().getTime();
+
+    while (currentTime + miliseconds >= new Date().getTime()) {
+    }
+}
 // -----------------------------------String-----------------------------------
 String.prototype.hashCode = function () {
     // Please see: http://bit.ly/1dSyf18 for original
@@ -52,10 +59,22 @@ String.prototype.truncatePath = function (levels) {
 
 
 // ---------------------------'Export Results' Modal---------------------------
-function updateExportResultsModal(hits) {
-    loading()
-    $('#results').html(JSON.stringify(hits, null, '    '));
-}
+    function updateExportResultsModal(hits) {
+        loading()
+        $('#results').html(JSON.stringify(hits, null, '    '));
+    }
+
+    $('#copy').click( function (event) {
+        $('#results').select();
+
+        try {
+            var successful = document.execCommand('copy');
+            var msg = successful ? 'successful' : 'unsuccessful';
+            console.log('Copying text command was ' + msg);
+        } catch (err) {
+            console.log('Oops, unable to copy');
+        }
+    });
 
 
 // ---------------------------'Loading' Modal---------------------------
@@ -843,8 +862,29 @@ window.onload = function () {
 
     // Kick off help text popovers
     // http://stackoverflow.com/a/18537617
-    $('[data-toggle="popover"]').popover({
+    $('span[data-toggle="popover"]').popover({
         'trigger': 'hover',
+    });
+
+    // $('#copy[data-toggle="popover"]').popover({
+    //     'trigger': 'focus',
+    //     'placement': 'manual',
+    // });
+
+    $('#copy[data-toggle="popover"]').on('focus', function(event) {
+            if (!$(this).data("bs.popover")) {
+                $(this).popover({
+                    placement:'bottom',
+                    trigger:'manual',
+                    content: 'Copied!'
+                });
+            }
+            $(this).popover('show');
+        });
+
+    $('#copy[data-toggle="popover"]').on('blur', function hidepop(event) {
+        sleep(700)
+        $(this).popover('hide');
     });
 
     // Datepicker

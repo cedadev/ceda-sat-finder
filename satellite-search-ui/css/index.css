@@ -179,4 +179,12 @@ div .logo {
 }
 .loading_img {
     height:100%;
+
+}
+
+#copy {
+    position: absolute;
+    right: 16px;
+    top: 79px;
+    color: white;
 }
