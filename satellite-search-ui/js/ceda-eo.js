@@ -100,12 +100,12 @@ $('#quicklook_modal').on('hidden.bs.modal', function () {
             var i, j, children = [];
             for (i = 0, j = satellites.length; i < j; i++) {
                 var child = satellites[i]
-                var childName = child['key'] + ' (' + child['doc_count'] + ')'
+                var childName = child['key'] + ' (' + child['doc_count'] + ')';
 
                 var child_JSON = {
                     'text': titleCase(childName),
                     'icon': 'glyphicon glyphicon-tag'
-                }
+                };
 
                 children.push(child_JSON)
             }
@@ -122,6 +122,9 @@ $('#quicklook_modal').on('hidden.bs.modal', function () {
             ]
 
         }
+
+        $('#tree_menu').jstree('destroy');
+
         $('#tree_menu').jstree(
             {
                 "core": {
@@ -136,7 +139,11 @@ $('#quicklook_modal').on('hidden.bs.modal', function () {
                 "plugins": ["wholerow", "checkbox"]
             }
         );
+
     }
+
+
+
 
 
 $('#tree_menu')  // listen for event
@@ -149,7 +156,6 @@ $('#tree_menu')  // listen for event
   })
 
 
-    // $('#tree_menu').jstree(tree_data)
 
 // -------------------------------ElasticSearch--------------------------------
 function requestFromFilters(full_text) {
@@ -195,64 +201,64 @@ function createElasticsearchRequest(gmaps_corners, full_text, size, drawing) {
 
     // ElasticSearch request
     request = {
-        '_source': {
-            'include': [
-                'data_format.format',
-                'file.filename',
-                'file.path',
-                'file.data_file',
-                'file.quicklook_file',
-                'file.location',
-                'misc',
-                'spatial.geometries.display',
-                'temporal'
+     "_source": {
+            "include": [
+                "data_format.format",
+                "file.filename",
+                "file.path",
+                "file.data_file",
+                "file.quicklook_file",
+                "file.location",
+                "misc",
+                "spatial",
+                "temporal"
             ]
         },
-        'filter': {
-            'and': {
-                'must': [
-                    {
-                        'geo_shape': {
-                            'spatial.geometries.search': {
-                                'shape': {
-                                    'type': 'envelope',
-                                    'coordinates': [nw, se]
-                                }
-                            }
-                        }
-                    },
-                    {
-                        "not": {
-                            "missing": {
-                                "field": "spatial.geometries.display.type"
-                            }
+    "query":{
+        "filtered": {
+           "query": { "match_all": {}
+           },
+           "filter": {
+               "bool": {
+                   "must": [
+                      {
+                          "geo_shape": {
+                                "spatial.geometries.search": {
+                                    "shape": {
+                                        "type": "envelope",
+                                            "coordinates" : [nw, se]
                         }
                     }
-                ]
+                }}
+                   ],
+                   "must_not": [
+                      {"missing": {
+                         "field": "spatial.geometries.display.type"
+                      }
+
+                      }
+                   ]
+               }
+           }
+        }
+    },
+    "aggs": {
+        "satellites": {
+            "terms": {
+                "field": "misc.platform.Satellite",
+                "size": 30
             }
-        },
-        'aggs': {
-            'satellites': {
-                'terms': {
-                    'field': 'misc.platform.Satellite',
-                    'size': 30
-                }
-            },
-            'missions': {
-                'terms': {
-                    'field': 'misc.platform.Mission',
-                    'size': 30
-                }
-            }
-        },
-        'size': size
-    };
+        }
+    },
+    "size": size
+};
+
 
     // Add other filters from page to query
     tf = requestFromFilters(full_text);
     if (tf) {
         for (i = 0; i < tf.length; i += 1) {
-            request.filter.and.must.push(tf[i]);
+            request.query.filtered.filter.bool.must.push(tf[i]);
         }
     }
 
@@ -274,7 +280,7 @@ function createElasticsearchRequest(gmaps_corners, full_text, size, drawing) {
 
     if (temporal.range['temporal.start_time'].to !== null ||
             temporal.range['temporal.start_time'].from !== null) {
-        request.filter.and.must.push(temporal);
+        request.query.filtered.filter.bool.must.push(temporal);
     }
 
     return request;
@@ -313,6 +319,7 @@ function updateMap(response, gmap) {
         displayLoadingModal()
     }
     if (response.aggregations) {
+        console.log("aggregations")
         // Generate variable aggregation on map and display
         updateTreeDisplay(response.aggregations);
     }
