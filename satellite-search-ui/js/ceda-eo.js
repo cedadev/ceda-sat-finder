@@ -17,10 +17,19 @@ var REQUEST_SIZE = 1000;
 var INDEX = getParameterByName('index') || 'ceda-eo';
 var ES_URL = 'http://jasmin-es1.ceda.ac.uk:9000/' + INDEX + '/_search';
 var TRACK_COLOURS = [
-    '#4D4D4D', '#5DA5DA', '#FAA43A',
+    '#B276B2', '#5DA5DA', '#FAA43A',
     '#60BD68', '#F17CB0', '#B2912F',
-    '#B276B2', '#DECF3F', '#F15854'
+    '#4D4D4D', '#DECF3F', '#F15854'
 ];
+
+// based off the Track Colours
+var COLOUR_MAP = {
+    "sentinel1" : "#B276B2",
+    "sentinel2" : "#5DA5DA",
+    "sentinel3" : "#FAA43A",
+    "landsat"   : "#60BD68",
+    "other"     : "#F17CB0"
+};
 var export_modal_open = false;
 
 // -----------------------------------String-----------------------------------
@@ -33,7 +42,7 @@ String.prototype.hashCode = function () {
         return hash;
     }
 
-    for (i = 0; i < this.length; i += 1) {
+    for (i = 0; i < this.length; i++) {
         c = this.charCodeAt(i);
         hash = ((hash << 5) - hash) + c;
     }
@@ -387,19 +396,41 @@ function createInfoWindow(hit) {
         image.src = "./img/unavailable.png"
     }
 
+    function colourSelect(mission){
+        var colour;
+        switch (true){
+            case /sentinel\W1.*/gi.test(mission):
+                colour = COLOUR_MAP['sentinel1'];
+                break;
+
+            case /sentinel\W2.*/gi.test(mission):
+                colour = COLOUR_MAP['sentinel2'];
+                break;
+
+            case /sentinel\W3.*/gi.test(mission):
+                colour = COLOUR_MAP['sentinel3'];
+                break;
+
+            case /landsat/gi.test(mission):
+                colour = COLOUR_MAP['landsat'];
+                break;
+
+            default:
+                colour = COLOUR_MAP['other'];
+                break;
+        }
+        return colour
+    }
+
 function drawFlightTracks(gmap, hits) {
     var colour_index, geom, hit, i, info_window, options, display;
 
     for (i = 0; i < hits.length; i += 1) {
         hit = hits[i];
 
-        colour_index = (hit._id.hashCode() % TRACK_COLOURS.length);
-        if (colour_index < 0) {
-            colour_index = -colour_index;
-        }
-
+        var mission = hit._source.misc.platform.Mission
         options = {
-            strokeColor: TRACK_COLOURS[colour_index],
+            strokeColor: colourSelect(mission),
             strokeWeight: 5,
             strokeOpacity: 0.6,
             fillOpactiy: 0.1
@@ -619,6 +650,14 @@ window.onload = function () {
         lon = event.latLng.lng().toFixed(4);
 		$('#mouse').html(lat + ', ' + lon);
 	});
+
+
+    // set map key colours
+    $('#sentinel1Key').css('border-color',COLOUR_MAP['sentinel1']);
+    $('#sentinel2Key').css('border-color',COLOUR_MAP['sentinel2']);
+    $('#sentinel3Key').css('border-color',COLOUR_MAP['sentinel3']);
+    $('#landsatKey').css('border-color',COLOUR_MAP['landsat']);
+    $('#otherKey').css('border-color',COLOUR_MAP['other']);
 
 
     //------------------------------- Buttons -------------------------------

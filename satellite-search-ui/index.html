@@ -88,6 +88,47 @@
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4 class="panel-title">
+                            <a data-toggle="collapse" data-parent="#accordions" href="#collapse_mapKey">
+                                Map Key
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapse_mapKey" class="panel-collapse collapse in">
+                        <div class="text-center panel-body">
+                            <label class="control-label">Satellite Missions</label>
+                            <table>
+                                <tr>
+                                    <td id="sentinel1Key" class="keyBox"></td>
+                                    <td class="pad-left">Sentinel 1</td>
+                                </tr>
+                                <tr style="height: 10px"></tr>
+                                <tr>
+                                    <td id="sentinel2Key" class="keyBox"></td>
+                                    <td class="pad-left">Sentinel 2</td>
+                                </tr>
+                                <tr style="height: 10px"></tr>
+                                <tr>
+                                    <td id="sentinel3Key" class="keyBox"></td>
+                                    <td class="pad-left">Sentinel 3</td>
+                                </tr>
+                                <tr style="height: 10px"></tr>
+                                <tr>
+                                    <td id="landsatKey" class="keyBox"></td>
+                                    <td class="pad-left">Landsat</td>
+                                </tr>
+                                <tr style="height: 10px"></tr>
+                                <tr>
+                                    <td id="otherKey" class="keyBox"></td>
+                                    <td class="pad-left">Other</td>
+                                </tr>
+                            </table>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
                             <a data-toggle="collapse" data-parent="#accordions" href="#collapse_temporal">
                                 Temporal Filter
                             </a>
@@ -231,6 +272,31 @@
             </h6>
 
         </div>
+        <!-- instructions panel for the rectangle draw tool -->
+        <div id="polygon-instructions">
+            <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+                <div class="panel panel-default">
+                    <div id="collapsePolygonInstructions" class="panel-collapse collapse" role="tabpanel"
+                         aria-labelledby="PolygonInstructions">
+                        <div class="panel-body">
+                            <p>When toggled on, map panning is disabled. Turn off to enable panning.</p>
+                            <p>Click and drag over the map to set the area of interest. The shape can be resized using
+                                the
+                                points and moved.</p>
+                            <p>Map results will only be displayed after clicking "Apply Filters".</p>
+                            <p><strong>Only the first 100 results will be rendered to avoid over-cluttering the display.</strong></p>
+                            <p>
+                                Click
+                                <a role="button" data-toggle="collapse" class="glyphicon glyphicon-question-sign"
+                                   href="#collapsePolygonInstructions" style="text-decoration: none;"></a>
+                                to hide this panel.
+                            </p>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Map Loading Modal -->
         <div id="loading_modal" class="load-modal">
@@ -260,28 +326,9 @@
                 </div>
             </div>
         </div>
-
     </div>
 
-    <div id="polygon-instructions">
-        <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-            <div class="panel panel-default">
-                <div id="collapsePolygonInstructions" class="panel-collapse collapse" role="tabpanel"
-                     aria-labelledby="PolygonInstructions">
-                    <div class="panel-body">
-                        <p>When toggled on, map panning is disabled. Turn off to enable panning.</p>
-                        <p>Click and drag over the map to set the area of interest. The shape can be resized using the
-                            points and moved.</p>
-                        <p>Map results will only be displayed after clicking "Apply Filters".</p>
-                        <p>Click <span class="glyphicon glyphicon-question-sign"></span> to hide this panel.</p>
-
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
+    <!-- Template rendered by mustache.js for the infoWindow -->
     <script id="infowindowTemplate" type="text/html">
         <section>
             <p id="iw-title"><strong>Filename: </strong>{{filename}}</p>
@@ -307,7 +354,8 @@
                     <td></td>
                 </tr>
             </table>
-            <!-- Do not add in closing </section> tag. This is closed in the javascript ceda-eo.js -->
+            <!-- Do not add in closing </section> tag. This is closed in the javascript ceda-eo.js as there are dynamic
+             elements added in.-->
     </script>
 </div>
 </body>

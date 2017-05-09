@@ -192,3 +192,14 @@ div .logo {
     color: white;
 }
 
+/* Map Key */
+.keyBox {
+    border: solid;
+    border-width: 3px;
+    background-color: rgba(0, 0, 0, 0.1);
+    width: 20px;
+}
+.pad-left {
+    padding-left: 20px;
+    text-align: left;
+}
