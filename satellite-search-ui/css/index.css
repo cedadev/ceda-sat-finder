@@ -204,3 +204,12 @@ div .logo {
     padding-left: 20px;
     text-align: left;
 }
+
+#key {
+    position: absolute;
+    bottom: 30px;
+    left: calc(30vw + 10px);
+    background-color: rgba(255,255,255,0.90);
+    padding: 8px;
+    border-radius: 3px;
+}
