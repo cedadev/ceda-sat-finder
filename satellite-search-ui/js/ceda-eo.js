@@ -61,7 +61,7 @@ String.prototype.truncatePath = function (levels) {
     }
 
     function updateExportResultsModal(hits) {
-        loading()
+        loading();
         $('#results').html(JSON.stringify(hits, null, '    '));
     }
 
@@ -100,29 +100,30 @@ String.prototype.truncatePath = function (levels) {
 
     // loading gif inside export modal
     function loading(){
-            $('.loading_block').css("display", $('.loading_block').css("display") === 'none' ? 'block' : 'none');
+            var loading_blk = $('.loading_block');
+            loading_blk.css("display", loading_blk.css("display") === 'none' ? 'block' : 'none');
         }
 
 // ---------------------------'Quicklook' Modal---------------------------
 
 function displayquicklookModal(i) {
     // set quicklook image
-    $('#modal-quicklook-image').attr('src', quicklooks[i])
+    $('#modal-quicklook-image').attr('src', quicklooks[i]);
 
     // set modal title to data filename
-    var title = $(info_windows[i].getContent()).find("#iw-title").first().html()
+    var title = $(info_windows[i].getContent()).find("#iw-title").first().html();
     title = title.replace(/^<strong>.+<\/strong>/g,'');
-    $('#file_nameQL').html(title)
+    $('#file_nameQL').html(title);
 
     var $loading = $('#quicklook_modal');
     $loading.modal()
 
 }
 
+//Display the unavailable.png image in place of the broken image icon.
 $('#quicklook_modal').on('hidden.bs.modal', function () {
     $('#modal-quicklook-image').attr('onerror', 'imgError(this)')
-})
-
+});
 // -------------------------------ElasticSearch--------------------------------
 function requestFromFilters(full_text) {
     var i, ft, req;
@@ -146,13 +147,11 @@ function createElasticsearchRequest(gmaps_corners, full_text, size, drawing) {
         se, start_time, request, temporal, tf, vars;
 
     // Present loading modal
-    if (!export_modal_open){
-        displayLoadingModal()
-    }
+    if (!export_modal_open){ displayLoadingModal()}
 
     if (drawing) {
-        nw = gmaps_corners[0]
-        se = gmaps_corners[1]
+        nw = gmaps_corners[0];
+        se = gmaps_corners[1];
     }
     else{
 
@@ -161,11 +160,6 @@ function createElasticsearchRequest(gmaps_corners, full_text, size, drawing) {
         nw = [tmp_sw.lng().toString(), tmp_ne.lat().toString()];
         se = [tmp_ne.lng().toString(), tmp_sw.lat().toString()];
     }
-
-
-
-
-
 
     // ElasticSearch request
     request = {
@@ -274,11 +268,6 @@ function updateMap(response, gmap) {
             displayLoadingModal()
         }
     }
-
-    // if (response.aggregations) {
-    //     // Generate variable aggregation on map and display
-    //     displayAggregatedVariables(response.aggregations);
-    // }
 }
 
 function updateRawJSON(response) {
@@ -366,7 +355,7 @@ function createInfoWindow(hit) {
         content += '<p>This file is stored on tape, please click <a target="_blank" href="http://help.ceda.ac.uk/article/265-nla">here</a> for information about access to this file.</p>'
     }
 
-
+    // close the section tag
     content += '</section>';
 
     info = new google.maps.InfoWindow(
@@ -390,10 +379,9 @@ function createInfoWindow(hit) {
             content = content.prop('outerHTML');
 
             info_window.setContent(content)
-
         }
     }
-
+    // replace the broken img icon with a custom image.
     function imgError(image) {
         image.onerror = "";
         image.src = "./img/unavailable.png"
@@ -432,25 +420,24 @@ function drawFlightTracks(gmap, hits) {
     for (i = 0; i < geometries.length; i += 1) {
         google.maps.event.addListener(geometries[i], 'click',
             (function (i, e, hits) {
-                return function (e, hits) {
-                    var j;
+                    return function (e, hits) {
+                        var j;
 
-                    google.maps.event.clearListeners(gmap, 'bounds_changed');
+                        google.maps.event.clearListeners(gmap, 'bounds_changed');
 
-                    for (j = 0; j < info_windows.length; j += 1) {
-                        info_windows[j].close();
-                    }
+                        for (j = 0; j < info_windows.length; j += 1) {
+                            info_windows[j].close();
+                        }
 
-                    info_windows[i].setPosition(e.latLng);
-                    getQuickLook(info_windows[i],i);
-                    info_windows[i].open(gmap, null);
+                        info_windows[i].setPosition(e.latLng);
+                        getQuickLook(info_windows[i], i);
+                        info_windows[i].open(gmap, null);
 
-                    window.setTimeout(function () {
-                        addBoundsChangedListener(gmap);
-                    }, 1000);
-                };
-            }
-        )(i));
+                        window.setTimeout(function () {
+                            addBoundsChangedListener(gmap);
+                        }, 1000);
+                    };
+                })(i));
     }
 }
 
@@ -495,8 +482,6 @@ function addBoundsChangedListener(gmap) {
         redrawMap(gmap, true);
     });
 }
-
-
 
 
 // ---------------------------------Histogram----------------------------------
@@ -597,6 +582,7 @@ function sendHistogramRequest() {
     $(window).unload($('#polygon_draw').bootstrapToggle('off'));
 
 // ------------------------------window.onload---------------------------------
+
 window.onload = function () {
     var geocoder, lat, lon, map;
 
@@ -618,8 +604,6 @@ window.onload = function () {
         lon = event.latLng.lng().toFixed(4);
 		$('#mouse').html(lat + ', ' + lon);
 	});
-
-
 
 
     //------------------------------- Buttons -------------------------------
@@ -657,7 +641,6 @@ window.onload = function () {
     $('#applyfil').click(
         function () {
             cleanup();
-            console.log(export_modal_open)
             if (window.rectangle !== undefined) {
                 queryRect();
             } else {
@@ -671,7 +654,6 @@ window.onload = function () {
             $('#start_time').val('');
             $('#end_time').val('');
             $('#ftext').val('');
-            // clearAggregatedVariables();
             cleanup();
             if (window.rectangle !== undefined){
                 clearRect();
@@ -708,7 +690,6 @@ window.onload = function () {
 
                 var dragging = false;
                 var rect;
-
 
                 rect = new google.maps.Rectangle({
                     map: map
@@ -816,7 +797,7 @@ window.onload = function () {
     //--------------------------- 'Export Results' ---------------------------
     $('#raw_json').click(
         function () {
-            loading()
+            loading();
             var req;
             if (window.rectangle !== undefined) {
                 req = createElasticsearchRequest(rectBounds(), $('#ftext').val(), REQUEST_SIZE, true);
@@ -830,7 +811,7 @@ window.onload = function () {
 
     $('#file_paths').click(
         function () {
-            loading()
+            loading();
             var req;
             if (window.rectangle !== undefined) {
                 req = createElasticsearchRequest(rectBounds(), $('#ftext').val(), REQUEST_SIZE, true);
@@ -844,7 +825,7 @@ window.onload = function () {
 
     $('#dl_urls').click(
         function () {
-            loading()
+            loading();
             var req;
             if (window.rectangle !== undefined) {
                 req = createElasticsearchRequest(rectBounds(), $('#ftext').val(), REQUEST_SIZE, true);
@@ -856,36 +837,28 @@ window.onload = function () {
         }
     );
 
+
     // When the modal is dismissed either by the x in corner, close button or by clicking outside; clear previous
     // results and set the export_modal_open variable to false to allow the loading modal to fire.
-    $('#export_modal').on('hidden.bs.modal', function (e) {
-        $('#results').html('')
+
+    var export_modal = $('#export_modal');
+    export_modal.on('hidden.bs.modal', function (e) {
+        $('#results').html('');
         export_modal_open = false
     });
 
     // When the modal is displayed, set the export_modal_open variable to supress firing the loading modal.
-    $('#export_modal').on('shown.bs.modal', function (e) {
+    export_modal.on('shown.bs.modal', function (e) {
         export_modal_open = true
     });
 
     //----------------------------- UI Widgets -------------------------------
-    // $('#multiselect').multiSelect(
-    //     {
-    //         afterSelect: function () {
-    //             redrawMap(map, false);
-    //         },
-    //         afterDeselect: function () {
-    //             redrawMap(map, false);
-    //         }
-    //     }
-    // );
 
     // Kick off help text popovers
     // http://stackoverflow.com/a/18537617
     $('span[data-toggle="popover"]').popover({
-        'trigger': 'hover',
+        'trigger': 'hover'
     });
-
 
     // Datepicker
     picker = $('#datepicker').datepicker({
