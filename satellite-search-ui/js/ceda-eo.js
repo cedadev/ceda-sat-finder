@@ -690,6 +690,9 @@ window.onload = function () {
 
             if ($('#polygon_draw').prop('checked')) {
 
+                // Show instructions panel if it is closed.
+                $('#collapsePolygonInstructions').collapse('show');
+
                 if (window.rectangle !== undefined) {
                     clearRect();
                 }
@@ -739,6 +742,9 @@ window.onload = function () {
                 });
             }
             else {
+                // Hide instructions panel if it is open.
+                $('#collapsePolygonInstructions').collapse('hide');
+
                 // clear rectangle drawing listeners and reinstate boundschanged listener.
                 google.maps.event.clearListeners(map, 'mousedown');
                 google.maps.event.clearListeners(map, 'mouseup');

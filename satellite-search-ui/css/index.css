@@ -123,6 +123,7 @@ div .logo {
 
 #main_load {
     height: 10vh;
+    max-width: 80%;
 }
 
 .gm-style-iw {
@@ -160,6 +161,13 @@ div .logo {
     border-radius: 3px;
 }
 
+#polygon-instructions {
+    position: absolute;
+    top: 50px;
+    right:10px;
+    max-width: 300px;
+
+}
 
 /* Export modal loading animation */
 .loading_block {
