@@ -528,6 +528,21 @@ function drawHistogram(request) {
                 borderWidth: 0,
                 groupPadding: 0,
                 pointPadding: 0
+            },
+            series: {
+                cursor: 'pointer',
+                point: {
+                    events: {
+                        click: function () {
+                            var start_date = this.category + "-01-01";
+                            var end_date = this.category + "-12-31";
+
+                            $('#start_time').datepicker('setDate', start_date);
+                            $('#end_time').datepicker('setDate',end_date);
+                        }
+                    }
+                }
+
             }
         },
         series: [{
