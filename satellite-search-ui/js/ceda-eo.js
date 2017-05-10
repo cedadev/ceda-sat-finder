@@ -621,6 +621,12 @@ function sendHistogramRequest() {
         }
     };
 }
+// Window resize
+
+    $(window).resize(function() {
+        sendHistogramRequest()
+    })
+
 
 // ------------------------------window.unload---------------------------------
 
