@@ -91,71 +91,112 @@ $('#quicklook_modal').on('hidden.bs.modal', function () {
         return string.charAt(0).toUpperCase() + string.slice(1);
     }
 
-    function updateTreeDisplay(aggregratedData) {
+    function getDocCount(key, aggregatedData) {
+        var count;
+        var data_count = aggregatedData['data_count']['buckets'];
+        var data;
 
-        if ("satellites" in aggregratedData) {
-            var satellites = aggregratedData['satellites']['buckets'];
+        for (data in data_count){
+            if (data_count[data]['key'] === key ){
+                count = data_count[data]['doc_count']
+                break;
+            }
+            count = 0
+        }
+        if (!data_count.length){ count = 0}
+        return count
+    }
 
 
-            var i, j, children = [];
+    function updateTreeDisplay(aggregratedData, gmap) {
+
+        var tree = [];
+        var tree_menu = $('#tree_menu');
+        var tree_buckets = aggregratedData['all'];
+
+        // get current state before the tree is updated.
+        var selection = tree_menu.treeview('getSelected');
+
+        // Create JSON for satellites aggregation
+        if ("satellites" in tree_buckets) {
+            var satellites = tree_buckets['satellites']['buckets'];
+
+            // Create the child JSON
+            var i, j, satellite_children = [];
             for (i = 0, j = satellites.length; i < j; i++) {
-                var child = satellites[i]
-                var childName = child['key'] + ' (' + child['doc_count'] + ')';
+                var child = satellites[i]['key'];
+                var doc_count = getDocCount(child,aggregratedData)
+                var childName = child + ' (' + doc_count +')';
 
                 var child_JSON = {
-                    'text': titleCase(childName),
-                    'icon': 'glyphicon glyphicon-tag'
-                };
+                    text: titleCase(childName)
+                    };
 
-                children.push(child_JSON)
+                // push each child to the children array
+                satellite_children.push(child_JSON)
             }
 
-            var tree_data = [
-                {
-                    'text': 'Satellite',
-                    'state': {
-                        'opened': true,
-                        'selected': true
-                    },
-                    'children': children
-                }
-            ]
+            // Create the main satellite parent node
+            var satellite_node = {
+                text: "Satellites",
+                nodes: satellite_children,
+                selectable: false,
+            };
 
+            // Push the satellite node JSON to the main tree data array.
+            tree.push(satellite_node)
         }
 
-        $('#tree_menu').jstree('destroy');
-
-        $('#tree_menu').jstree(
-            {
-                "core": {
-                    "themes": {
-                        "variant": "large"
-                    },
-                    'data': tree_data
-                },
-                "checkbox": {
-                    "keep_selected_style": false
-                },
-                "plugins": ["wholerow", "checkbox"]
+        tree_menu.treeview({
+            data: tree,
+            showCheckbox: true,
+            showBorder: false,
+            multiSelect: true,
+            highlightSelected: false,
+            onNodeSelected: function (event, data) {
+                tree_menu.treeview('checkNode', [data.nodeId])
+            },
+            onNodeUnselected: function (event, data) {
+                tree_menu.treeview('uncheckNode', [data.nodeId])
+            },
+            onNodeChecked: function (event, data) {
+                tree_menu.treeview('selectNode', [data.nodeId])
+                redrawMap(gmap, true)
+            },
+            onNodeUnchecked: function (event,data) {
+                tree_menu.treeview('unselectNode', [data.nodeId])
+                redrawMap(gmap, true)
             }
-        );
+        });
 
+        // apply previous state if there were checked boxes.
+        if (selection.length){
+            for (i = 0; i < selection.length; i++){
+                var node = selection[i];
+                tree_menu.treeview('checkNode',[node.nodeId, {silent: true}]);
+                tree_menu.treeview('selectNode',[node.nodeId, {silent: true}]);
+            }
+        }
     }
 
+    // Get the checked items in the tree to apply in the ES query.
+    function requestFromTree() {
+        var i, req=[], selection;
 
+        selection = $('#tree_menu').treeview('getSelected');
 
-
-
-$('#tree_menu')  // listen for event
-  .on('changed.jstree', function (e, data) {
-    var i, j, r = [];
-    for(i = 0, j = data.selected.length; i < j; i++) {
-      r.push(data.instance.get_node(data.selected[i]).text);
+        if (selection.length){
+            for (i=0; i < selection.length; i++){
+                    req.push({
+                        term: {
+                            _all: selection[i].text.split(' ')[0].toLowerCase()
+                        }
+                    });
+            }
+            return req;
+        }
+        return '';
     }
-    console.log('Selected: ' + r.join(', '));
-  })
-
-
 
 // -------------------------------ElasticSearch--------------------------------
 function requestFromFilters(full_text) {
@@ -243,10 +284,20 @@ function createElasticsearchRequest(gmaps_corners, full_text, size, drawing) {
         }
     },
     "aggs": {
-        "satellites": {
+        "data_count": {
             "terms": {
-                "field": "misc.platform.Satellite",
-                "size": 30
+                "field": "misc.platform.Satellite"
+            }
+        },
+        "all": {
+            "global": {},
+            "aggs": {
+                "satellites": {
+                    "terms": {
+                        "field": "misc.platform.Satellite",
+                    "size": 30
+                    }
+                }
             }
         }
     },
@@ -259,6 +310,15 @@ function createElasticsearchRequest(gmaps_corners, full_text, size, drawing) {
     if (tf) {
         for (i = 0; i < tf.length; i += 1) {
             request.query.filtered.filter.bool.must.push(tf[i]);
+        }
+    }
+
+    // Tree selection filters.
+    vars = requestFromTree();
+
+    if (vars){
+        for (i = 0; i < vars.length; i += 1) {
+            request.query.filtered.filter.bool.must.push(vars[i]);
         }
     }
 
@@ -319,9 +379,8 @@ function updateMap(response, gmap) {
         displayLoadingModal()
     }
     if (response.aggregations) {
-        console.log("aggregations")
         // Generate variable aggregation on map and display
-        updateTreeDisplay(response.aggregations);
+        updateTreeDisplay(response.aggregations, gmap);
     }
 }
 
@@ -888,6 +947,10 @@ window.onload = function () {
     //         }
     //     }
     // );
+
+
+    // Initialise the tree
+    $('#tree_menu').treeview()
 
     // Kick off help text popovers
     // http://stackoverflow.com/a/18537617
