@@ -124,7 +124,7 @@ $('#quicklook_modal').on('hidden.bs.modal', function () {
                 child = satellites[i]['key'];
                 doc_count = getDocCount(child,aggregatedData);
                 if (numbers){
-                    childName = child + ' (' + doc_count +')';
+                    childName = child + ' <span class="badge text-left">'+ doc_count +'</span>';
                 } else {
                     childName = child;
                 }
@@ -139,9 +139,9 @@ $('#quicklook_modal').on('hidden.bs.modal', function () {
 
             // Create the main satellite parent node
                 satellite_node = {
-                text: "Satellites",
-                nodes: satellite_children,
-                selectable: false
+                    text: "Satellites",
+                    nodes: satellite_children,
+                    selectable: false
             };
 
             // Push the satellite node JSON to the main tree data array.
@@ -157,15 +157,26 @@ $('#quicklook_modal').on('hidden.bs.modal', function () {
         treeMenu.treeview({
             data: getTreeJSON(aggregatedData, false),
             showCheckbox: true,
-            showBorder: false,
             multiSelect: true,
             highlightSelected: false,
+            showBorder: false,
             onNodeChecked: function (event, data) {
                 treeMenu.treeview('selectNode', [data.nodeId])
             }
         });
         treeMenu.treeview('checkAll');
     }
+
+    // function childSelectToggle(method, children){
+    //     var tree_menu = $('#tree_menu'), child, i;
+    //
+    //
+    //     for (i=0; i<children.length; i++){
+    //         child = children[i];
+    //
+    //         tree_menu.treeview(method,[child])
+    //     }
+    // }
 
     function updateTreeDisplay(aggregatedData, gmap) {
 
@@ -182,9 +193,21 @@ $('#quicklook_modal').on('hidden.bs.modal', function () {
             highlightSelected: false,
             onNodeSelected: function (event, data) {
                 tree_menu.treeview('checkNode', [data.nodeId])
+
+                // if (data.text === "Satellites"){
+                //     var children = data.nodes;
+                //     childSelectToggle('checkNode',children)
+                // }
+
             },
             onNodeUnselected: function (event, data) {
                 tree_menu.treeview('uncheckNode', [data.nodeId])
+
+                // if (data.text === "Satellites"){
+                //     var children = data.nodes;
+                //     childSelectToggle('uncheckNode',children)
+                // }
+
             },
             onNodeChecked: function (event, data) {
                 tree_menu.treeview('selectNode', [data.nodeId])
@@ -192,7 +215,7 @@ $('#quicklook_modal').on('hidden.bs.modal', function () {
             },
             onNodeUnchecked: function (event,data) {
                 tree_menu.treeview('unselectNode', [data.nodeId])
-                redrawMap(gmap, true)
+                    redrawMap(gmap, true)
             }
         });
 
@@ -214,11 +237,13 @@ $('#quicklook_modal').on('hidden.bs.modal', function () {
 
         if (selection.length){
             for (i=0; i < selection.length; i++){
+                if (selection[i].text !== "Satellites"){
                     req.push({
-                        term: {
-                            _all: selection[i].text.split(' ')[0].toLowerCase()
+                        match: {
+                            'misc.platform.Satellite.raw' : selection[i].text.split(' ')[0]
                         }
                     });
+                }
             }
             return req;
         }
@@ -292,7 +317,7 @@ $('#quicklook_modal').on('hidden.bs.modal', function () {
             "aggs": {
                 "data_count": {
                     "terms": {
-                        "field": "misc.platform.Satellite"
+                        "field": "misc.platform.Satellite.raw"
                     }
                 },
                 "all": {
@@ -300,7 +325,7 @@ $('#quicklook_modal').on('hidden.bs.modal', function () {
                     "aggs": {
                         "satellites": {
                             "terms": {
-                                "field": "misc.platform.Satellite",
+                                "field": "misc.platform.Satellite.raw",
                                 "size": 30
                             }
                         }
@@ -980,7 +1005,10 @@ window.onload = function () {
 
 
     // initialise the treeview
-    $('#tree_menu').treeview()
+    $('#tree_menu').treeview({
+        data: {},
+        showBorder: false
+    });
 
     // Kick off help text popovers
     // http://stackoverflow.com/a/18537617
