@@ -756,6 +756,9 @@ window.onload = function () {
                 });
 
                 google.maps.event.addListener(map, 'mousedown', function (mEvent) {
+                    // Close instruction panel if open
+                    $('#collapsePolygonInstructions').collapse('hide');
+
                     map.draggable = false;
                     latlng1 = mEvent.latLng;
                     dragging = true;
