@@ -33,6 +33,11 @@ var COLOUR_MAP = {
 };
 var export_modal_open = false;
 
+function countGeoms(){
+    console.log(geometries.length)
+}
+setInterval(countGeoms,3000)
+
 // -----------------------------------String-----------------------------------
 String.prototype.hashCode = function () {
     // Please see: http://bit.ly/1dSyf18 for original
@@ -843,6 +848,8 @@ function drawHistogram(request) {
 
                             $('#start_time').datepicker('setDate', start_date);
                             $('#end_time').datepicker('setDate',end_date);
+
+                            $('#applyfil').trigger('click')
                         }
                     }
                 }
@@ -850,7 +857,7 @@ function drawHistogram(request) {
             }
         },
         series: [{
-            name: 'Number of documents',
+            name: 'Total Datasets',
             data: counts
         }]
     });
@@ -899,6 +906,7 @@ function sendHistogramRequest() {
     $(window).resize(function() {
         sendHistogramRequest()
     })
+
 
 
 
