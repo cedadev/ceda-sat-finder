@@ -109,7 +109,7 @@ div .logo {
 }
 
 
-/* Qiocklook Modal CSS */
+/* Quicklook Modal CSS */
 .modal-dialog.zoom {
     width: 85vh !important;
 }
@@ -209,7 +209,12 @@ div .logo {
     position: absolute;
     bottom: 30px;
     left: calc(30vw + 10px);
-    background-color: rgba(255,255,255,0.90);
+    background-color: rgba(255, 255, 255, 0.90);
     padding: 8px;
     border-radius: 3px;
+}
+
+#tree_menu {
+    margin: 10px;
+    padding: 10px;
 }

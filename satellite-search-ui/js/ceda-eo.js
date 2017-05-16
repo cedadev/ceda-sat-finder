@@ -21,8 +21,9 @@ var TRACK_COLOURS = [
     '#60BD68', '#F17CB0', '#B2912F',
     '#4D4D4D', '#DECF3F', '#F15854'
 ];
+var redraw_pause = false;
 
-// based off the Track Colours
+// based on the Track Colours
 var COLOUR_MAP = {
     "sentinel1" : "#B276B2",
     "sentinel2" : "#5DA5DA",
@@ -132,6 +133,7 @@ function displayquicklookModal(i) {
 //Display the unavailable.png image in place of the broken image icon.
 $('#quicklook_modal').on('hidden.bs.modal', function () {
     $('#modal-quicklook-image').attr('onerror', 'imgError(this)')
+
 });
 // -------------------------------ElasticSearch--------------------------------
 function requestFromFilters(full_text) {
@@ -144,6 +146,7 @@ function requestFromFilters(full_text) {
             req.push({
                 term: {
                     _all: ft[i].toLowerCase()
+
                 }
             });
         }
@@ -151,161 +154,432 @@ function requestFromFilters(full_text) {
     }
 }
 
-function createElasticsearchRequest(gmaps_corners, full_text, size, drawing) {
-    var i, end_time, tmp_ne, tmp_sw, no_photography, nw,
-        se, start_time, request, temporal, tf, vars;
+// -------------------------------Hierarchy tree ------------------------------
 
-    // Present loading modal
-    if (!export_modal_open){ displayLoadingModal()}
-
-    if (drawing) {
-        nw = gmaps_corners[0];
-        se = gmaps_corners[1];
-    }
-    else{
-
-        tmp_ne = gmaps_corners.getNorthEast();
-        tmp_sw = gmaps_corners.getSouthWest();
-        nw = [tmp_sw.lng().toString(), tmp_ne.lat().toString()];
-        se = [tmp_ne.lng().toString(), tmp_sw.lat().toString()];
+    function titleCase(string){
+        return string.charAt(0).toUpperCase() + string.slice(1);
     }
 
-    // ElasticSearch request
-    request = {
-        '_source': {
-            'include': [
-                'data_format.format',
-                'file.filename',
-                'file.path',
-                'file.data_file',
-                'file.quicklook_file',
-                'file.location',
-                'misc',
-                'spatial.geometries.display',
-                'temporal'
-            ]
-        },
-        'filter': {
-            'and': {
-                'must': [
-                    {
-                        'geo_shape': {
-                            'spatial.geometries.search': {
-                                'shape': {
-                                    'type': 'envelope',
-                                    'coordinates': [nw, se]
-                                }
-                            }
+
+    function getDocCount(key, aggregatedData) {
+        var count;
+        var data_count = aggregatedData['data_count']['buckets'];
+        var i;
+
+        for (i=0; i< data_count.length; i++){
+            if (data_count[i]['key'] === key ){
+                count = data_count[i]['doc_count']
+                break;
+            }
+            count = 0
+        }
+        if (!data_count.length){ count = 0}
+        return count
+    };
+
+    function getTreeJSON(aggregatedData, numbers) {
+        if (numbers === undefined){ numbers=true}
+        var tree = [];
+        var tree_buckets = aggregatedData['all'];
+        var satellites, childName, child, doc_count, child_JSON, satellite_node
+
+        // Create JSON for satellites aggregation
+        if ("satellites" in tree_buckets) {
+            satellites = tree_buckets['satellites']['buckets'];
+
+            // Create the child JSON
+            var i, j, satellite_children = [];
+            for (i = 0, j = satellites.length; i < j; i++) {
+                child = satellites[i]['key'];
+                doc_count = getDocCount(child,aggregatedData);
+                if (numbers){
+                    childName = child + ' <span class="badge text-left">'+ doc_count +'</span>';
+                } else {
+                    childName = child;
+                }
+
+                child_JSON = {
+                    text: titleCase(childName)
+                    };
+
+                // push each child to the children array
+                satellite_children.push(child_JSON)
+            }
+
+            // Create the main satellite parent node
+                satellite_node = {
+                    text: "Satellites",
+                    nodes: satellite_children,
+                    selectable: false
+            };
+
+            // Push the satellite node JSON to the main tree data array.
+            tree.push(satellite_node)
+        }
+        return tree
+    }
+
+    function initTree(response) {
+        var aggregatedData = response.aggregations;
+        var treeMenu = $('#tree_menu');
+
+        treeMenu.treeview({
+            data: getTreeJSON(aggregatedData, false),
+            showCheckbox: true,
+            multiSelect: true,
+            highlightSelected: false,
+            showBorder: false,
+            onNodeChecked: function (event, data) {
+                treeMenu.treeview('selectNode', [data.nodeId])
+            }
+        });
+        treeMenu.treeview('checkAll');
+    }
+
+    function childSelectToggle(method, children, gmap){
+        var tree_menu = $('#tree_menu'), child, i;
+
+        // Don't trigger redrawMap() until the last child is toggled
+        redraw_pause = true;
+
+        for (i=0; i<children.length; i++){
+            // if(i === children.length -1){redraw_pause=false}
+            child = children[i];
+            tree_menu.treeview(method,[child])
+        }
+        redrawMap(gmap, true)
+        redraw_pause = false;
+    }
+
+    function siblingState(node){
+        // tests state of all sibling nodes. Returns true 
+        var tree = $('#tree_menu');
+        var siblings = tree.treeview('getSiblings',[node]);
+        var test= [tree.treeview('getNode',[node]).state.checked];
+        var i, sibling;
+        for (i=0; i < siblings.length; i++){
+            sibling = siblings[i];
+            test.push(sibling.state.checked)
+        }
+        return test.every(function (element, index, array) { return element === true })
+    }
+
+    function updateTreeDisplay(aggregatedData, gmap) {
+
+        var tree_menu = $('#tree_menu');
+
+        // get current state before the tree is updated.
+        var selection = tree_menu.treeview('getSelected');
+
+        tree_menu.treeview({
+            data: getTreeJSON(aggregatedData),
+            showCheckbox: true,
+            showBorder: false,
+            multiSelect: true,
+            highlightSelected: false,
+            onNodeSelected: function (event, data) {
+                tree_menu.treeview('checkNode', [data.nodeId, {silent:true}]);
+                if (!redraw_pause){redrawMap(gmap, true)}
+
+                if(siblingState(data.nodeId)){
+                    tree_menu.treeview('checkNode',[0, {silent: true}]);
+                    tree_menu.treeview('selectNode',[0, {silent: true}]);
+                } else{
+                   tree_menu.treeview('uncheckNode',[0, {silent: true}]);
+                   tree_menu.treeview('unselectNode',[0, {silent: true}]);
+                }
+
+            },
+            onNodeUnselected: function (event, data) {
+                tree_menu.treeview('uncheckNode', [data.nodeId, {silent:true}]);
+                if (!redraw_pause){redrawMap(gmap, true)};
+
+                if(siblingState(data.nodeId)){
+                    tree_menu.treeview('checkNode',[0, {silent: true}]);
+                    tree_menu.treeview('selectNode',[0, {silent: true}]);
+                } else{
+                   tree_menu.treeview('uncheckNode',[0, {silent: true}]);
+                   tree_menu.treeview('unselectNode',[0, {silent: true}]);
+                }
+
+            },
+            onNodeChecked: function (event, data) {
+                if (data.text !== "Satellites"){
+                    tree_menu.treeview('selectNode', [data.nodeId]);
+
+                    if (!redraw_pause){redrawMap(gmap, true)}
+
+                } else{
+                    tree_menu.treeview('selectNode', [data.nodeId, {silent:true}]);
+                    var children = data.nodes;
+                    childSelectToggle('checkNode',children, gmap)
+                }
+            },
+            onNodeUnchecked: function (event,data) {
+                if (data.text !== "Satellites"){
+                    tree_menu.treeview('unselectNode', [data.nodeId]);
+                    if (!redraw_pause){
+                        redrawMap(gmap, true)}
+
+                } else{
+                    tree_menu.treeview('unselectNode', [data.nodeId,{silent:true}]);
+                    var children = data.nodes;
+                    childSelectToggle('uncheckNode',children, gmap)
+                }
+            }
+        });
+
+        // apply previous state if there were checked boxes.
+        if (selection.length){
+            for (i = 0; i < selection.length; i++){
+                var node = selection[i];
+                tree_menu.treeview('checkNode',[node.nodeId, {silent: true}]);
+                tree_menu.treeview('selectNode',[node.nodeId, {silent: true}]);
+            }
+        }
+    }
+
+    function requestFromTree() {
+        // Get the checked items in the tree to apply in the ES query.
+        var i, req=[], selection;
+
+        selection = $('#tree_menu').treeview('getUnselected');
+        if (selection.length){
+            for (i=0; i < selection.length; i++){
+                if (selection[i].text !== "Satellites"){
+                    req.push({
+                        match: {
+                            'misc.platform.Satellite.raw' : selection[i].text.split(' ')[0]
+
                         }
+                    });
+                }
+            }
+
+            return req;
+        }
+        return '';
+    }
+
+// -------------------------------ElasticSearch--------------------------------
+    function requestFromFilters(full_text) {
+        var i, ft, req;
+
+        req = [];
+        if (full_text.length > 0) {
+            ft = full_text.split(' ');
+            for (i = 0; i < ft.length; i += 1) {
+                req.push({
+                    term: {
+                        _all: ft[i].toLowerCase()
+                    }
+                });
+            }
+            return req;
+        }
+    }
+
+    function esRequest(nw,se,size){
+        return {
+            "_source": {
+                "include": [
+                    "data_format.format",
+                    "file.filename",
+                    "file.path",
+                    "file.data_file",
+                    "file.quicklook_file",
+                    "file.location",
+                    "misc",
+                    "spatial",
+                    "temporal"
+                ]
+            },
+            "query": {
+                "filtered": {
+                    "query": {
+                        "match_all": {}
                     },
-                    {
-                        "not": {
-                            "missing": {
-                                "field": "spatial.geometries.display.type"
+                    "filter": {
+                        "bool": {
+                            "must": [
+                                {
+                                    "geo_shape": {
+                                        "spatial.geometries.search": {
+                                            "shape": {
+                                                "type": "envelope",
+                                                "coordinates": [nw, se]
+                                            }
+                                        }
+                                    }
+                                }
+                            ],
+                            "must_not": [
+                                {
+                                    "missing": {
+                                        "field": "spatial.geometries.display.type"
+                                    }
+
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "aggs": {
+                "data_count": {
+                    "terms": {
+                        "field": "misc.platform.Satellite.raw"
+                    }
+                },
+                "all": {
+                    "global": {},
+                    "aggs": {
+                        "satellites": {
+                            "terms": {
+                                "field": "misc.platform.Satellite.raw",
+                                "size": 30
                             }
                         }
                     }
-                ]
-            }
-        },
-        'size': size
-    };
+                }
+            },
+            "size": size
+        };
+    }
 
-    // Add other filters from page to query
-    tf = requestFromFilters(full_text);
-    if (tf) {
-        for (i = 0; i < tf.length; i += 1) {
-            request.filter.and.must.push(tf[i]);
+    function createElasticsearchRequest(gmaps_corners, full_text, size, drawing) {
+        var i, end_time, tmp_ne, tmp_sw, no_photography, nw,
+            se, start_time, request, temporal, tf, vars;
+
+         // Present loading modal
+        if (!export_modal_open){ displayLoadingModal()}
+
+        if (drawing) {
+            nw = gmaps_corners[0];
+            se = gmaps_corners[1]
         }
-    }
+        else{
 
-    temporal = {
-        range: {
-            'temporal.start_time': {}
+            tmp_ne = gmaps_corners.getNorthEast();
+            tmp_sw = gmaps_corners.getSouthWest();
+            nw = [tmp_sw.lng().toString(), tmp_ne.lat().toString()];
+            se = [tmp_ne.lng().toString(), tmp_sw.lat().toString()];
         }
-    };
 
-    start_time = $('#start_time').val();
-    if (start_time !== '') {
-        temporal.range['temporal.start_time'].from = start_time;
-    }
 
-    end_time = $('#end_time').val();
-    if (end_time !== '') {
-        temporal.range['temporal.start_time'].to = end_time;
-    }
+        // ElasticSearch request
+        request = esRequest(nw, se, size);
 
-    if (temporal.range['temporal.start_time'].to !== null ||
-            temporal.range['temporal.start_time'].from !== null) {
-        request.filter.and.must.push(temporal);
-    }
-
-    return request;
-}
-
-function sendElasticsearchRequest(request, callback, gmap) {
-    var xhr, response;
-
-    // Construct and send XMLHttpRequest
-    xhr = new XMLHttpRequest();
-    xhr.open('POST', ES_URL, true);
-    xhr.send(JSON.stringify(request));
-    xhr.onload = function () {
-        if (xhr.readyState === 4) {
-            response = JSON.parse(xhr.responseText);
-
-            if (gmap) {
-                callback(response, gmap);
-            } else {
-                callback(response);
+        // Add other filters from page to query
+        tf = requestFromFilters(full_text);
+        if (tf) {
+            for (i = 0; i < tf.length; i += 1) {
+                request.query.filtered.filter.bool.must.push(tf[i]);
             }
         }
-    };
-}
 
-function updateMap(response, gmap) {
-    if (response.hits) {
-        // Update "hits" and "response time" fields
-        $('#resptime').html(response.took);
-        $('#numresults').html(response.hits.total);
+        // Tree selection filters.
+        vars = requestFromTree();
 
-        // Draw flight tracks on a map
-        drawFlightTracks(gmap, response.hits.hits);
+        if (vars){
+            for (i = 0; i < vars.length; i += 1) {
+                request.query.filtered.filter.bool.must_not.push(vars[i]);
+            }
+        }
 
-        // Toggle loading modal
-        if (!export_modal_open){
-            displayLoadingModal()
+        temporal = {
+            range: {
+                'temporal.start_time': {}
+            }
+        };
+
+        start_time = $('#start_time').val();
+        if (start_time !== '') {
+            temporal.range['temporal.start_time'].from = start_time;
+        }
+
+        end_time = $('#end_time').val();
+        if (end_time !== '') {
+            temporal.range['temporal.start_time'].to = end_time;
+        }
+
+        if (temporal.range['temporal.start_time'].to !== null ||
+                temporal.range['temporal.start_time'].from !== null) {
+            request.query.filtered.filter.bool.must.push(temporal);
+        }
+
+        return request;
+    }
+
+    function sendElasticsearchRequest(request, callback, gmap) {
+        var xhr, response;
+
+        // Construct and send XMLHttpRequest
+        xhr = new XMLHttpRequest();
+        xhr.open('POST', ES_URL, true);
+        xhr.send(JSON.stringify(request));
+        xhr.onload = function () {
+            if (xhr.readyState === 4) {
+                response = JSON.parse(xhr.responseText);
+
+                if (gmap) {
+                    callback(response, gmap);
+                } else {
+                    callback(response);
+                }
+            }
+        };
+    }
+
+// -------------------------- Update Map features and Export Modal Parameters ------------------------------------------
+
+    function updateMap(response, gmap) {
+        if (response.hits) {
+            // Update "hits" and "response time" fields
+            $('#resptime').html(response.took);
+            $('#numresults').html(response.hits.total);
+
+            // Draw flight tracks on a map
+            drawFlightTracks(gmap, response.hits.hits);
+
+            // Toggle loading modal
+            if (!export_modal_open){
+                displayLoadingModal()
+            }
+        }
+        if (response.aggregations) {
+            // Generate variable aggregation on map and display
+            updateTreeDisplay(response.aggregations, gmap);
         }
     }
-}
 
-function updateRawJSON(response) {
-    updateExportResultsModal(response.hits.hits);
-}
-
-function updateFilePaths(response) {
-    var h, i, paths;
-    h = response.hits.hits;
-
-    paths = [];
-    for (i = 0; i < h.length; i += 1) {
-        paths.push(h[i]._source.file.path);
+    function updateRawJSON(response) {
+        updateExportResultsModal(response.hits.hits);
     }
 
-    updateExportResultsModal(paths);
-}
+    function updateFilePaths(response) {
+        var h, i, paths;
+        h = response.hits.hits;
 
-function updateDownloadPaths(response) {
-    var h, i, paths;
-    h = response.hits.hits;
+        paths = [];
+        for (i = 0; i < h.length; i += 1) {
+            paths.push(h[i]._source.file.path);
+        }
 
-    paths = [];
-    for (i = 0; i < h.length; i += 1) {
-        paths.push('http://data.ceda.ac.uk' + h[i]._source.file.path);
+        updateExportResultsModal(paths);
     }
 
-    updateExportResultsModal(paths);
-}
+    function updateDownloadPaths(response) {
+        var h, i, paths;
+        h = response.hits.hits;
+
+        paths = [];
+        for (i = 0; i < h.length; i += 1) {
+            paths.push('http://data.ceda.ac.uk' + h[i]._source.file.path);
+        }
+
+        updateExportResultsModal(paths);
+    }
 
 
 // -----------------------------------Map--------------------------------------
@@ -491,7 +765,6 @@ function cleanup() {
 
 function redrawMap(gmap, add_listener) {
     var full_text, request;
-
     cleanup();
 
     // Draw flight tracks
@@ -628,6 +901,7 @@ function sendHistogramRequest() {
     })
 
 
+
 // ------------------------------window.unload---------------------------------
 
     // makes sure that the drawing tool is always off on page load.
@@ -654,9 +928,8 @@ window.onload = function () {
         // see: http://bit.ly/1zAfter
         lat = event.latLng.lat().toFixed(4);
         lon = event.latLng.lng().toFixed(4);
-		$('#mouse').html(lat + ', ' + lon);
-	});
-
+        $('#mouse').html(lat + ', ' + lon);
+    });
 
     // set map key colours
     $('#sentinel1Key').css('border-color',COLOUR_MAP['sentinel1']);
@@ -718,6 +991,7 @@ window.onload = function () {
             if (window.rectangle !== undefined){
                 clearRect();
             }
+
             $('#polygon_draw').bootstrapToggle('off')
             redrawMap(map, false);
         }
@@ -797,6 +1071,7 @@ window.onload = function () {
                 dragging = false;
                 map.setOptions({draggable: true});
                 map.keyboardShortcuts = true;
+
             }
 
             function showRect() {
@@ -917,6 +1192,14 @@ window.onload = function () {
 
     //----------------------------- UI Widgets -------------------------------
 
+
+
+    // initialise the treeview
+    $('#tree_menu').treeview({
+        data: {},
+        showBorder: false
+    });
+
     // Kick off help text popovers
     // http://stackoverflow.com/a/18537617
     $('span[data-toggle="popover"]').popover({
@@ -930,6 +1213,8 @@ window.onload = function () {
         startView: 2
     });
 
+
+
     // Draw histogram
     sendHistogramRequest();
 
@@ -942,5 +1227,23 @@ window.onload = function () {
 
 
     //---------------------------- Map main loop ------------------------------
+    google.maps.event.addListenerOnce(map,'bounds_changed', function () {
+        // init Tree
+        var bounds, tmp_ne, tmp_sw, nw, se, request;
+
+        bounds = map.getBounds();
+        tmp_ne = bounds.getNorthEast();
+        tmp_sw = bounds.getSouthWest();
+        nw = [tmp_sw.lng().toString(), tmp_ne.lat().toString()];
+        se = [tmp_ne.lng().toString(), tmp_sw.lat().toString()];
+
+        request = esRequest(nw,se,0);
+
+        sendElasticsearchRequest(request, initTree, false);
+    });
+
     addBoundsChangedListener(map);
 };
+
+
+
