@@ -43,7 +43,7 @@
                         <img class="loading_img" src="img/loading.gif">
                     </div>
                     <button id="copy" class="btn-xs btn-primary glyphicon glyphicon-copy" data-toggle="popover"
-                            data-content="Copied!" title="Copy"></button>
+                            data-content="Copied!"></button>
                     <textarea id="results" placeholder="Results will appear here..." readonly></textarea>
                 </div>
             </div>
@@ -54,6 +54,38 @@
         </div>
     </div>
 </div>
+
+
+<!-- Welcome message Modal -->
+<div class="modal fade" id="welcome_modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h2 class="modal-title">Welcome</h2>
+      </div>
+      <div class="modal-body text-center" >
+          <div class="text-danger" id="welcome-infomessage">
+              <h4>
+                  Only the first 1000 results will be plotted on the map.
+              </h4>
+              <h4>
+                  The rectangle tool will plot the first 100 to avoid overcrowding.
+              </h4>
+          </div>
+          <p style="font-size: large">
+              Search for scenes and scans from a range of Earth Observation data sets held in the CEDA archive.
+              The search currently supports Sentinel 1, 2 and 3, and Landsat 5, 7 and 8.
+              More will be added soon.
+          </p>
+          <h4 class="text-danger ">Please use the filters to refine your search.</h4>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 
 
 <div id="main">
@@ -83,7 +115,7 @@
                             </a>
                         </h4>
                     </div>
-                    <div id="collapse_temporal" class="panel-collapse collapse">
+                    <div id="collapse_temporal" class="panel-collapse collapse in">
                         <div class="text-center panel-body">
                             <label class="control-label">Refine Search via Time Range</label>
                             <span data-toggle="popover"
@@ -156,7 +188,7 @@
                             </a>
                         </h4>
                     </div>
-                    <div id="collapse_tree" class="panel-collapse collapse in">
+                    <div id="collapse_tree" class="panel-collapse collapse">
                         <div class="text-center panel-body">
                             <div class="text-left" id="tree_menu"></div>
                         </div>

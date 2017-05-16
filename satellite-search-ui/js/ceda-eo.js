@@ -670,31 +670,31 @@ function createInfoWindow(hit) {
         image.src = "./img/unavailable.png"
     }
 
-    function colourSelect(mission){
-        var colour;
-        switch (true){
-            case /sentinel\W1.*/gi.test(mission):
-                colour = COLOUR_MAP['sentinel1'];
-                break;
+function colourSelect(mission){
+    var colour;
+    switch (true){
+        case /sentinel\W1.*/gi.test(mission):
+            colour = COLOUR_MAP['sentinel1'];
+            break;
 
-            case /sentinel\W2.*/gi.test(mission):
-                colour = COLOUR_MAP['sentinel2'];
-                break;
+        case /sentinel\W2.*/gi.test(mission):
+            colour = COLOUR_MAP['sentinel2'];
+            break;
 
-            case /sentinel\W3.*/gi.test(mission):
-                colour = COLOUR_MAP['sentinel3'];
-                break;
+        case /sentinel\W3.*/gi.test(mission):
+            colour = COLOUR_MAP['sentinel3'];
+            break;
 
-            case /landsat/gi.test(mission):
-                colour = COLOUR_MAP['landsat'];
-                break;
+        case /landsat/gi.test(mission):
+            colour = COLOUR_MAP['landsat'];
+            break;
 
-            default:
-                colour = COLOUR_MAP['other'];
-                break;
-        }
-        return colour
+        default:
+            colour = COLOUR_MAP['other'];
+            break;
     }
+    return colour
+}
 
 function drawFlightTracks(gmap, hits) {
     var colour_index, geom, hit, i, info_window, options, display;
@@ -938,6 +938,9 @@ window.onload = function () {
     $('#landsatKey').css('border-color',COLOUR_MAP['landsat']);
     $('#otherKey').css('border-color',COLOUR_MAP['other']);
 
+
+    // Open welcome modal
+    $('#welcome_modal').modal('show')
 
     //------------------------------- Buttons -------------------------------
     $('#location_search').click(

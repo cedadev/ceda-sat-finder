@@ -218,3 +218,9 @@ div .logo {
     margin: 10px;
     padding: 10px;
 }
+
+#welcome-infomessage{
+    border-radius: 3px;
+    padding: 5px;
+    margin-bottom: 5px;
+}
