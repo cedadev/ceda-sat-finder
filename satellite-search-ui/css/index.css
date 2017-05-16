@@ -175,7 +175,7 @@ div .logo {
     display: none;
     position: absolute;
     left: 16px;
-    top: 79px;
+    top: 89px;
     background-color: rgba(255, 255, 255, 0.63);
     width: 95%;
     height: 50%;
@@ -189,7 +189,7 @@ div .logo {
 #copy {
     position: absolute;
     right: 16px;
-    top: 79px;
+    top: 89px;
     color: white;
 }
 
