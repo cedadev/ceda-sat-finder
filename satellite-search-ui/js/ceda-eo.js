@@ -33,11 +33,6 @@ var COLOUR_MAP = {
 };
 var export_modal_open = false;
 
-function countGeoms(){
-    console.log(geometries.length)
-}
-setInterval(countGeoms,3000)
-
 // -----------------------------------String-----------------------------------
 String.prototype.hashCode = function () {
     // Please see: http://bit.ly/1dSyf18 for original
@@ -703,6 +698,8 @@ function colourSelect(mission){
 
 function drawFlightTracks(gmap, hits) {
     var colour_index, geom, hit, i, info_window, options, display;
+    // Clear old map drawings
+    cleanup()
 
     for (i = 0; i < hits.length; i += 1) {
         hit = hits[i];
@@ -714,7 +711,6 @@ function drawFlightTracks(gmap, hits) {
             strokeOpacity: 0.6,
             fillOpactiy: 0.1
         };
-
         // Create GeoJSON object
         display = hit._source.spatial.geometries.display;
         geom = GeoJSON(display, options);
@@ -754,7 +750,6 @@ function drawFlightTracks(gmap, hits) {
 
 function cleanup() {
     var i;
-
     for (i = 0; i < geometries.length; i += 1) {
         geometries[i].setMap(null);
     }
@@ -770,7 +765,6 @@ function cleanup() {
 
 function redrawMap(gmap, add_listener) {
     var full_text, request;
-    cleanup();
 
     // Draw flight tracks
     full_text = $('#ftext').val();
@@ -785,6 +779,7 @@ function redrawMap(gmap, add_listener) {
 }
 
 function addBoundsChangedListener(gmap) {
+
     google.maps.event.addListenerOnce(gmap, 'bounds_changed', function () {
 
         if (window.rectangle === undefined)
@@ -961,7 +956,6 @@ window.onload = function () {
         function (e) {
             var charcode = e.charCode || e.keyCode || e.which;
             if (charcode === 13) {
-                cleanup();
                 if (window.rectangle !== undefined) {
                     queryRect();
                 } else {
@@ -984,7 +978,6 @@ window.onload = function () {
 
     $('#applyfil').click(
         function () {
-            cleanup();
             if (window.rectangle !== undefined) {
                 queryRect();
             } else {
@@ -995,16 +988,23 @@ window.onload = function () {
 
     $('#clearfil').click(
         function () {
+            var tree_menu = $('#tree_menu');
             $('#start_time').val('');
             $('#end_time').val('');
             $('#ftext').val('');
-            cleanup();
             if (window.rectangle !== undefined){
                 clearRect();
             }
 
+            if (tree_menu.treeview('getUnselected').length > 0) {
+                tree_menu.treeview('checkNode', [0])
+            } else {
+                redrawMap(map, false);
+            }
+
+
             $('#polygon_draw').bootstrapToggle('off')
-            redrawMap(map, false);
+
         }
     );
 
