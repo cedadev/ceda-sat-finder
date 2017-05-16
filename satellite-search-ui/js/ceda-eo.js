@@ -21,6 +21,7 @@ var TRACK_COLOURS = [
     '#60BD68', '#F17CB0', '#B2912F',
     '#B276B2', '#DECF3F', '#F15854'
 ];
+var redraw_pause = false;
 
 // -----------------------------------String-----------------------------------
 String.prototype.hashCode = function () {
@@ -167,16 +168,18 @@ $('#quicklook_modal').on('hidden.bs.modal', function () {
         treeMenu.treeview('checkAll');
     }
 
-    // function childSelectToggle(method, children){
-    //     var tree_menu = $('#tree_menu'), child, i;
-    //
-    //
-    //     for (i=0; i<children.length; i++){
-    //         child = children[i];
-    //
-    //         tree_menu.treeview(method,[child])
-    //     }
-    // }
+    function childSelectToggle(method, children){
+        var tree_menu = $('#tree_menu'), child, i;
+
+        // Don't trigger redrawMap() until the last child is toggled
+        redraw_pause = true;
+
+        for (i=0; i<children.length; i++){
+            if(i === children.length -1){redraw_pause=false}
+            child = children[i];
+            tree_menu.treeview(method,[child])
+        }
+    }
 
     function updateTreeDisplay(aggregatedData, gmap) {
 
@@ -192,30 +195,35 @@ $('#quicklook_modal').on('hidden.bs.modal', function () {
             multiSelect: true,
             highlightSelected: false,
             onNodeSelected: function (event, data) {
-                tree_menu.treeview('checkNode', [data.nodeId])
-
-                // if (data.text === "Satellites"){
-                //     var children = data.nodes;
-                //     childSelectToggle('checkNode',children)
-                // }
+                tree_menu.treeview('checkNode', [data.nodeId, {silent:true}])
 
             },
             onNodeUnselected: function (event, data) {
-                tree_menu.treeview('uncheckNode', [data.nodeId])
-
-                // if (data.text === "Satellites"){
-                //     var children = data.nodes;
-                //     childSelectToggle('uncheckNode',children)
-                // }
-
+                tree_menu.treeview('uncheckNode', [data.nodeId, {silent:true}])
             },
             onNodeChecked: function (event, data) {
-                tree_menu.treeview('selectNode', [data.nodeId])
-                redrawMap(gmap, true)
+                if (data.text !== "Satellites"){
+                    tree_menu.treeview('selectNode', [data.nodeId])
+
+                    if (!redraw_pause){redrawMap(gmap, true)}
+
+                } else{
+                    tree_menu.treeview('selectNode', [data.nodeId, {silent:true}])
+                    var children = data.nodes;
+                    childSelectToggle('checkNode',children)
+                }
             },
             onNodeUnchecked: function (event,data) {
-                tree_menu.treeview('unselectNode', [data.nodeId])
-                    redrawMap(gmap, true)
+                if (data.text !== "Satellites"){
+                    tree_menu.treeview('unselectNode', [data.nodeId])
+                    if (!redraw_pause){
+                        redrawMap(gmap, true)}
+
+                } else{
+                    tree_menu.treeview('unselectNode', [data.nodeId,{silent:true}])
+                    var children = data.nodes;
+                    childSelectToggle('uncheckNode',children)
+                }
             }
         });
 
@@ -234,7 +242,6 @@ $('#quicklook_modal').on('hidden.bs.modal', function () {
         var i, req=[], selection;
 
         selection = $('#tree_menu').treeview('getUnselected');
-
         if (selection.length){
             for (i=0; i < selection.length; i++){
                 if (selection[i].text !== "Satellites"){
@@ -245,6 +252,7 @@ $('#quicklook_modal').on('hidden.bs.modal', function () {
                     });
                 }
             }
+
             return req;
         }
         return '';
@@ -632,8 +640,8 @@ function cleanup() {
 
 function redrawMap(gmap, add_listener) {
     var full_text, request;
-
     cleanup();
+    console.log("Called by" + arguments.callee.caller.toString())
 
     // Draw flight tracks
     full_text = $('#ftext').val();
@@ -829,7 +837,8 @@ window.onload = function () {
             $('#ftext').val('');
             // clearAggregatedVariables();
             cleanup();
-            clearRect();
+            if (window.rectangle !== undefined){clearRect();}
+
             $('#polygon_draw').bootstrapToggle('off')
             redrawMap(map, false);
         }
@@ -901,6 +910,7 @@ window.onload = function () {
                 dragging = false;
                 map.setOptions({draggable: true});
                 map.keyboardShortcuts = true;
+
             }
 
             function showRect() {
