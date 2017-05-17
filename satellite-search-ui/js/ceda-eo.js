@@ -619,71 +619,74 @@ function centreMap(gmap, geocoder, loc) {
     }
 }
 
-function createInfoWindow(hit) {
-    var content, info;
+    // --------------------------- Info window ------------------------------------
 
-    hit = hit._source;
 
-    view = {
-        filename: hit.file.data_file,
-        start_time: hit.temporal.start_time,
-        end_time: hit.temporal.end_time,
-        mission: hit.misc.platform.Mission,
-        satellite: hit.misc.platform.Satellite,
-        instrument: hit.misc.platform["Instrument Abbreviation"]
-    };
+    function createInfoWindow(hit) {
+        var content, info;
 
-    var template = $('#infowindowTemplate').html();
-    content = Mustache.render(template, view);
+        hit = hit._source;
 
-    if (hit.file.quicklook_file) {
-        quicklooks.push('http://data.ceda.ac.uk' + hit.file.path.truncatePath(1)+ '/' + hit.file.quicklook_file)
-    }
-    else {
-        quicklooks.push('-')
-    }
+        view = {
+            filename: hit.file.data_file,
+            start_time: hit.temporal.start_time,
+            end_time: hit.temporal.end_time,
+            mission: hit.misc.platform.Mission,
+            satellite: hit.misc.platform.Satellite,
+            instrument: hit.misc.platform["Instrument Abbreviation"]
+        };
 
-    if (hit.file.location === "on_disk") {
-        content += '<p><a target="_blank" href="http://data.ceda.ac.uk' +
-            hit.file.path.truncatePath(1) + '/' + hit.file.data_file + '">Get this data file</a></p>';
+        var template = $('#infowindowTemplate').html();
+        content = Mustache.render(template, view);
 
-        content += '<p><a target="_blank" href="http://data.ceda.ac.uk' +
-            hit.file.path.truncatePath(1) + '">View directory for this scene</a></p>';
-    } else {
-        content += '<p>This file is stored on tape, please click <a target="_blank" href="http://help.ceda.ac.uk/article/265-nla">here</a> for information about access to this file.</p>'
-    }
-
-    // close the section tag
-    content += '</section>';
-
-    info = new google.maps.InfoWindow(
-        {
-            content: content,
-            disableAutoPan: false
+        if (hit.file.quicklook_file) {
+            quicklooks.push('http://data.ceda.ac.uk' + hit.file.path.truncatePath(1)+ '/' + hit.file.quicklook_file)
         }
-    );
-
-    return info;
-}
-
-    // ------------------------------ Info window quicklook -------------
-    function getQuickLook(info_window, i) {
-        var content = $(info_window.getContent());
-
-        if (quicklooks[i] !== '-') {
-
-            var quicklook = "<img class='quicklook' src='" + quicklooks[i] + "' alt='Data quicklook image' onclick='displayquicklookModal(" + i + ")' onerror='imgError(this)'> ";
-            content.find("#quicklooks_placeholder").first().html(quicklook);
-            content = content.prop('outerHTML');
-
-            info_window.setContent(content)
+        else {
+            quicklooks.push('-')
         }
+
+        if (hit.file.location === "on_disk") {
+            content += '<p><a target="_blank" href="http://data.ceda.ac.uk' +
+                hit.file.path.truncatePath(1) + '/' + hit.file.data_file + '">Get this data file</a></p>';
+
+            content += '<p><a target="_blank" href="http://data.ceda.ac.uk' +
+                hit.file.path.truncatePath(1) + '">View directory for this scene</a></p>';
+        } else {
+            content += '<p>This file is stored on tape, please click <a target="_blank" href="http://help.ceda.ac.uk/article/265-nla">here</a> for information about access to this file.</p>'
+        }
+
+        // close the section tag
+        content += '</section>';
+
+        info = new google.maps.InfoWindow(
+            {
+                content: content,
+                disableAutoPan: false
+            }
+        );
+
+        return info;
     }
-    // replace the broken img icon with a custom image.
-    function imgError(image) {
-        image.onerror = "";
-        image.src = "./img/unavailable.png"
-    }
+
+        // ------------------------------ Info window quicklook -------------
+        function getQuickLook(info_window, i) {
+            var content = $(info_window.getContent());
+
+            if (quicklooks[i] !== '-') {
+
+                var quicklook = "<img class='quicklook' src='" + quicklooks[i] + "' alt='Data quicklook image' onclick='displayquicklookModal(" + i + ")' onerror='imgError(this)'> ";
+                content.find("#quicklooks_placeholder").first().html(quicklook);
+                content = content.prop('outerHTML');
+
+                info_window.setContent(content)
+            }
+        }
+        // replace the broken img icon with a custom image.
+        function imgError(image) {
+            image.onerror = "";
+            image.src = "./img/unavailable.png"
+        }
 
 function colourSelect(mission){
     var colour;
@@ -983,7 +986,7 @@ window.onload = function () {
 
 
     // Open welcome modal
-    $('#welcome_modal').modal('show')
+    // $('#welcome_modal').modal('show')
 
     //------------------------------- Buttons -------------------------------
     $('#location_search').click(
@@ -1104,6 +1107,9 @@ window.onload = function () {
                 google.maps.event.addListener(rect, 'mouseup', function (data) {
                     map.draggable = true;
                     dragging = false;
+
+                    // Trigger apply filter at the conclusion of the drawing
+                    $('#applyfil').trigger('click')
 
                     // Allow the user to resize and drag the rectangle at the conclusion of drawing.
                     rect.setEditable(true);

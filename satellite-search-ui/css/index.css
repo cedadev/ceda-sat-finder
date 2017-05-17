@@ -74,7 +74,7 @@ div .logo {
     padding-left: 27px;
     padding-right: 27px;
     min-width: 300px;
-    width: 29.5%;
+    width: 29%;
     max-height: 100vh;
     float: left;
     overflow-y: auto;
@@ -214,9 +214,11 @@ div .logo {
     border-radius: 3px;
 }
 
-#tree_menu {
-    margin: 10px;
-    padding: 10px;
+#collapse_tree .list-group {
+    -moz-box-shadow: none;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    margin-bottom: 0;
 }
 
 #welcome-infomessage{
