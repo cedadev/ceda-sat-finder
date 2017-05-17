@@ -986,7 +986,7 @@ window.onload = function () {
 
 
     // Open welcome modal
-    // $('#welcome_modal').modal('show')
+    $('#welcome_modal').modal('show')
 
     //------------------------------- Buttons -------------------------------
     $('#location_search').click(
