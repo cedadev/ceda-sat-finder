@@ -247,7 +247,11 @@ function requestFromFilters(full_text) {
             child = children[i];
             tree_menu.treeview(method,[child])
         }
-        redrawMap(gmap, true)
+        if (window.rectangle !== undefined){
+            queryRect()
+        } else {
+            redrawMap(gmap, true)
+        }
         redraw_pause = false;
     }
 
@@ -279,7 +283,13 @@ function requestFromFilters(full_text) {
             highlightSelected: false,
             onNodeSelected: function (event, data) {
                 tree_menu.treeview('checkNode', [data.nodeId, {silent:true}]);
-                if (!redraw_pause){redrawMap(gmap, true)}
+                if (!redraw_pause){
+                    if(window.rectangle !== undefined){
+                        queryRect(gmap)
+                    } else {
+                        redrawMap(gmap, true)
+                    }
+                }
 
                 if(siblingState(data.nodeId)){
                     tree_menu.treeview('checkNode',[0, {silent: true}]);
@@ -292,7 +302,12 @@ function requestFromFilters(full_text) {
             },
             onNodeUnselected: function (event, data) {
                 tree_menu.treeview('uncheckNode', [data.nodeId, {silent:true}]);
-                if (!redraw_pause){redrawMap(gmap, true)};
+                if (!redraw_pause){
+                    if (window.rectangle !== undefined){
+                        queryRect(gmap)
+                    } else {
+                        redrawMap(gmap, true)}
+                }
 
                 if(siblingState(data.nodeId)){
                     tree_menu.treeview('checkNode',[0, {silent: true}]);
@@ -903,6 +918,31 @@ function sendHistogramRequest() {
     })
 
 
+// ----------------------- Rectangle Drawing tool ---------------------------
+
+    function rectBounds() {
+        current_bounds = window.rectangle.getBounds();
+        var ne = current_bounds.getNorthEast();
+        var sw = current_bounds.getSouthWest();
+
+        return [[sw.lng(),ne.lat()], [ne.lng(),sw.lat()]]
+    }
+
+    function queryRect(map) {
+        // create ES request, send and draw results.
+        var request = createElasticsearchRequest(rectBounds(), $('#ftext').val(), 100, true);
+        sendElasticsearchRequest(request, updateMap, map);
+
+        // zoom map to new rectangle
+        map.fitBounds(current_bounds);
+        map.setZoom(map.getZoom() - 1);
+    }
+
+    function clearRect() {
+        window.rectangle.setMap(null);
+        window.rectangle = undefined;
+
+    }
 
 
 // ------------------------------window.unload---------------------------------
@@ -957,7 +997,7 @@ window.onload = function () {
             var charcode = e.charCode || e.keyCode || e.which;
             if (charcode === 13) {
                 if (window.rectangle !== undefined) {
-                    queryRect();
+                    queryRect(map);
                 } else {
                     redrawMap(map, false);
                 }
@@ -979,7 +1019,7 @@ window.onload = function () {
     $('#applyfil').click(
         function () {
             if (window.rectangle !== undefined) {
-                queryRect();
+                queryRect(map);
             } else {
                 redrawMap(map, false);
             }
@@ -1119,29 +1159,7 @@ window.onload = function () {
         }
     );
 
-    function rectBounds() {
-        current_bounds = window.rectangle.getBounds();
-        var ne = current_bounds.getNorthEast();
-        var sw = current_bounds.getSouthWest();
 
-        return [[sw.lng(),ne.lat()], [ne.lng(),sw.lat()]]
-    }
-
-    function queryRect() {
-        // create ES request, send and draw results.
-        var request = createElasticsearchRequest(rectBounds(), $('#ftext').val(), 100, true);
-        sendElasticsearchRequest(request, updateMap, map);
-
-        // zoom map to new rectangle
-        map.fitBounds(current_bounds);
-        map.setZoom(map.getZoom() - 1);
-    }
-
-    function clearRect() {
-        window.rectangle.setMap(null);
-        window.rectangle = undefined;
-
-    }
 
     //--------------------------- 'Export Results' ---------------------------
     $('#raw_json').click(
