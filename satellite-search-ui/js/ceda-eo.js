@@ -714,6 +714,50 @@ function colourSelect(mission){
     return colour
 }
 
+  function truncatePole (displayCoords) {
+    var i, truncatedCoords = [];
+    var truncate = false
+
+    displayCoords = displayCoords.coordinates[0]
+    for (i = 0; i < displayCoords.length; i++) {
+        var coords = displayCoords[i]
+        var last_coords
+
+        if (coords[1] > 85) {
+            // If co-ordinate traverses >85 N, truncate to 85
+            coords[1] = 85.0
+
+            // Only return the first co-ordinate to cross the threshold
+            if(!truncate){truncatedCoords.push(coords)}
+            truncate = true
+            // Store last coordinate to push when polygon re-enters threshold
+            if (truncate){last_coords = coords}
+
+        } else if (coords[1] < -85) {
+            // If co-ordinate traverses < -85 S, truncate to -85
+            coords[1] = -85
+
+            // Only return the first co-ordinate to cross the threshold
+            if(!truncate){truncatedCoords.push(coords)}
+            truncate = true
+            // Store last coordinate to push when polygon re-enters threshold
+            if (truncate){last_coords = coords}
+
+        } else {
+          // On re-entry, push the last truncated co-ordinate as well as the current
+          // non-truncated coordinate
+          if (truncate){
+            truncatedCoords.push(last_coords)
+          }
+          truncate = false
+          truncatedCoords.push(coords)
+        }
+    }
+    truncatedCoords = [truncatedCoords]
+    return truncatedCoords
+}
+
+
 function drawFlightTracks(gmap, hits) {
     var colour_index, geom, hit, i, info_window, options, display;
     // Clear old map drawings
@@ -731,6 +775,8 @@ function drawFlightTracks(gmap, hits) {
         };
         // Create GeoJSON object
         display = hit._source.spatial.geometries.display;
+        // console.log(hit._source.file.filename, JSON.stringify(display))
+        display.coordinates = truncatePole(display)
         geom = GeoJSON(display, options);
 
         geom.setMap(gmap);
