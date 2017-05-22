@@ -763,7 +763,17 @@ function drawFlightTracks(gmap, hits) {
     // Clear old map drawings
     cleanup()
 
+    // only need to pass to truncate filter if searching in region north/south of 70N/S
+    var mapBounds = gmap.getBounds();
+    var truncate;
+    if (mapBounds.getNorthEast().lat() > 70 || mapBounds.getSouthWest().lat() < -70){
+        truncate = true
+    }else {
+        truncate = false
+    }
+
     for (i = 0; i < hits.length; i += 1) {
+        hit = hits[i];
         hit = hits[i];
 
         var mission = hit._source.misc.platform.Mission
@@ -775,8 +785,11 @@ function drawFlightTracks(gmap, hits) {
         };
         // Create GeoJSON object
         display = hit._source.spatial.geometries.display;
-        // console.log(hit._source.file.filename, JSON.stringify(display))
-        display.coordinates = truncatePole(display)
+
+        if (truncate){
+            display.coordinates = truncatePole(display)
+        }
+
         geom = GeoJSON(display, options);
 
         geom.setMap(gmap);
