@@ -621,13 +621,13 @@ function centreMap(gmap, geocoder, loc) {
 
     // --------------------------- Info window ------------------------------------
 
-
     function createInfoWindow(hit) {
         var content, info;
 
         hit = hit._source;
 
         view = {
+            title: "Scene Details",
             filename: hit.file.data_file,
             start_time: hit.temporal.start_time,
             end_time: hit.temporal.end_time,
@@ -647,13 +647,17 @@ function centreMap(gmap, geocoder, loc) {
         }
 
         if (hit.file.location === "on_disk") {
-            content += '<p><a target="_blank" href="http://data.ceda.ac.uk' +
-                hit.file.path.truncatePath(1) + '/' + hit.file.data_file + '">Get this data file</a></p>';
+            content += '<p class="iw_table">' +
+                            '<a class="btn btn-danger" target="_blank" href="http://data.ceda.ac.uk' +
+                                 hit.file.path.truncatePath(1) + '/' + hit.file.data_file + '" role="button">Download <span class="glyphicon glyphicon-circle-arrow-down"/>' +
+                            '</a>' +
+                            '   <a class="btn btn-primary" target="_blank" href="http://data.ceda.ac.uk' +
+                                    hit.file.path.truncatePath(1) + '">View directory <span class="glyphicon glyphicon-folder-open"/>' +
+                            '</a>' +
+                        '</p>';
 
-            content += '<p><a target="_blank" href="http://data.ceda.ac.uk' +
-                hit.file.path.truncatePath(1) + '">View directory for this scene</a></p>';
         } else {
-            content += '<p>This file is stored on tape, please click <a target="_blank" href="http://help.ceda.ac.uk/article/265-nla">here</a> for information about access to this file.</p>'
+            content += '<p class="iw_table">This file is stored on tape, please click <a target="_blank" href="http://help.ceda.ac.uk/article/265-nla">here</a> for information about access to this file.</p>'
         }
 
         // close the section tag
@@ -666,8 +670,52 @@ function centreMap(gmap, geocoder, loc) {
             }
         );
 
+        /*  ---------   Infowindow modifications   -----------------
+         * The google.maps.event.addListener() event waits for
+         * the creation of the infowindow HTML structure 'domready'
+         * before the opening of the infowindow defined styles
+         * are applied.
+         */
+        google.maps.event.addListener(info, 'domready', function () {
+
+            // Reference DIV which receives the contents of the infowindow.
+            var iwOuter = $('.gm-style-iw');
+
+            /* The DIV we want to change is above the .gm-style-iw DIV. */
+            var iwBackground = iwOuter.prev();
+
+            // Remove the background shadow DIV
+            iwBackground.children(':nth-child(2)').css({'display': 'none'});
+
+            // Remove the white background DIV
+            iwBackground.children(':nth-child(4)').css({'display': 'none'});
+
+             // Changes the z-index of the tail to bring it forward.
+            iwBackground.children(':nth-child(3)').find('div').children().css({'z-index' : '1'});
+
+            //The following div to .gm-style-iw groups the close button elements.
+            var iwCloseBtn = iwOuter.next();
+
+            // Apply the desired effect to the close button
+            iwCloseBtn.css({
+              opacity: '1', // by default the close button has an opacity of 0.7
+              right: '75px', top: '18px', // button repositioning
+              'border-radius': '13px', // circular effect
+              'box-shadow': '0 0 5px #3990B9' // 3D effect to highlight the button
+              });
+
+            // The API automatically applies 0.7 opacity to the button after the mouseout event.
+            // This function reverses this event to the desired value.
+            iwCloseBtn.mouseout(function(){
+              $(this).css({opacity: '1'});
+            });
+
+        });
+
         return info;
     }
+
+
 
         // ------------------------------ Info window quicklook -------------
         function getQuickLook(info_window, i) {
@@ -1045,7 +1093,7 @@ window.onload = function () {
 
 
     // Open welcome modal
-    $('#welcome_modal').modal('show')
+    // $('#welcome_modal').modal('show')
 
     //------------------------------- Buttons -------------------------------
     $('#location_search').click(
