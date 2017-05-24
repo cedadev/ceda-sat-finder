@@ -121,7 +121,7 @@ function displayquicklookModal(i) {
     $('#modal-quicklook-image').attr('src', quicklooks[i]);
 
     // set modal title to data filename
-    var title = $(info_windows[i].getContent()).find("#iw-title").first().html();
+    var title = $(info_windows[i].getContent()).find("#iw-title").first().attr('title');
     title = title.replace(/^<strong>.+<\/strong>/g,'');
     $('#file_nameQL').html(title);
 
