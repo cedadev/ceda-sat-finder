@@ -1108,8 +1108,25 @@ window.onload = function () {
 
 
     // Open welcome modal
-    $('#welcome_modal').modal('show')
+    var welcomeModal = $('#welcome_modal')
 
+    if(Storage !== undefined){
+        // If HTML5 storage available
+        // If the modal has been closed this session do not display the modal
+        if (!sessionStorage.welcomeDismissed) {
+            welcomeModal.modal('show')
+        }
+
+        // When the welcome modal is closed, set the session welcomeDismissed to true to prevent showing the modal on
+        // page refresh during the same browser session.
+        welcomeModal.on('hidden.bs.modal',function () {
+            sessionStorage.welcomeDismissed = true
+        });
+    } else {
+        // HTML5 storage is not available, default to displaying the modal on every page load.
+        welcomeModal.modal('show')
+    }
+    
     //------------------------------- Buttons -------------------------------
     $('#location_search').click(
         function () {
