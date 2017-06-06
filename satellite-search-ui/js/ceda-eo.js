@@ -1126,7 +1126,7 @@ window.onload = function () {
         // HTML5 storage is not available, default to displaying the modal on every page load.
         welcomeModal.modal('show')
     }
-    
+
     //------------------------------- Buttons -------------------------------
     $('#location_search').click(
         function () {
