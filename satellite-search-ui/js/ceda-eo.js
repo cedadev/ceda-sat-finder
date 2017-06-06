@@ -409,6 +409,12 @@ function requestFromFilters(full_text) {
                     "temporal"
                 ]
             },
+            "sort": [
+                {
+                    "temporal.start_time": {"order": "desc"}
+                },
+                "_score"
+            ],
             "query": {
                 "filtered": {
                     "query": {
@@ -731,7 +737,6 @@ function centreMap(gmap, geocoder, loc) {
 
             }
 
-            console.log(quicklook)
                 content.find("#quicklooks_placeholder").first().html(quicklook);
                 content = content.prop('outerHTML');
                 info_window.setContent(content)
@@ -826,6 +831,9 @@ function drawFlightTracks(gmap, hits) {
         truncate = false
     }
 
+    // Reverse the "hits" array because the ES response is ordered new - old and we want to draw the newest items on top.
+    hits.reverse()
+
     for (i = 0; i < hits.length; i += 1) {
         hit = hits[i];
         hit = hits[i];
@@ -835,7 +843,8 @@ function drawFlightTracks(gmap, hits) {
             strokeColor: colourSelect(mission),
             strokeWeight: 5,
             strokeOpacity: 0.6,
-            fillOpactiy: 0.1
+            fillOpactiy: 0.1,
+            zIndex: i
         };
         // Create GeoJSON object
         display = hit._source.spatial.geometries.display;
