@@ -722,13 +722,19 @@ function centreMap(gmap, geocoder, loc) {
             var content = $(info_window.getContent());
 
             if (quicklooks[i] !== '-') {
-
+                // There is a quicklook in the archive
                 var quicklook = "<img class='quicklook' src='" + quicklooks[i] + "' alt='Data quicklook image' onclick='displayquicklookModal(" + i + ")' onerror='imgError(this)'> ";
+
+            } else {
+                // There is no quicklook image in the archive
+                var quicklook = '<img class="quicklook" src="./img/no_preview.png" alt="Data quicklook image">';
+
+            }
+
+            console.log(quicklook)
                 content.find("#quicklooks_placeholder").first().html(quicklook);
                 content = content.prop('outerHTML');
-
                 info_window.setContent(content)
-            }
         }
         // replace the broken img icon with a custom image.
         function imgError(image) {
