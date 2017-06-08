@@ -61,6 +61,17 @@ String.prototype.truncatePath = function (levels) {
     return t_path;
 };
 
+// Toggle text at top of the filters panel
+    function toggleText() {
+        var sliders = document.getElementsByClassName('slider')
+        for (var i=0; i < sliders.length; i++ ){
+            sliders[i].classList.toggle('closed')
+        }
+        var headerCollapse =  document.getElementById('headCollapse');
+        var hCHTML = headerCollapse.innerHTML;
+        headerCollapse.innerHTML = hCHTML === 'Collapse Header' ? 'Expand Header' : 'Collapse Header'
+
+    }
 
 // ---------------------------'Export Results' Modal---------------------------
     function sleep(miliseconds) {
