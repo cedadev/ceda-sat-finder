@@ -415,6 +415,7 @@ function requestFromFilters(full_text) {
                     "file.data_file",
                     "file.quicklook_file",
                     "file.location",
+                    "file.directory",
                     "misc",
                     "spatial",
                     "temporal"
@@ -595,7 +596,8 @@ function requestFromFilters(full_text) {
 
         paths = [];
         for (i = 0; i < h.length; i += 1) {
-            paths.push(h[i]._source.file.path);
+            var filepath = [h[i]._source.file.directory,'/',h[i]._source.file.data_file]
+            paths.push(filepath.join(""));
         }
 
         updateExportResultsModal(paths);
@@ -607,7 +609,8 @@ function requestFromFilters(full_text) {
 
         paths = [];
         for (i = 0; i < h.length; i += 1) {
-            paths.push('http://data.ceda.ac.uk' + h[i]._source.file.path);
+            var filepath = [h[i]._source.file.directory,'/',h[i]._source.file.data_file]
+            paths.push('http://data.ceda.ac.uk' + filepath.join(""));
         }
 
         updateExportResultsModal(paths);
