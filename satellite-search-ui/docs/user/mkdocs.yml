@@ -1,4 +1,4 @@
-site_name: EUFAR Flight Finder Docs
+site_name: CEDA Satellite Data Finder Docs
 pages:
     - [index.md, Home]
     - [refine.md, Refine Search]
