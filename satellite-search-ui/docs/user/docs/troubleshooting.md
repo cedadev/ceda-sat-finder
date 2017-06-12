@@ -31,3 +31,21 @@ There has been one instance where the rectangle tool and map key were rendered b
 This indicates that the styling has not loaded properly.
 
 This can be fixed by performing a hard refresh using **Shift + F5** or **Shift + Click Refresh** in browser.
+
+Strange behaviour near the date line?
+-------------------------------------
+
+Due to the spherical nature of the earth, there are strange behaviour when it comes to searching over the date line.
+If your view window is over the date line, the search will always draw east.
+This behaviour is easiest seen using the rectangle search tool.
+
+![alt text][Dateline Issue Screenshot]
+
+[Dateline Issue Screenshot]: ./images/DateLineScreenshot1.png "Dateline Issue Example"
+
+The box has been drawn from top left, over the date line to bottom right. The area I drew has not been selected but the
+rectangle has been drawn east almost 360 degrees. The image below is a southern hemisphere capture of the same drawing.
+
+![alt text][Dateline Issue Screenshot2]
+
+[Dateline Issue Screenshot2]: ./images/DateLineScreenshot2.png "Dateline Issue Example 2"

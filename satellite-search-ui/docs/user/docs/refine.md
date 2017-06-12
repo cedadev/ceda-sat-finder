@@ -8,7 +8,7 @@ In order to get the most use out of the Satellite Data Finder, it is important t
 refine your search. The number of hits, for your
 current search parameters, is displayed below the "Export Results" button. 
 Only 1000 will be drawn on the map or are extractable
-via the "Export Results" dialog to increase performance.
+via the **Export Results** dialog to increase performance.
 
 ### Temporal Filter
 
