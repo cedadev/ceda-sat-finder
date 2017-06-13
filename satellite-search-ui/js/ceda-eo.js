@@ -1,6 +1,8 @@
 /*jslint browser: true, devel: true, sloppy: true*/
 /*global google, $, GeoJSON*/
 
+
+
 function getParameterByName(name) {
     // Function from: http://stackoverflow.com/a/901144
     name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
@@ -25,11 +27,11 @@ var redraw_pause = false;
 
 // based on the Track Colours
 var COLOUR_MAP = {
-    "sentinel1" : "#B276B2",
-    "sentinel2" : "#5DA5DA",
-    "sentinel3" : "#FAA43A",
-    "landsat"   : "#60BD68",
-    "other"     : "#F17CB0"
+    "sentinel1": "#B276B2",
+    "sentinel2": "#5DA5DA",
+    "sentinel3": "#FAA43A",
+    "landsat": "#60BD68",
+    "other": "#F17CB0"
 };
 var export_modal_open = false;
 
@@ -62,68 +64,68 @@ String.prototype.truncatePath = function (levels) {
 };
 
 // Toggle text at top of the filters panel
-    function toggleText() {
-        var sliders = document.getElementsByClassName('slider')
-        for (var i=0; i < sliders.length; i++ ){
-            sliders[i].classList.toggle('closed')
-        }
-        var headerCollapse =  document.getElementById('headCollapse');
-        var hCHTML = headerCollapse.innerHTML;
-        headerCollapse.innerHTML = hCHTML === 'Collapse Header' ? 'Expand Header' : 'Collapse Header'
-
+function toggleText() {
+    var sliders = document.getElementsByClassName('slider')
+    for (var i = 0; i < sliders.length; i++) {
+        sliders[i].classList.toggle('closed')
     }
+    var headerCollapse = document.getElementById('headCollapse');
+    var hCHTML = headerCollapse.innerHTML;
+    headerCollapse.innerHTML = hCHTML === 'Collapse Header' ? 'Expand Header' : 'Collapse Header'
+
+}
 
 // ---------------------------'Export Results' Modal---------------------------
-    function sleep(miliseconds) {
-        var currentTime = new Date().getTime();
+function sleep(miliseconds) {
+    var currentTime = new Date().getTime();
 
-        while (currentTime + miliseconds >= new Date().getTime()) {
-        }
+    while (currentTime + miliseconds >= new Date().getTime()) {
     }
+}
 
-    function updateExportResultsModal(hits) {
-        loading();
-        $('#results').html(JSON.stringify(hits, null, '    '));
+function updateExportResultsModal(hits) {
+    loading();
+    $('#results').html(JSON.stringify(hits, null, '    '));
+}
+
+$('#copy').click(function (event) {
+    $('#results').select();
+
+    try {
+        document.execCommand('copy');
+    } catch (err) {
+        console.log('Oops, unable to copy');
     }
+});
 
-    $('#copy').click( function (event) {
-        $('#results').select();
-
-        try {
-            var successful = document.execCommand('copy');
-        } catch (err) {
-            console.log('Oops, unable to copy');
-        }
-    });
-
-    // Handle popover trigger and release
-    $('#copy[data-toggle="popover"]')
-        .on('focus', function(event) {
-            $(this).popover({
-                placement:'bottom',
-                trigger:'manual'
-            });
-            $(this).popover('show');
+// Handle popover trigger and release
+$('#copy[data-toggle="popover"]')
+    .on('focus', function (event) {
+        $(this).popover({
+            placement: 'bottom',
+            trigger: 'manual'
+        });
+        $(this).popover('show');
     })
-        .on('blur', function(event) {
-            sleep(700);
-            $(this).popover('hide');
+    .on('blur', function (event) {
+        sleep(700);
+        $(this).popover('hide');
     });
 
 
 // ---------------------------'Loading' Modal---------------------------
 
-    function displayLoadingModal() {
-        var $loading = $('#loading_modal');
-        $loading.css("display", $loading.css("display") === 'none' ? 'block' : 'none');
+function displayLoadingModal() {
+    var $loading = $('#loading_modal');
+    $loading.css("display", $loading.css("display") === 'none' ? 'block' : 'none');
 
-    }
+}
 
-    // loading gif inside export modal
-    function loading(){
-            var loading_blk = $('.loading_block');
-            loading_blk.css("display", loading_blk.css("display") === 'none' ? 'block' : 'none');
-        }
+// loading gif inside export modal
+function loading() {
+    var loading_blk = $('.loading_block');
+    loading_blk.css("display", loading_blk.css("display") === 'none' ? 'block' : 'none');
+}
 
 // ---------------------------'Quicklook' Modal---------------------------
 
@@ -133,7 +135,7 @@ function displayquicklookModal(i) {
 
     // set modal title to data filename
     var title = $(info_windows[i].getContent()).find("#iw-title").first().attr('title');
-    title = title.replace(/^<strong>.+<\/strong>/g,'');
+    title = title.replace(/^<strong>.+<\/strong>/g, '');
     $('#file_nameQL').html(title);
 
     var $loading = $('#quicklook_modal');
@@ -167,454 +169,468 @@ function requestFromFilters(full_text) {
 
 // -------------------------------Hierarchy tree ------------------------------
 
-    function titleCase(string){
-        return string.charAt(0).toUpperCase() + string.slice(1);
-    }
+function titleCase(string) {
+    return string[0].toUpperCase() + string.slice(1);
+}
 
 
-    function getDocCount(key, aggregatedData) {
-        var count;
-        var data_count = aggregatedData['data_count']['buckets'];
-        var i;
+function getDocCount(key, aggregatedData) {
+    var count;
+    var data_count = aggregatedData['data_count']['buckets'];
+    var i;
 
-        for (i=0; i< data_count.length; i++){
-            if (data_count[i]['key'] === key ){
-                count = data_count[i]['doc_count']
-                break;
-            }
+    for (i = 0; i < data_count.length; i++) {
+        if (data_count[i]['key'] === key) {
+            count = data_count[i]['doc_count'];
+            break;
+        } else {
             count = 0
         }
-        if (!data_count.length){ count = 0}
-        return count
-    };
+    }
+    if (!data_count.length) {
+        count = 0
+    }
+    return count
+}
 
-    function getTreeJSON(aggregatedData, numbers) {
-        if (numbers === undefined){ numbers=true}
-        var tree = [];
-        var tree_buckets = aggregatedData['all'];
-        var satellites, childName, child, doc_count, child_JSON, satellite_node
+function getTreeJSON(aggregatedData, numbers) {
+    if (numbers === undefined) {
+        numbers = true
+    }
+    var tree = [];
+    var tree_buckets = aggregatedData['all'];
+    var satellites, childName, child, doc_count, child_JSON, satellite_node;
 
-        // Create JSON for satellites aggregation
-        if ("satellites" in tree_buckets) {
-            satellites = tree_buckets['satellites']['buckets'];
+    // Create JSON for satellites aggregation
+    if ("satellites" in tree_buckets) {
+        satellites = tree_buckets['satellites']['buckets'];
 
-            // Create the child JSON
-            var i, j, satellite_children = [];
-            for (i = 0, j = satellites.length; i < j; i++) {
-                child = satellites[i]['key'];
-                doc_count = getDocCount(child,aggregatedData);
-                if (numbers){
-                    childName = child + ' <span class="badge text-left">'+ doc_count +'</span>';
-                } else {
-                    childName = child;
-                }
-
-                child_JSON = {
-                    text: titleCase(childName)
-                    };
-
-                // push each child to the children array
-                satellite_children.push(child_JSON)
+        // Create the child JSON
+        var i, j, satellite_children = [];
+        for (i = 0, j = satellites.length; i < j; i++) {
+            child = satellites[i]['key'];
+            doc_count = getDocCount(child, aggregatedData);
+            if (numbers) {
+                childName = child + ' <span class="badge text-left">' + doc_count + '</span>';
+            } else {
+                childName = child;
             }
 
-            // Create the main satellite parent node
-                satellite_node = {
-                    text: "Satellites",
-                    nodes: satellite_children,
-                    selectable: false
+            child_JSON = {
+                text: titleCase(childName)
             };
 
-            // Push the satellite node JSON to the main tree data array.
-            tree.push(satellite_node)
+            // push each child to the children array
+            satellite_children.push(child_JSON)
         }
-        return tree
+
+        // Create the main satellite parent node
+        satellite_node = {
+            text: "Satellites",
+            nodes: satellite_children,
+            selectable: false
+        };
+
+        // Push the satellite node JSON to the main tree data array.
+        tree.push(satellite_node)
     }
+    return tree
+}
 
-    function initTree(response) {
-        var aggregatedData = response.aggregations;
-        var treeMenu = $('#tree_menu');
+function initTree(response) {
+    var aggregatedData = response.aggregations;
+    var treeMenu = $('#tree_menu');
 
-        treeMenu.treeview({
-            data: getTreeJSON(aggregatedData, false),
-            showCheckbox: true,
-            multiSelect: true,
-            highlightSelected: false,
-            showBorder: false,
-            onNodeChecked: function (event, data) {
-                treeMenu.treeview('selectNode', [data.nodeId])
-            }
-        });
-        treeMenu.treeview('checkAll');
-    }
-
-    function childSelectToggle(method, children, gmap){
-        var tree_menu = $('#tree_menu'), child, i;
-
-        // Don't trigger redrawMap() until the last child is toggled
-        redraw_pause = true;
-
-        for (i=0; i<children.length; i++){
-            // if(i === children.length -1){redraw_pause=false}
-            child = children[i];
-            tree_menu.treeview(method,[child])
+    treeMenu.treeview({
+        data: getTreeJSON(aggregatedData, false),
+        showCheckbox: true,
+        multiSelect: true,
+        highlightSelected: false,
+        showBorder: false,
+        onNodeChecked: function (event, data) {
+            treeMenu.treeview('selectNode', [data.nodeId])
         }
-        if (window.rectangle !== undefined){
-            queryRect()
-        } else {
-            redrawMap(gmap, true)
-        }
-        redraw_pause = false;
+    });
+    treeMenu.treeview('checkAll');
+}
+
+function childSelectToggle(method, children, gmap) {
+    var tree_menu = $('#tree_menu'), child, i;
+
+    // Don't trigger redrawMap() until the last child is toggled
+    redraw_pause = true;
+
+    for (i = 0; i < children.length; i++) {
+        // if(i === children.length -1){redraw_pause=false}
+        child = children[i];
+        tree_menu.treeview(method, [child])
     }
-
-    function siblingState(node){
-        // tests state of all sibling nodes. Returns true 
-        var tree = $('#tree_menu');
-        var siblings = tree.treeview('getSiblings',[node]);
-        var test= [tree.treeview('getNode',[node]).state.checked];
-        var i, sibling;
-        for (i=0; i < siblings.length; i++){
-            sibling = siblings[i];
-            test.push(sibling.state.checked)
-        }
-        return test.every(function (element, index, array) { return element === true })
+    if (window.rectangle !== undefined) {
+        queryRect()
+    } else {
+        redrawMap(gmap, true)
     }
+    redraw_pause = false;
+}
 
-    function updateTreeDisplay(aggregatedData, gmap) {
-
-        var tree_menu = $('#tree_menu');
-
-        // get current state before the tree is updated.
-        var selection = tree_menu.treeview('getSelected');
-
-        tree_menu.treeview({
-            data: getTreeJSON(aggregatedData),
-            showCheckbox: true,
-            showBorder: false,
-            multiSelect: true,
-            highlightSelected: false,
-            onNodeSelected: function (event, data) {
-                tree_menu.treeview('checkNode', [data.nodeId, {silent:true}]);
-                if (!redraw_pause){
-                    if(window.rectangle !== undefined){
-                        queryRect(gmap)
-                    } else {
-                        redrawMap(gmap, true)
-                    }
-                }
-
-                if(siblingState(data.nodeId)){
-                    tree_menu.treeview('checkNode',[0, {silent: true}]);
-                    tree_menu.treeview('selectNode',[0, {silent: true}]);
-                } else{
-                   tree_menu.treeview('uncheckNode',[0, {silent: true}]);
-                   tree_menu.treeview('unselectNode',[0, {silent: true}]);
-                }
-
-            },
-            onNodeUnselected: function (event, data) {
-                tree_menu.treeview('uncheckNode', [data.nodeId, {silent:true}]);
-                if (!redraw_pause){
-                    if (window.rectangle !== undefined){
-                        queryRect(gmap)
-                    } else {
-                        redrawMap(gmap, true)}
-                }
-
-                if(siblingState(data.nodeId)){
-                    tree_menu.treeview('checkNode',[0, {silent: true}]);
-                    tree_menu.treeview('selectNode',[0, {silent: true}]);
-                } else{
-                   tree_menu.treeview('uncheckNode',[0, {silent: true}]);
-                   tree_menu.treeview('unselectNode',[0, {silent: true}]);
-                }
-
-            },
-            onNodeChecked: function (event, data) {
-                if (data.text !== "Satellites"){
-                    tree_menu.treeview('selectNode', [data.nodeId]);
-
-                    if (!redraw_pause){redrawMap(gmap, true)}
-
-                } else{
-                    tree_menu.treeview('selectNode', [data.nodeId, {silent:true}]);
-                    var children = data.nodes;
-                    childSelectToggle('checkNode',children, gmap)
-                }
-            },
-            onNodeUnchecked: function (event,data) {
-                if (data.text !== "Satellites"){
-                    tree_menu.treeview('unselectNode', [data.nodeId]);
-                    if (!redraw_pause){
-                        redrawMap(gmap, true)}
-
-                } else{
-                    tree_menu.treeview('unselectNode', [data.nodeId,{silent:true}]);
-                    var children = data.nodes;
-                    childSelectToggle('uncheckNode',children, gmap)
-                }
-            }
-        });
-
-        // apply previous state if there were checked boxes.
-        if (selection.length){
-            for (i = 0; i < selection.length; i++){
-                var node = selection[i];
-                tree_menu.treeview('checkNode',[node.nodeId, {silent: true}]);
-                tree_menu.treeview('selectNode',[node.nodeId, {silent: true}]);
-            }
-        }
+function siblingState(node) {
+    // tests state of all sibling nodes. Returns true
+    var tree = $('#tree_menu');
+    var siblings = tree.treeview('getSiblings', [node]);
+    var test = [tree.treeview('getNode', [node]).state.checked];
+    var i, sibling;
+    for (i = 0; i < siblings.length; i++) {
+        sibling = siblings[i];
+        test.push(sibling.state.checked)
     }
+    return test.every(function (element, index, array) {
+        return element === true
+    })
+}
 
-    function requestFromTree() {
-        // Get the checked items in the tree to apply in the ES query.
-        var i, req=[], selection;
+function updateTreeDisplay(aggregatedData, gmap) {
 
-        selection = $('#tree_menu').treeview('getUnselected');
-        if (selection.length){
-            for (i=0; i < selection.length; i++){
-                if (selection[i].text !== "Satellites"){
-                    req.push({
-                        match: {
-                            'misc.platform.Satellite.raw' : selection[i].text.split(' ')[0]
+    var tree_menu = $('#tree_menu');
 
-                        }
-                    });
+    // get current state before the tree is updated.
+    var selection = tree_menu.treeview('getSelected');
+
+    tree_menu.treeview({
+        data: getTreeJSON(aggregatedData),
+        showCheckbox: true,
+        showBorder: false,
+        multiSelect: true,
+        highlightSelected: false,
+        onNodeSelected: function (event, data) {
+            tree_menu.treeview('checkNode', [data.nodeId, {silent: true}]);
+            if (!redraw_pause) {
+                if (window.rectangle !== undefined) {
+                    queryRect(gmap)
+                } else {
+                    redrawMap(gmap, true)
                 }
             }
 
-            return req;
+            if (siblingState(data.nodeId)) {
+                tree_menu.treeview('checkNode', [0, {silent: true}]);
+                tree_menu.treeview('selectNode', [0, {silent: true}]);
+            } else {
+                tree_menu.treeview('uncheckNode', [0, {silent: true}]);
+                tree_menu.treeview('unselectNode', [0, {silent: true}]);
+            }
+
+        },
+        onNodeUnselected: function (event, data) {
+            tree_menu.treeview('uncheckNode', [data.nodeId, {silent: true}]);
+            if (!redraw_pause) {
+                if (window.rectangle !== undefined) {
+                    queryRect(gmap)
+                } else {
+                    redrawMap(gmap, true)
+                }
+            }
+
+            if (siblingState(data.nodeId)) {
+                tree_menu.treeview('checkNode', [0, {silent: true}]);
+                tree_menu.treeview('selectNode', [0, {silent: true}]);
+            } else {
+                tree_menu.treeview('uncheckNode', [0, {silent: true}]);
+                tree_menu.treeview('unselectNode', [0, {silent: true}]);
+            }
+
+        },
+        onNodeChecked: function (event, data) {
+            if (data.text !== "Satellites") {
+                tree_menu.treeview('selectNode', [data.nodeId]);
+
+                if (!redraw_pause) {
+                    redrawMap(gmap, true)
+                }
+
+            } else {
+                tree_menu.treeview('selectNode', [data.nodeId, {silent: true}]);
+                var children = data.nodes;
+                childSelectToggle('checkNode', children, gmap)
+            }
+        },
+        onNodeUnchecked: function (event, data) {
+            if (data.text !== "Satellites") {
+                tree_menu.treeview('unselectNode', [data.nodeId]);
+                if (!redraw_pause) {
+                    redrawMap(gmap, true)
+                }
+
+            } else {
+                tree_menu.treeview('unselectNode', [data.nodeId, {silent: true}]);
+                var children = data.nodes;
+                childSelectToggle('uncheckNode', children, gmap)
+            }
         }
-        return '';
+    });
+
+    // apply previous state if there were checked boxes.
+    if (selection.length) {
+        var i;
+        for (i = 0; i < selection.length; i++) {
+            var node = selection[i];
+            tree_menu.treeview('checkNode', [node.nodeId, {silent: true}]);
+            tree_menu.treeview('selectNode', [node.nodeId, {silent: true}]);
+        }
     }
+}
 
-// -------------------------------ElasticSearch--------------------------------
-    function requestFromFilters(full_text) {
-        var i, ft, req;
+function requestFromTree() {
+    // Get the checked items in the tree to apply in the ES query.
+    var i, req = [], selection;
 
-        req = [];
-        if (full_text.length > 0) {
-            ft = full_text.split(' ');
-            for (i = 0; i < ft.length; i += 1) {
+    selection = $('#tree_menu').treeview('getUnselected');
+    if (selection.length) {
+        for (i = 0; i < selection.length; i++) {
+            if (selection[i].text !== "Satellites") {
                 req.push({
-                    term: {
-                        _all: ft[i].toLowerCase()
+                    match: {
+                        'misc.platform.Satellite.raw': selection[i].text.split(' ')[0]
+
                     }
                 });
             }
-            return req;
         }
-    }
 
-    function esRequest(nw,se,size){
-        return {
-            "_source": {
-                "include": [
-                    "data_format.format",
-                    "file.filename",
-                    "file.path",
-                    "file.data_file",
-                    "file.quicklook_file",
-                    "file.location",
-                    "file.directory",
-                    "misc",
-                    "spatial",
-                    "temporal"
-                ]
+        return req;
+    }
+    return '';
+}
+
+// -------------------------------ElasticSearch--------------------------------
+function requestFromFilters(full_text) {
+    var i, ft, req;
+
+    req = [];
+    if (full_text.length > 0) {
+        ft = full_text.split(' ');
+        for (i = 0; i < ft.length; i += 1) {
+            req.push({
+                term: {
+                    _all: ft[i].toLowerCase()
+                }
+            });
+        }
+        return req;
+    }
+}
+
+function esRequest(nw, se, size) {
+    return {
+        "_source": {
+            "include": [
+                "data_format.format",
+                "file.filename",
+                "file.path",
+                "file.data_file",
+                "file.quicklook_file",
+                "file.location",
+                "file.directory",
+                "misc",
+                "spatial",
+                "temporal"
+            ]
+        },
+        "sort": [
+            {
+                "temporal.start_time": {"order": "desc"}
             },
-            "sort": [
-                {
-                    "temporal.start_time": {"order": "desc"}
+            "_score"
+        ],
+        "query": {
+            "filtered": {
+                "query": {
+                    "match_all": {}
                 },
-                "_score"
-            ],
-            "query": {
-                "filtered": {
-                    "query": {
-                        "match_all": {}
-                    },
-                    "filter": {
-                        "bool": {
-                            "must": [
-                                {
-                                    "geo_shape": {
-                                        "spatial.geometries.search": {
-                                            "shape": {
-                                                "type": "envelope",
-                                                "coordinates": [nw, se]
-                                            }
+                "filter": {
+                    "bool": {
+                        "must": [
+                            {
+                                "geo_shape": {
+                                    "spatial.geometries.search": {
+                                        "shape": {
+                                            "type": "envelope",
+                                            "coordinates": [nw, se]
                                         }
                                     }
                                 }
-                            ],
-                            "must_not": [
-                                {
-                                    "missing": {
-                                        "field": "spatial.geometries.display.type"
-                                    }
-
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
-            "aggs": {
-                "data_count": {
-                    "terms": {
-                        "field": "misc.platform.Satellite.raw"
-                    }
-                },
-                "all": {
-                    "global": {},
-                    "aggs": {
-                        "satellites": {
-                            "terms": {
-                                "field": "misc.platform.Satellite.raw",
-                                "size": 30
                             }
+                        ],
+                        "must_not": [
+                            {
+                                "missing": {
+                                    "field": "spatial.geometries.display.type"
+                                }
+
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        "aggs": {
+            "data_count": {
+                "terms": {
+                    "field": "misc.platform.Satellite.raw"
+                }
+            },
+            "all": {
+                "global": {},
+                "aggs": {
+                    "satellites": {
+                        "terms": {
+                            "field": "misc.platform.Satellite.raw",
+                            "size": 30
                         }
                     }
                 }
-            },
-            "size": size
-        };
+            }
+        },
+        "size": size
+    };
+}
+
+function createElasticsearchRequest(gmaps_corners, full_text, size, drawing) {
+    var i, end_time, tmp_ne, tmp_sw, nw,
+        se, start_time, request, temporal, tf, vars;
+
+    // Present loading modal
+    if (!export_modal_open) {
+        displayLoadingModal()
     }
 
-    function createElasticsearchRequest(gmaps_corners, full_text, size, drawing) {
-        var i, end_time, tmp_ne, tmp_sw, no_photography, nw,
-            se, start_time, request, temporal, tf, vars;
+    if (drawing) {
+        nw = gmaps_corners[0];
+        se = gmaps_corners[1]
+    }
+    else {
 
-         // Present loading modal
-        if (!export_modal_open){ displayLoadingModal()}
-
-        if (drawing) {
-            nw = gmaps_corners[0];
-            se = gmaps_corners[1]
-        }
-        else{
-
-            tmp_ne = gmaps_corners.getNorthEast();
-            tmp_sw = gmaps_corners.getSouthWest();
-            nw = [tmp_sw.lng().toString(), tmp_ne.lat().toString()];
-            se = [tmp_ne.lng().toString(), tmp_sw.lat().toString()];
-        }
-
-
-        // ElasticSearch request
-        request = esRequest(nw, se, size);
-
-        // Add other filters from page to query
-        tf = requestFromFilters(full_text);
-        if (tf) {
-            for (i = 0; i < tf.length; i += 1) {
-                request.query.filtered.filter.bool.must.push(tf[i]);
-            }
-        }
-
-        // Tree selection filters.
-        vars = requestFromTree();
-
-        if (vars){
-            for (i = 0; i < vars.length; i += 1) {
-                request.query.filtered.filter.bool.must_not.push(vars[i]);
-            }
-        }
-
-        temporal = {
-            range: {
-                'temporal.start_time': {}
-            }
-        };
-
-        start_time = $('#start_time').val();
-        if (start_time !== '') {
-            temporal.range['temporal.start_time'].from = start_time;
-        }
-
-        end_time = $('#end_time').val();
-        if (end_time !== '') {
-            temporal.range['temporal.start_time'].to = end_time;
-        }
-
-        if (temporal.range['temporal.start_time'].to !== null ||
-                temporal.range['temporal.start_time'].from !== null) {
-            request.query.filtered.filter.bool.must.push(temporal);
-        }
-
-        return request;
+        tmp_ne = gmaps_corners.getNorthEast();
+        tmp_sw = gmaps_corners.getSouthWest();
+        nw = [tmp_sw.lng().toString(), tmp_ne.lat().toString()];
+        se = [tmp_ne.lng().toString(), tmp_sw.lat().toString()];
     }
 
-    function sendElasticsearchRequest(request, callback, gmap) {
-        var xhr, response;
 
-        // Construct and send XMLHttpRequest
-        xhr = new XMLHttpRequest();
-        xhr.open('POST', ES_URL, true);
-        xhr.send(JSON.stringify(request));
-        xhr.onload = function () {
-            if (xhr.readyState === 4) {
-                response = JSON.parse(xhr.responseText);
+    // ElasticSearch request
+    request = esRequest(nw, se, size);
 
-                if (gmap) {
-                    callback(response, gmap);
-                } else {
-                    callback(response);
-                }
-            }
-        };
+    // Add other filters from page to query
+    tf = requestFromFilters(full_text);
+    if (tf) {
+        for (i = 0; i < tf.length; i += 1) {
+            request.query.filtered.filter.bool.must.push(tf[i]);
+        }
     }
+
+    // Tree selection filters.
+    vars = requestFromTree();
+
+    if (vars) {
+        for (i = 0; i < vars.length; i += 1) {
+            request.query.filtered.filter.bool.must_not.push(vars[i]);
+        }
+    }
+
+    temporal = {
+        range: {
+            'temporal.start_time': {}
+        }
+    };
+
+    start_time = $('#start_time').val();
+    if (start_time !== '') {
+        temporal.range['temporal.start_time'].from = start_time;
+    }
+
+    end_time = $('#end_time').val();
+    if (end_time !== '') {
+        temporal.range['temporal.start_time'].to = end_time;
+    }
+
+    if (temporal.range['temporal.start_time'].to !== null ||
+        temporal.range['temporal.start_time'].from !== null) {
+        request.query.filtered.filter.bool.must.push(temporal);
+    }
+
+    return request;
+}
+
+function sendElasticsearchRequest(request, callback, gmap) {
+    var xhr, response;
+
+    // Construct and send XMLHttpRequest
+    xhr = new XMLHttpRequest();
+    xhr.open('POST', ES_URL, true);
+    xhr.send(JSON.stringify(request));
+    xhr.onload = function () {
+        if (xhr.readyState === 4) {
+            response = JSON.parse(xhr.responseText);
+
+            if (gmap) {
+                callback(response, gmap);
+            } else {
+                callback(response);
+            }
+        }
+    };
+}
 
 // -------------------------- Update Map features and Export Modal Parameters ------------------------------------------
 
-    function updateMap(response, gmap) {
-        if (response.hits) {
-            // Update "hits" and "response time" fields
-            $('#resptime').html(response.took);
-            $('#numresults').html(response.hits.total);
+function updateMap(response, gmap) {
+    if (response.hits) {
+        // Update "hits" and "response time" fields
+        $('#resptime').html(response.took);
+        $('#numresults').html(response.hits.total);
 
-            // Draw flight tracks on a map
-            drawFlightTracks(gmap, response.hits.hits);
+        // Draw flight tracks on a map
+        drawFlightTracks(gmap, response.hits.hits);
 
-            // Toggle loading modal
-            if (!export_modal_open){
-                displayLoadingModal()
-            }
-        }
-        if (response.aggregations) {
-            // Generate variable aggregation on map and display
-            updateTreeDisplay(response.aggregations, gmap);
+        // Toggle loading modal
+        if (!export_modal_open) {
+            displayLoadingModal()
         }
     }
+    if (response.aggregations) {
+        // Generate variable aggregation on map and display
+        updateTreeDisplay(response.aggregations, gmap);
+    }
+}
 
-    function updateRawJSON(response) {
-        updateExportResultsModal(response.hits.hits);
+function updateRawJSON(response) {
+    updateExportResultsModal(response.hits.hits);
+}
+
+function updateFilePaths(response) {
+    var h, i, paths;
+    h = response.hits.hits;
+
+    paths = [];
+    for (i = 0; i < h.length; i += 1) {
+        var filepath = [h[i]._source.file.directory, '/', h[i]._source.file.data_file];
+        paths.push(filepath.join(""));
     }
 
-    function updateFilePaths(response) {
-        var h, i, paths;
-        h = response.hits.hits;
+    updateExportResultsModal(paths);
+}
 
-        paths = [];
-        for (i = 0; i < h.length; i += 1) {
-            var filepath = [h[i]._source.file.directory,'/',h[i]._source.file.data_file]
-            paths.push(filepath.join(""));
-        }
+function updateDownloadPaths(response) {
+    var h, i, paths;
+    h = response.hits.hits;
 
-        updateExportResultsModal(paths);
+    paths = [];
+    for (i = 0; i < h.length; i += 1) {
+        var filepath = [h[i]._source.file.directory, '/', h[i]._source.file.data_file];
+        paths.push('http://data.ceda.ac.uk' + filepath.join(""));
     }
 
-    function updateDownloadPaths(response) {
-        var h, i, paths;
-        h = response.hits.hits;
-
-        paths = [];
-        for (i = 0; i < h.length; i += 1) {
-            var filepath = [h[i]._source.file.directory,'/',h[i]._source.file.data_file]
-            paths.push('http://data.ceda.ac.uk' + filepath.join(""));
-        }
-
-        updateExportResultsModal(paths);
-    }
+    updateExportResultsModal(paths);
+}
 
 
 // -----------------------------------Map--------------------------------------
@@ -639,131 +655,131 @@ function centreMap(gmap, geocoder, loc) {
     }
 }
 
-    // --------------------------- Info window ------------------------------------
+// --------------------------- Info window ------------------------------------
 
-    function createInfoWindow(hit) {
-        var content, info;
+function createInfoWindow(hit) {
+    var content, info, view;
 
-        hit = hit._source;
+    hit = hit._source;
 
-        view = {
-            title: "Scene Details",
-            filename: hit.file.data_file,
-            start_time: hit.temporal.start_time,
-            end_time: hit.temporal.end_time,
-            mission: hit.misc.platform.Mission,
-            satellite: hit.misc.platform.Satellite,
-            instrument: hit.misc.platform["Instrument Abbreviation"]
-        };
+    view = {
+        title: "Scene Details",
+        filename: hit.file.data_file,
+        start_time: hit.temporal.start_time,
+        end_time: hit.temporal.end_time,
+        mission: hit.misc.platform.Mission,
+        satellite: hit.misc.platform.Satellite,
+        instrument: hit.misc.platform["Instrument Abbreviation"]
+    };
 
-        var template = $('#infowindowTemplate').html();
-        content = Mustache.render(template, view);
+    var template = $('#infowindowTemplate').html();
+    content = Mustache.render(template, view);
 
-        if (hit.file.quicklook_file) {
-            quicklooks.push('http://data.ceda.ac.uk' + hit.file.path.truncatePath(1)+ '/' + hit.file.quicklook_file)
-        }
-        else {
-            quicklooks.push('-')
-        }
-
-        if (hit.file.location === "on_disk") {
-            content += '<p class="iw_table">' +
-                            '<a class="btn btn-danger" target="_blank" href="http://data.ceda.ac.uk' +
-                                 hit.file.path.truncatePath(1) + '/' + hit.file.data_file + '" role="button">Download <span class="glyphicon glyphicon-circle-arrow-down"/>' +
-                            '</a>' +
-                            '   <a class="btn btn-primary" target="_blank" href="http://data.ceda.ac.uk' +
-                                    hit.file.path.truncatePath(1) + '">View directory <span class="glyphicon glyphicon-folder-open"/>' +
-                            '</a>' +
-                        '</p>';
-
-        } else {
-            content += '<p class="iw_table">This file is stored on tape, please click <a target="_blank" href="http://help.ceda.ac.uk/article/265-nla">here</a> for information about access to this file.</p>'
-        }
-
-        // close the section tag
-        content += '</section>';
-
-        info = new google.maps.InfoWindow(
-            {
-                content: content,
-                disableAutoPan: false
-            }
-        );
-
-        /*  ---------   Infowindow modifications   -----------------
-         * The google.maps.event.addListener() event waits for
-         * the creation of the infowindow HTML structure 'domready'
-         * before the opening of the infowindow defined styles
-         * are applied.
-         */
-        google.maps.event.addListener(info, 'domready', function () {
-
-            // Reference DIV which receives the contents of the infowindow.
-            var iwOuter = $('.gm-style-iw');
-
-            /* The DIV we want to change is above the .gm-style-iw DIV. */
-            var iwBackground = iwOuter.prev();
-
-            // Remove the background shadow DIV
-            iwBackground.children(':nth-child(2)').css({'display': 'none'});
-
-            // Remove the white background DIV
-            iwBackground.children(':nth-child(4)').css({'display': 'none'});
-
-             // Changes the z-index of the tail to bring it forward.
-            iwBackground.children(':nth-child(3)').find('div').children().css({'z-index' : '1'});
-
-            //The following div to .gm-style-iw groups the close button elements.
-            var iwCloseBtn = iwOuter.next();
-
-            // Apply the desired effect to the close button
-            iwCloseBtn.css({
-              opacity: '1', // by default the close button has an opacity of 0.7
-              right: '75px', top: '18px', // button repositioning
-              'border-radius': '13px', // circular effect
-              'box-shadow': '0 0 5px #3990B9' // 3D effect to highlight the button
-              });
-
-            // The API automatically applies 0.7 opacity to the button after the mouseout event.
-            // This function reverses this event to the desired value.
-            iwCloseBtn.mouseout(function(){
-              $(this).css({opacity: '1'});
-            });
-
-        });
-
-        return info;
+    if (hit.file.quicklook_file) {
+        quicklooks.push('http://data.ceda.ac.uk' + hit.file.path.truncatePath(1) + '/' + hit.file.quicklook_file)
+    }
+    else {
+        quicklooks.push('-')
     }
 
+    if (hit.file.location === "on_disk") {
+        content += '<p class="iw_table">' +
+            '<a class="btn btn-danger" target="_blank" href="http://data.ceda.ac.uk' +
+            hit.file.path.truncatePath(1) + '/' + hit.file.data_file + '" role="button">Download <span class="glyphicon glyphicon-circle-arrow-down"/>' +
+            '</a>' +
+            '   <a class="btn btn-primary" target="_blank" href="http://data.ceda.ac.uk' +
+            hit.file.path.truncatePath(1) + '">View directory <span class="glyphicon glyphicon-folder-open"/>' +
+            '</a>' +
+            '</p>';
 
+    } else {
+        content += '<p class="iw_table">This file is stored on tape, please click <a target="_blank" href="http://help.ceda.ac.uk/article/265-nla">here</a> for information about access to this file.</p>'
+    }
 
-        // ------------------------------ Info window quicklook -------------
-        function getQuickLook(info_window, i) {
-            var content = $(info_window.getContent());
+    // close the section tag
+    content += '</section>';
 
-            if (quicklooks[i] !== '-') {
-                // There is a quicklook in the archive
-                var quicklook = "<img class='quicklook' src='" + quicklooks[i] + "' alt='Data quicklook image' onclick='displayquicklookModal(" + i + ")' onerror='imgError(this)'> ";
-
-            } else {
-                // There is no quicklook image in the archive
-                var quicklook = '<img class="quicklook" src="./img/no_preview.png" alt="Data quicklook image">';
-
-            }
-
-                content.find("#quicklooks_placeholder").first().html(quicklook);
-                content = content.prop('outerHTML');
-                info_window.setContent(content)
+    info = new google.maps.InfoWindow(
+        {
+            content: content,
+            disableAutoPan: false
         }
-        // replace the broken img icon with a custom image.
-        function imgError(image) {
-            image.onerror = "";
-            image.src = "./img/unavailable.png"
-        }
+    );
 
-function colourSelect(mission){
+    /*  ---------   Infowindow modifications   -----------------
+     * The google.maps.event.addListener() event waits for
+     * the creation of the infowindow HTML structure 'domready'
+     * before the opening of the infowindow defined styles
+     * are applied.
+     */
+    google.maps.event.addListener(info, 'domready', function () {
+
+        // Reference DIV which receives the contents of the infowindow.
+        var iwOuter = $('.gm-style-iw');
+
+        /* The DIV we want to change is above the .gm-style-iw DIV. */
+        var iwBackground = iwOuter.prev();
+
+        // Remove the background shadow DIV
+        iwBackground.children(':nth-child(2)').css({'display': 'none'});
+
+        // Remove the white background DIV
+        iwBackground.children(':nth-child(4)').css({'display': 'none'});
+
+        // Changes the z-index of the tail to bring it forward.
+        iwBackground.children(':nth-child(3)').find('div').children().css({'z-index': '1'});
+
+        //The following div to .gm-style-iw groups the close button elements.
+        var iwCloseBtn = iwOuter.next();
+
+        // Apply the desired effect to the close button
+        iwCloseBtn.css({
+            opacity: '1', // by default the close button has an opacity of 0.7
+            right: '75px', top: '18px', // button repositioning
+            'border-radius': '13px', // circular effect
+            'box-shadow': '0 0 5px #3990B9' // 3D effect to highlight the button
+        });
+
+        // The API automatically applies 0.7 opacity to the button after the mouseout event.
+        // This function reverses this event to the desired value.
+        iwCloseBtn.mouseout(function () {
+            $(this).css({opacity: '1'});
+        });
+
+    });
+
+    return info;
+}
+
+
+// ------------------------------ Info window quicklook -------------
+function getQuickLook(info_window, i) {
+    var content = $(info_window.getContent());
+
+    if (quicklooks[i] !== '-') {
+        // There is a quicklook in the archive
+        var quicklook = "<img class='quicklook' src='" + quicklooks[i] + "' alt='Data quicklook image' onclick='displayquicklookModal(" + i + ")' onerror='imgError(this)'> ";
+
+    } else {
+        // There is no quicklook image in the archive
+        var quicklook = '<img class="quicklook" src="./img/no_preview.png" alt="Data quicklook image">';
+
+    }
+
+    content.find("#quicklooks_placeholder").first().html(quicklook);
+    content = content.prop('outerHTML');
+    info_window.setContent(content)
+}
+
+// replace the broken img icon with a custom image.
+function imgError(image) {
+    image.onerror = "";
+    image.src = "./img/unavailable.png"
+}
+
+function colourSelect(mission) {
     var colour;
-    switch (true){
+    switch (true) {
         case /sentinel\W1.*/gi.test(mission):
             colour = COLOUR_MAP['sentinel1'];
             break;
@@ -787,46 +803,54 @@ function colourSelect(mission){
     return colour
 }
 
-  function truncatePole (displayCoords) {
+function truncatePole(displayCoords) {
     var i, truncatedCoords = [];
-    var truncate = false
+    var truncate = false;
 
-    displayCoords = displayCoords.coordinates[0]
+    displayCoords = displayCoords.coordinates[0];
     for (i = 0; i < displayCoords.length; i++) {
-        var coords = displayCoords[i]
-        var last_coords
+        var coords = displayCoords[i];
+        var last_coords;
 
         if (coords[1] > 85) {
             // If co-ordinate traverses >85 N, truncate to 85
-            coords[1] = 85.0
+            coords[1] = 85.0;
 
             // Only return the first co-ordinate to cross the threshold
-            if(!truncate){truncatedCoords.push(coords)}
-            truncate = true
+            if (!truncate) {
+                truncatedCoords.push(coords)
+            }
+            truncate = true;
             // Store last coordinate to push when polygon re-enters threshold
-            if (truncate){last_coords = coords}
+            if (truncate) {
+                last_coords = coords
+            }
 
         } else if (coords[1] < -85) {
             // If co-ordinate traverses < -85 S, truncate to -85
-            coords[1] = -85
+            coords[1] = -85;
 
             // Only return the first co-ordinate to cross the threshold
-            if(!truncate){truncatedCoords.push(coords)}
-            truncate = true
+            if (!truncate) {
+                truncatedCoords.push(coords)
+            }
+            truncate = true;
             // Store last coordinate to push when polygon re-enters threshold
-            if (truncate){last_coords = coords}
+            if (truncate) {
+                last_coords = coords
+            }
 
         } else {
-          // On re-entry, push the last truncated co-ordinate as well as the current
-          // non-truncated coordinate
-          if (truncate){
-            truncatedCoords.push(last_coords)
-          }
-          truncate = false
-          truncatedCoords.push(coords)
+            // On re-entry, push the last truncated co-ordinate as well as the current
+            // non-truncated coordinate
+            if (truncate) {
+                truncatedCoords.push(last_coords)
+            }
+            truncate = false;
+            truncatedCoords.push(coords)
         }
     }
-    truncatedCoords = [truncatedCoords]
+    truncatedCoords = [truncatedCoords];
     return truncatedCoords
 }
 
@@ -834,19 +858,19 @@ function colourSelect(mission){
 function drawFlightTracks(gmap, hits) {
     var colour_index, geom, hit, i, info_window, options, display;
     // Clear old map drawings
-    cleanup()
+    cleanup();
 
     // only need to pass to truncate filter if searching in region north/south of 70N/S
     var mapBounds = gmap.getBounds();
     var truncate;
-    if (mapBounds.getNorthEast().lat() > 70 || mapBounds.getSouthWest().lat() < -70){
+    if (mapBounds.getNorthEast().lat() > 70 || mapBounds.getSouthWest().lat() < -70) {
         truncate = true
-    }else {
+    } else {
         truncate = false
     }
 
     // Reverse the "hits" array because the ES response is ordered new - old and we want to draw the newest items on top.
-    hits.reverse()
+    hits.reverse();
 
     for (i = 0; i < hits.length; i += 1) {
         hit = hits[i];
@@ -857,13 +881,13 @@ function drawFlightTracks(gmap, hits) {
             strokeColor: colourSelect(mission),
             strokeWeight: 5,
             strokeOpacity: 0.6,
-            fillOpactiy: 0.1,
+            fillOpactiy: 0.0,
             zIndex: i
         };
         // Create GeoJSON object
         display = hit._source.spatial.geometries.display;
 
-        if (truncate){
+        if (truncate) {
             display.coordinates = truncatePole(display)
         }
 
@@ -880,24 +904,24 @@ function drawFlightTracks(gmap, hits) {
     for (i = 0; i < geometries.length; i += 1) {
         google.maps.event.addListener(geometries[i], 'click',
             (function (i, e, hits) {
-                    return function (e, hits) {
-                        var j;
+                return function (e, hits) {
+                    var j;
 
-                        google.maps.event.clearListeners(gmap, 'bounds_changed');
+                    google.maps.event.clearListeners(gmap, 'bounds_changed');
 
-                        for (j = 0; j < info_windows.length; j += 1) {
-                            info_windows[j].close();
-                        }
+                    for (j = 0; j < info_windows.length; j += 1) {
+                        info_windows[j].close();
+                    }
 
-                        info_windows[i].setPosition(e.latLng);
-                        getQuickLook(info_windows[i], i);
-                        info_windows[i].open(gmap, null);
+                    info_windows[i].setPosition(e.latLng);
+                    getQuickLook(info_windows[i], i);
+                    info_windows[i].open(gmap, null);
 
-                        window.setTimeout(function () {
-                            addBoundsChangedListener(gmap);
-                        }, 1000);
-                    };
-                })(i));
+                    window.setTimeout(function () {
+                        addBoundsChangedListener(gmap);
+                    }, 1000);
+                };
+            })(i));
     }
 }
 
@@ -937,7 +961,7 @@ function addBoundsChangedListener(gmap) {
     google.maps.event.addListenerOnce(gmap, 'bounds_changed', function () {
 
         if (window.rectangle === undefined)
-        redrawMap(gmap, true);
+            redrawMap(gmap, true);
     });
 }
 
@@ -996,7 +1020,7 @@ function drawHistogram(request) {
                             var end_date = this.category + "-12-31";
 
                             $('#start_time').datepicker('setDate', start_date);
-                            $('#end_time').datepicker('setDate',end_date);
+                            $('#end_time').datepicker('setDate', end_date);
 
                             $('#applyfil').trigger('click')
                         }
@@ -1050,44 +1074,45 @@ function sendHistogramRequest() {
         }
     };
 }
+
 // Window resize
 
-    $(window).resize(function() {
-        sendHistogramRequest()
-    })
+$(window).resize(function () {
+    sendHistogramRequest()
+});
 
 
 // ----------------------- Rectangle Drawing tool ---------------------------
 
-    function rectBounds() {
-        current_bounds = window.rectangle.getBounds();
-        var ne = current_bounds.getNorthEast();
-        var sw = current_bounds.getSouthWest();
+function rectBounds() {
+    current_bounds = window.rectangle.getBounds();
+    var ne = current_bounds.getNorthEast();
+    var sw = current_bounds.getSouthWest();
 
-        return [[sw.lng(),ne.lat()], [ne.lng(),sw.lat()]]
-    }
+    return [[sw.lng(), ne.lat()], [ne.lng(), sw.lat()]]
+}
 
-    function queryRect(map) {
-        // create ES request, send and draw results.
-        var request = createElasticsearchRequest(rectBounds(), $('#ftext').val(), 100, true);
-        sendElasticsearchRequest(request, updateMap, map);
+function queryRect(map) {
+    // create ES request, send and draw results.
+    var request = createElasticsearchRequest(rectBounds(), $('#ftext').val(), 100, true);
+    sendElasticsearchRequest(request, updateMap, map);
 
-        // zoom map to new rectangle
-        map.fitBounds(current_bounds);
-        map.setZoom(map.getZoom() - 1);
-    }
+    // zoom map to new rectangle
+    map.fitBounds(current_bounds);
+    map.setZoom(map.getZoom() - 1);
+}
 
-    function clearRect() {
-        window.rectangle.setMap(null);
-        window.rectangle = undefined;
+function clearRect() {
+    window.rectangle.setMap(null);
+    window.rectangle = undefined;
 
-    }
+}
 
 
 // ------------------------------window.unload---------------------------------
 
-    // makes sure that the drawing tool is always off on page load.
-    $(window).unload($('#polygon_draw').bootstrapToggle('off'));
+// makes sure that the drawing tool is always off on page load.
+$(window).unload($('#polygon_draw').bootstrapToggle('off'));
 
 // ------------------------------window.onload---------------------------------
 
@@ -1114,17 +1139,17 @@ window.onload = function () {
     });
 
     // set map key colours
-    $('#sentinel1Key').css('border-color',COLOUR_MAP['sentinel1']);
-    $('#sentinel2Key').css('border-color',COLOUR_MAP['sentinel2']);
-    $('#sentinel3Key').css('border-color',COLOUR_MAP['sentinel3']);
-    $('#landsatKey').css('border-color',COLOUR_MAP['landsat']);
-    $('#otherKey').css('border-color',COLOUR_MAP['other']);
+    $('#sentinel1Key').css('border-color', COLOUR_MAP['sentinel1']);
+    $('#sentinel2Key').css('border-color', COLOUR_MAP['sentinel2']);
+    $('#sentinel3Key').css('border-color', COLOUR_MAP['sentinel3']);
+    $('#landsatKey').css('border-color', COLOUR_MAP['landsat']);
+    $('#otherKey').css('border-color', COLOUR_MAP['other']);
 
 
     // Open welcome modal
-    var welcomeModal = $('#welcome_modal')
+    var welcomeModal = $('#welcome_modal');
 
-    if(Storage !== undefined){
+    if (Storage !== undefined) {
         // If HTML5 storage available
         // If the modal has been closed this session do not display the modal
         if (!sessionStorage.welcomeDismissed) {
@@ -1133,7 +1158,7 @@ window.onload = function () {
 
         // When the welcome modal is closed, set the session welcomeDismissed to true to prevent showing the modal on
         // page refresh during the same browser session.
-        welcomeModal.on('hidden.bs.modal',function () {
+        welcomeModal.on('hidden.bs.modal', function () {
             sessionStorage.welcomeDismissed = true
         });
     } else {
@@ -1188,7 +1213,7 @@ window.onload = function () {
             $('#start_time').val('');
             $('#end_time').val('');
             $('#ftext').val('');
-            if (window.rectangle !== undefined){
+            if (window.rectangle !== undefined) {
                 clearRect();
             }
 
@@ -1262,7 +1287,7 @@ window.onload = function () {
                     dragging = false;
 
                     // Trigger apply filter at the conclusion of the drawing
-                    $('#applyfil').trigger('click')
+                    $('#applyfil').trigger('click');
 
                     // Allow the user to resize and drag the rectangle at the conclusion of drawing.
                     rect.setEditable(true);
@@ -1276,7 +1301,7 @@ window.onload = function () {
                 // clear rectangle drawing listeners and reinstate boundschanged listener.
                 google.maps.event.clearListeners(map, 'mousedown');
                 google.maps.event.clearListeners(map, 'mouseup');
-                addBoundsChangedListener(map)
+                addBoundsChangedListener(map);
 
                 dragging = false;
                 map.setOptions({draggable: true});
@@ -1306,9 +1331,9 @@ window.onload = function () {
                     var maxLng = lng1 < lng2 ? lng2 : lng1;
                     var latLngBounds = new google.maps.LatLngBounds(
                         //ne
-                        new google.maps.LatLng(maxLat,minLng),
+                        new google.maps.LatLng(maxLat, minLng),
                         //sw
-                        new google.maps.LatLng(minLat,maxLng)
+                        new google.maps.LatLng(minLat, maxLng)
                     );
                     rect.setBounds(latLngBounds);
 
@@ -1317,7 +1342,6 @@ window.onload = function () {
             }
         }
     );
-
 
 
     //--------------------------- 'Export Results' ---------------------------
@@ -1381,7 +1405,6 @@ window.onload = function () {
     //----------------------------- UI Widgets -------------------------------
 
 
-
     // initialise the treeview
     $('#tree_menu').treeview({
         data: {},
@@ -1395,12 +1418,11 @@ window.onload = function () {
     });
 
     // Datepicker
-    picker = $('#datepicker').datepicker({
+    var picker = $('#datepicker').datepicker({
         autoclose: true,
         format: 'yyyy-mm-dd',
         startView: 2
     });
-
 
 
     // Draw histogram
@@ -1408,14 +1430,14 @@ window.onload = function () {
 
     // Auto-fill temporal filter to select the last year.
     var today = new Date();
-    var datestring = (today.getFullYear() -1) + "-" + (today.getMonth() +1) + "-" + today.getDate();
+    var datestring = (today.getFullYear() - 1) + "-" + (today.getMonth() + 1) + "-" + today.getDate();
 
     $('#start_time').datepicker('setDate', datestring);
-    $('#end_time').datepicker('setDate',today);
+    $('#end_time').datepicker('setDate', today);
 
 
     //---------------------------- Map main loop ------------------------------
-    google.maps.event.addListenerOnce(map,'bounds_changed', function () {
+    google.maps.event.addListenerOnce(map, 'bounds_changed', function () {
         // init Tree
         var bounds, tmp_ne, tmp_sw, nw, se, request;
 
@@ -1425,13 +1447,10 @@ window.onload = function () {
         nw = [tmp_sw.lng().toString(), tmp_ne.lat().toString()];
         se = [tmp_ne.lng().toString(), tmp_sw.lat().toString()];
 
-        request = esRequest(nw,se,0);
+        request = esRequest(nw, se, 0);
 
         sendElasticsearchRequest(request, initTree, false);
     });
 
     addBoundsChangedListener(map);
 };
-
-
-
