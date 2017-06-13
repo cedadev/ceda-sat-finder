@@ -551,7 +551,9 @@ function sendHistogramRequest() {
 // ------------------------------window.unload---------------------------------
 
     // makes sure that the drawing tool is always off on page load.
-    $(window).unload($('#polygon_draw').bootstrapToggle('off'));
+    window.unload = function () {
+        document.getElementById('polygon_draw').bootsrapToggle('off');
+    }
 
 // ------------------------------window.onload---------------------------------
 window.onload = function () {
