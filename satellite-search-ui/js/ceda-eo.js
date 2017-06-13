@@ -248,7 +248,36 @@ function initTree(response) {
         highlightSelected: false,
         showBorder: false,
         onNodeChecked: function (event, data) {
-            treeMenu.treeview('selectNode', [data.nodeId])
+            treeMenu.treeview('selectNode', [data.nodeId, {silent: true}]);
+            if (data.nodeId === 0) {
+                treeMenu.treeview('checkAll')
+            }
+        },
+        onNodeUnchecked: function (event, data) {
+            treeMenu.treeview('unselectNode', [data.nodeId, {silent: true}]);
+            if (data.nodeId === 0) {
+                treeMenu.treeview('uncheckAll')
+            }
+        },
+        onNodeUnselected: function (event, data) {
+            treeMenu.treeview('uncheckNode', [data.nodeId, {silent: true}]);
+            if (siblingState(data.nodeId)) {
+                treeMenu.treeview('checkNode', [0, {silent: true}]);
+                treeMenu.treeview('selectNode', [0, {silent: true}]);
+            } else {
+                treeMenu.treeview('uncheckNode', [0, {silent: true}]);
+                treeMenu.treeview('unselectNode', [0, {silent: true}]);
+            }
+        },
+        onNodeSelected: function (event, data){
+            treeMenu.treeview('checkNode', [data.nodeId, {silent: true}]);
+            if (siblingState(data.nodeId)) {
+                treeMenu.treeview('checkNode', [0, {silent: true}]);
+                treeMenu.treeview('selectNode', [0, {silent: true}]);
+            } else {
+                treeMenu.treeview('uncheckNode', [0, {silent: true}]);
+                treeMenu.treeview('unselectNode', [0, {silent: true}]);
+            }
         }
     });
     treeMenu.treeview('checkAll');
@@ -274,7 +303,7 @@ function childSelectToggle(method, children, gmap) {
 }
 
 function siblingState(node) {
-    // tests state of all sibling nodes. Returns true
+    // tests state of all sibling nodes. Returns true if all of the satellites are checked, and false if one is unchecked.
     var tree = $('#tree_menu');
     var siblings = tree.treeview('getSiblings', [node]);
     var test = [tree.treeview('getNode', [node]).state.checked];
@@ -1108,6 +1137,12 @@ function clearRect() {
 
 }
 
+// ----------------------------- First Load --------------------------------
+
+$('#applyfil').one('click', function(){
+    // When the user clicks apply filters for the first time. Make the map responsive.
+    addBoundsChangedListener(glomap)
+});
 
 // ------------------------------window.unload---------------------------------
 
@@ -1122,15 +1157,18 @@ function clearRect() {
 window.onload = function () {
     var geocoder, lat, lon, map;
 
+
+
     // Google Maps geocoder and map object
     geocoder = new google.maps.Geocoder();
     map = new google.maps.Map(
         document.getElementById('map-container').getElementsByClassName('map')[0],
         {
             mapTypeId: google.maps.MapTypeId.TERRAIN,
-            zoom: 3
+            zoom: 3,
         }
     );
+    glomap = map
 
     centreMap(map, geocoder, 'Lake Balaton, Hungary');
     google.maps.event.addListener(map, 'mousemove', function (event) {
@@ -1431,13 +1469,6 @@ window.onload = function () {
     // Draw histogram
     sendHistogramRequest();
 
-    // Auto-fill temporal filter to select the last year.
-    var today = new Date();
-    var datestring = (today.getFullYear() - 1) + "-" + (today.getMonth() + 1) + "-" + today.getDate();
-
-    $('#start_time').datepicker('setDate', datestring);
-    $('#end_time').datepicker('setDate', today);
-
 
     //---------------------------- Map main loop ------------------------------
     google.maps.event.addListenerOnce(map, 'bounds_changed', function () {
@@ -1454,6 +1485,4 @@ window.onload = function () {
 
         sendElasticsearchRequest(request, initTree, false);
     });
-
-    addBoundsChangedListener(map);
 };
