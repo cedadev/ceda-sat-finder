@@ -881,7 +881,7 @@ function drawFlightTracks(gmap, hits) {
             strokeColor: colourSelect(mission),
             strokeWeight: 5,
             strokeOpacity: 0.6,
-            fillOpactiy: 0.0,
+            fillOpacity: 0.1,
             zIndex: i
         };
         // Create GeoJSON object
