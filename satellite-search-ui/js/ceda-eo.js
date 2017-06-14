@@ -173,8 +173,9 @@ function titleCase(string) {
     return string[0].toUpperCase() + string.slice(1);
 }
 
-
 function getDocCount(key, aggregatedData) {
+    // Returns the number of documents for each satellite given the current filter parameters.
+
     var count;
     var data_count = aggregatedData['data_count']['buckets'];
     var i;
@@ -194,9 +195,12 @@ function getDocCount(key, aggregatedData) {
 }
 
 function getTreeJSON(aggregatedData, numbers) {
+    // Produces the JSON which makes up the data section for the Bootstrap treeview.
+
     if (numbers === undefined) {
         numbers = true
     }
+
     var tree = [];
     var tree_buckets = aggregatedData['all'];
     var satellites, childName, child, doc_count, child_JSON, satellite_node;
@@ -211,15 +215,15 @@ function getTreeJSON(aggregatedData, numbers) {
             child = satellites[i]['key'];
             doc_count = getDocCount(child, aggregatedData);
             if (numbers) {
-                childName = child + ' <span class="badge text-left">' + doc_count + '</span>';
+                childName = child;
             } else {
                 childName = child;
             }
 
             child_JSON = {
-                text: titleCase(childName)
+                text: titleCase(childName),
+                tags: [doc_count]
             };
-
             // push each child to the children array
             satellite_children.push(child_JSON)
         }
@@ -238,6 +242,9 @@ function getTreeJSON(aggregatedData, numbers) {
 }
 
 function initTree(response) {
+    // Initialisation function for the tree. Main difference is that tags are not set
+    // so the total number of hits for each satellite are not shown.
+
     var aggregatedData = response.aggregations;
     var treeMenu = $('#tree_menu');
 
@@ -248,7 +255,36 @@ function initTree(response) {
         highlightSelected: false,
         showBorder: false,
         onNodeChecked: function (event, data) {
-            treeMenu.treeview('selectNode', [data.nodeId])
+            treeMenu.treeview('selectNode', [data.nodeId, {silent: true}]);
+            if (data.nodeId === 0) {
+                treeMenu.treeview('checkAll')
+            }
+        },
+        onNodeUnchecked: function (event, data) {
+            treeMenu.treeview('unselectNode', [data.nodeId, {silent: true}]);
+            if (data.nodeId === 0) {
+                treeMenu.treeview('uncheckAll')
+            }
+        },
+        onNodeUnselected: function (event, data) {
+            treeMenu.treeview('uncheckNode', [data.nodeId, {silent: true}]);
+            if (siblingState(data.nodeId)) {
+                treeMenu.treeview('checkNode', [0, {silent: true}]);
+                treeMenu.treeview('selectNode', [0, {silent: true}]);
+            } else {
+                treeMenu.treeview('uncheckNode', [0, {silent: true}]);
+                treeMenu.treeview('unselectNode', [0, {silent: true}]);
+            }
+        },
+        onNodeSelected: function (event, data){
+            treeMenu.treeview('checkNode', [data.nodeId, {silent: true}]);
+            if (siblingState(data.nodeId)) {
+                treeMenu.treeview('checkNode', [0, {silent: true}]);
+                treeMenu.treeview('selectNode', [0, {silent: true}]);
+            } else {
+                treeMenu.treeview('uncheckNode', [0, {silent: true}]);
+                treeMenu.treeview('unselectNode', [0, {silent: true}]);
+            }
         }
     });
     treeMenu.treeview('checkAll');
@@ -274,7 +310,7 @@ function childSelectToggle(method, children, gmap) {
 }
 
 function siblingState(node) {
-    // tests state of all sibling nodes. Returns true
+    // tests state of all sibling nodes. Returns true if all of the satellites are checked, and false if one is unchecked.
     var tree = $('#tree_menu');
     var siblings = tree.treeview('getSiblings', [node]);
     var test = [tree.treeview('getNode', [node]).state.checked];
@@ -289,6 +325,7 @@ function siblingState(node) {
 }
 
 function updateTreeDisplay(aggregatedData, gmap) {
+    // Sets the current behaviour of the tree.
 
     var tree_menu = $('#tree_menu');
 
@@ -301,6 +338,7 @@ function updateTreeDisplay(aggregatedData, gmap) {
         showBorder: false,
         multiSelect: true,
         highlightSelected: false,
+        showTags: true,
         onNodeSelected: function (event, data) {
             tree_menu.treeview('checkNode', [data.nodeId, {silent: true}]);
             if (!redraw_pause) {
@@ -420,6 +458,7 @@ function requestFromFilters(full_text) {
 }
 
 function esRequest(nw, se, size) {
+    // Abstracts the actual request from the main active code
     return {
         "_source": {
             "include": [
@@ -491,6 +530,32 @@ function esRequest(nw, se, size) {
             }
         },
         "size": size
+    };
+}
+
+function treeRequest() {
+    // Abstracts the actual request from the main active code
+    // Simpler, light request just for initialising the tree.
+    return {
+        "aggs": {
+            "data_count": {
+                "terms": {
+                    "field": "misc.platform.Satellite.raw"
+                }
+            },
+            "all": {
+                "global": {},
+                "aggs": {
+                    "satellites": {
+                        "terms": {
+                            "field": "misc.platform.Satellite.raw",
+                            "size": 30
+                        }
+                    }
+                }
+            }
+        },
+        "size": 0
     };
 }
 
@@ -1108,6 +1173,12 @@ function clearRect() {
 
 }
 
+// ----------------------------- First Load --------------------------------
+
+$('#applyfil').one('click', function(){
+    // When the user clicks apply filters for the first time. Make the map responsive.
+    addBoundsChangedListener(glomap)
+});
 
 // ------------------------------window.unload---------------------------------
 
@@ -1122,15 +1193,18 @@ function clearRect() {
 window.onload = function () {
     var geocoder, lat, lon, map;
 
+
+
     // Google Maps geocoder and map object
     geocoder = new google.maps.Geocoder();
     map = new google.maps.Map(
         document.getElementById('map-container').getElementsByClassName('map')[0],
         {
             mapTypeId: google.maps.MapTypeId.TERRAIN,
-            zoom: 3
+            zoom: 3,
         }
     );
+    glomap = map
 
     centreMap(map, geocoder, 'Lake Balaton, Hungary');
     google.maps.event.addListener(map, 'mousemove', function (event) {
@@ -1220,13 +1294,22 @@ window.onload = function () {
                 clearRect();
             }
 
+            // Clear the map of objects and initialise the tree to clear the badges.
+            cleanup()
+            sendElasticsearchRequest(treeRequest(), initTree, false);
+
+
+            // Check all the options in the tree and make sure they are selected.
+            // Checked state has to match selected state.
             if (tree_menu.treeview('getUnselected').length > 0) {
-                tree_menu.treeview('checkNode', [0])
-            } else {
-                redrawMap(map, false);
+                tree_menu.treeview('checkAll', { silent: true})
+                var unselected = tree_menu.treeview('getUnselected'), i;
+                for (i = 0; i < unselected.length; i++){
+                    tree_menu.treeview('selectNode', [ unselected[i].nodeId, {silent: true}])
+                }
             }
 
-
+            // Make sure the rectangle drawing tool is deactivated.
             $('#polygon_draw').bootstrapToggle('off')
 
         }
@@ -1431,13 +1514,6 @@ window.onload = function () {
     // Draw histogram
     sendHistogramRequest();
 
-    // Auto-fill temporal filter to select the last year.
-    var today = new Date();
-    var datestring = (today.getFullYear() - 1) + "-" + (today.getMonth() + 1) + "-" + today.getDate();
-
-    $('#start_time').datepicker('setDate', datestring);
-    $('#end_time').datepicker('setDate', today);
-
 
     //---------------------------- Map main loop ------------------------------
     google.maps.event.addListenerOnce(map, 'bounds_changed', function () {
@@ -1450,10 +1526,6 @@ window.onload = function () {
         nw = [tmp_sw.lng().toString(), tmp_ne.lat().toString()];
         se = [tmp_ne.lng().toString(), tmp_sw.lat().toString()];
 
-        request = esRequest(nw, se, 0);
-
-        sendElasticsearchRequest(request, initTree, false);
+        sendElasticsearchRequest(treeRequest(), initTree, false);
     });
-
-    addBoundsChangedListener(map);
 };
