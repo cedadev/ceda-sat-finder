@@ -1140,9 +1140,9 @@ window.onload = function () {
     google.maps.event.addListener(map, 'mousemove', function (event) {
         // Add listener to update mouse position
         // see: http://bit.ly/1zAfter
-        lat = event.latLng.lat().toFixed(4);
-        lon = event.latLng.lng().toFixed(4);
-        $('#mouse').html(lat + ', ' + lon);
+        lat = event.latLng.lat().toFixed(2);
+        lon = event.latLng.lng().toFixed(2);
+        $('#mouse').html('Lat: ' + lat + ', Lng: ' + lon);
     });
 
     // set map key colours
@@ -1247,7 +1247,12 @@ window.onload = function () {
 
                 // Show instructions panel if it is closed.
                 $('#collapsePolygonInstructions').collapse('show');
-                document.getElementById('spatial_accordian').click()
+
+                // Open rectangle search panel if not already open. Using the link for the panel title
+                // rather than the bootstrap method so that the panel still behaves like an accordian.
+                if (!$('#collapse_spatial').hasClass('in')){
+                    document.getElementById('spatial_accordian').click()
+                }
 
                 if (window.rectangle !== undefined) {
                     clearRect();
@@ -1315,7 +1320,9 @@ window.onload = function () {
             else {
                 // Hide instructions panel if it is open.
                 $('#collapsePolygonInstructions').collapse('hide');
-                document.getElementById('spatial_accordian').click()
+
+                // Hide Rectangle Search accordian panel if open.
+                $('#collapse_spatial').collapse('hide');
 
                 // clear rectangle drawing listeners and reinstate boundschanged listener.
                 google.maps.event.clearListeners(map, 'mousedown');
