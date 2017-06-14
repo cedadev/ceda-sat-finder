@@ -7,12 +7,14 @@ The Interface
 The screen in front of you is split into two sections. On the left
 is a side panel with accordion-style expanding elements that contain
 useful elements for refining your search parameters. On the right is a
-large map with coloured polygons overlaid on top.
+large map.
 
+On first load the map will be blank. Refine your search using the filters and click **Apply Filters**. 
+Once you have made a selection, the map will be populated with coloured polygons. 
 These polygons are the boundaries of scenes extracted from satellite data
-contained within the CEDA archive.
+contained within the CEDA archive. Up to 1000 scenes will be rendered.
 
-You can pan around the map by clicking and dragging on the map. The map's
+After this first action, you can pan around the map by clicking and dragging. The map's
 bounding box will automatically change, and the interface will automatically
 search for and display scenes within the area. You can also zoom in and out
 using the controls in the bottom right of the map. The map functionality uses Google Maps, so

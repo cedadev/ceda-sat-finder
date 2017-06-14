@@ -24,7 +24,7 @@ displays counts for **_all_ available data**, and is not modified by changing th
 Clicking the histogram bars is a shortcut to selecting a specific year but it will likely be necessary to 
 refine your search further to get the most benefit from the interface.
 
-### Geographical Search
+### Change Map Centre
 
 This element allows you to search for a location. If it finds what you're
 searching for, the map will centre on the matching location. You can enter
@@ -35,16 +35,24 @@ things below are valid location searches:
 * Postcodes (e.g. "90210" or "OX11 0QN")
 * Coordinates (e.g. "51.2W, 31.0N" or "51.7595, -1.2325")
 
-### Rectangle Search Tool
+### Rectangle Search
 
 Found in the top right corner of the map. Toggle **On** by clicking the button. 
 When turned on, draw on the map using the cursor. Once your drawing is complete, the map
 will search for results which intersect the box drawn. 
 
-Only 100 are drawn to avoid overcluttering the map.
+Only 100 are drawn to avoid overburdening the map.
 
 You can resize the rectangle using the white nodes. You can also move
-the rectangle by grabbing one of the sides, marked by the black line. The rectangle and all
+the rectangle by grabbing one of the sides, marked by the black line. 
+
+The coordinates of the NW and SE corners are automatically updated in the **Rectangle Search** pane on the left hand
+side of the screen.
+
+The **Clear Results** button will remove all the coloured polygons from the screen. This can make it easier to edit
+the rectangular bounding box. Simply click **Apply Filters** to get results matching your bounding box.
+
+The rectangle and all
 other filters can be removed by clicking "Clear Filters".
 
 When the rectangle tool is **On**, panning is disabled on the map. Turn the tool off to 
@@ -70,19 +78,15 @@ For example:
 Given the current selection, there are no datasets from the Landsat Missions 5 and 7. You can try
 changing the time range or search area.
 
-### Keyword Search
+### Apply Filters 
 
-This element will allow you to search for any distinct keyword in the metadata
-of each scenes's data file. This includes being able to search for:
-
-* Instrument names ("SLSTR", "SAR", "MSI", etc)
-
-
-### Apply Filters and Clear Filters
-
-These buttons simply apply any search criteria you may have entered. For
+This button simply applys any search criteria you may have entered. For
 example, if you have supplied a date range and a keyword, clicking "Apply
 Filters" will apply these criteria to your search.
 
 Certain things are done automatically - the Geographical Search will reresh your results once you click **Go** and the Satellite
 Filter is applied without needing to click "Apply Filters".
+
+### Clear Filters
+
+This clears the map of all objects, data polygons and rectangles, and resets all the filters to a neutral state.
