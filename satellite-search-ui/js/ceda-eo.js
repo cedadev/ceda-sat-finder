@@ -148,24 +148,6 @@ $('#quicklook_modal').on('hidden.bs.modal', function () {
     $('#modal-quicklook-image').attr('onerror', 'imgError(this)')
 
 });
-// -------------------------------ElasticSearch--------------------------------
-function requestFromFilters(full_text) {
-    var i, ft, req;
-
-    req = [];
-    if (full_text.length > 0) {
-        ft = full_text.split(' ');
-        for (i = 0; i < ft.length; i += 1) {
-            req.push({
-                term: {
-                    _all: ft[i].toLowerCase()
-
-                }
-            });
-        }
-        return req;
-    }
-}
 
 // -------------------------------Hierarchy tree ------------------------------
 
@@ -440,6 +422,7 @@ function requestFromTree() {
 }
 
 // -------------------------------ElasticSearch--------------------------------
+
 function requestFromFilters(full_text) {
     var i, ft, req;
 
@@ -585,12 +568,12 @@ function createElasticsearchRequest(gmaps_corners, full_text, size, drawing) {
     request = esRequest(nw, se, size);
 
     // Add other filters from page to query
-    tf = requestFromFilters(full_text);
-    if (tf) {
-        for (i = 0; i < tf.length; i += 1) {
-            request.query.filtered.filter.bool.must.push(tf[i]);
-        }
-    }
+    // tf = requestFromFilters(full_text);
+    // if (tf) {
+    //     for (i = 0; i < tf.length; i += 1) {
+    //         request.query.filtered.filter.bool.must.push(tf[i]);
+    //     }
+    // }
 
     // Tree selection filters.
     vars = requestFromTree();
@@ -1010,7 +993,7 @@ function redrawMap(gmap, add_listener) {
     var full_text, request;
 
     // Draw flight tracks
-    full_text = $('#ftext').val();
+    // full_text = $('#ftext').val();
     request = createElasticsearchRequest(gmap.getBounds(), full_text, REQUEST_SIZE);
     sendElasticsearchRequest(request, updateMap, gmap);
 
@@ -1171,6 +1154,10 @@ function clearRect() {
     window.rectangle.setMap(null);
     window.rectangle = undefined;
 
+    // Clear rectangle corner position
+    document.getElementById('NW').innerHTML = '';
+    document.getElementById('SE').innerHTML = '';
+
 }
 
 // ----------------------------- First Load --------------------------------
@@ -1210,9 +1197,9 @@ window.onload = function () {
     google.maps.event.addListener(map, 'mousemove', function (event) {
         // Add listener to update mouse position
         // see: http://bit.ly/1zAfter
-        lat = event.latLng.lat().toFixed(4);
-        lon = event.latLng.lng().toFixed(4);
-        $('#mouse').html(lat + ', ' + lon);
+        lat = event.latLng.lat().toFixed(2);
+        lon = event.latLng.lng().toFixed(2);
+        $('#mouse').html('Lat: ' + lat + ', Lng: ' + lon);
     });
 
     // set map key colours
@@ -1327,6 +1314,12 @@ window.onload = function () {
                 // Show instructions panel if it is closed.
                 $('#collapsePolygonInstructions').collapse('show');
 
+                // Open rectangle search panel if not already open. Using the link for the panel title
+                // rather than the bootstrap method so that the panel still behaves like an accordian.
+                if (!$('#collapse_spatial').hasClass('in')){
+                    document.getElementById('spatial_accordian').click()
+                }
+
                 if (window.rectangle !== undefined) {
                     clearRect();
                 }
@@ -1379,10 +1372,23 @@ window.onload = function () {
                     rect.setEditable(true);
                     rect.setDraggable(true);
                 });
+
+                rect.addListener('bounds_changed',function() {
+                    var ne = rect.getBounds().getNorthEast();
+                    var sw = rect.getBounds().getSouthWest();
+
+
+                    // update corner position
+                    document.getElementById('NW').innerHTML = ' Lat: ' + ne.lat().toFixed(2) + ' Lng: ' + sw.lng().toFixed(2);
+                    document.getElementById('SE').innerHTML = ' Lat: ' + sw.lat().toFixed(2) + ' Lng: ' + ne.lng().toFixed(2);
+                })
             }
             else {
                 // Hide instructions panel if it is open.
                 $('#collapsePolygonInstructions').collapse('hide');
+
+                // Hide Rectangle Search accordian panel if open.
+                $('#collapse_spatial').collapse('hide');
 
                 // clear rectangle drawing listeners and reinstate boundschanged listener.
                 google.maps.event.clearListeners(map, 'mousedown');
@@ -1422,6 +1428,10 @@ window.onload = function () {
                         new google.maps.LatLng(minLat, maxLng)
                     );
                     rect.setBounds(latLngBounds);
+
+                    // Update the rectangle corners in the spatial search pane.
+                    document.getElementById('NW').innerHTML = ' Lat: ' + maxLat.toFixed(2) + ' Lng: ' + minLng.toFixed(2);
+                    document.getElementById('SE').innerHTML = ' Lat: ' + minLat.toFixed(2) + ' Lng: ' + maxLng.toFixed(2);
 
                     window.rectangle = rect
                 }

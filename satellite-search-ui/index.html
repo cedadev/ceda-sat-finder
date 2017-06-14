@@ -146,7 +146,7 @@
                     <div class="panel-heading">
                         <h4 class="panel-title">
                             <a data-toggle="collapse" data-parent="#accordions" href="#collapse_centre_map">
-                                Geographical Search
+                                Change Map Centre
                             </a>
                         </h4>
                     </div>
@@ -172,6 +172,20 @@
                                     </div>
                                 </fieldset>
                             </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a id="spatial_accordian" data-toggle="collapse" data-parent="#accordions" href="#collapse_spatial">
+                                Rectangle Search
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapse_spatial" class="panel-collapse collapse">
+                        <div class="panel-body">
                             <p>Use the "Rectangle Search" tool on the map
                                 <span data-toggle="popover"
                                       data-placement="top"
@@ -179,11 +193,16 @@
                                       class="glyphicon glyphicon-question-sign">
 
                                 </span>
-                                to define a rectangular bounding box. Once drawn, click "Apply Filters" to draw the
-                                results.</p>
+                                to define a rectangular bounding box.</p>
+                            <h5>Rectangle Corners</h5>
+                            <p><b>NW:</b><span id="NW"></span></p>
+                            <p><b>SE:</b><span id="SE"></span></p>
+
+                            <button class="btn btn-primary" onclick="cleanup()">Clear Results</button>
                         </div>
                     </div>
                 </div>
+
 
                 <!-- Tree -->
                 <div class="panel panel-default">
@@ -201,35 +220,35 @@
                     </div>
                 </div>
 
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h4 class="panel-title">
-                            <a data-toggle="collapse" data-parent="#accordions" href="#collapse_filter">
-                                Keyword Search
-                            </a>
-                        </h4>
-                    </div>
-                    <div id="collapse_filter" class="panel-collapse collapse">
-                        <div class="panel-body">
-                            <form class="form-horizontal">
-                                <fieldset>
-                                    <div class="form-group">
-                                        <label class="control-label" for="param">Keyword Search</label>
-                                        <span data-toggle="popover"
-                                              data-placement="top"
-                                              data-content="Search for any keyword, e.g.: 'Pass direction', 'Platform type', etc."
-                                              class="glyphicon glyphicon-question-sign"></span>
-                                        <div class="controls">
-                                            <input id="ftext" name="ftext"
-                                                   placeholder="Any text query, e.g. 'sentinel', 'SAR', 'ascending', etc"
-                                                   class="form-control input-md" type="text">
-                                        </div>
-                                    </div>
-                                </fieldset>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+                <!--<div class="panel panel-default">-->
+                    <!--<div class="panel-heading">-->
+                        <!--<h4 class="panel-title">-->
+                            <!--<a data-toggle="collapse" data-parent="#accordions" href="#collapse_filter">-->
+                                <!--Keyword Search-->
+                            <!--</a>-->
+                        <!--</h4>-->
+                    <!--</div>-->
+                    <!--<div id="collapse_filter" class="panel-collapse collapse">-->
+                        <!--<div class="panel-body">-->
+                            <!--<form class="form-horizontal">-->
+                                <!--<fieldset>-->
+                                    <!--<div class="form-group">-->
+                                        <!--<label class="control-label" for="param">Keyword Search</label>-->
+                                        <!--<span data-toggle="popover"-->
+                                              <!--data-placement="top"-->
+                                              <!--data-content="Search for any keyword, e.g.: 'Pass direction', 'Platform type', etc."-->
+                                              <!--class="glyphicon glyphicon-question-sign"></span>-->
+                                        <!--<div class="controls">-->
+                                            <!--<input id="ftext" name="ftext"-->
+                                                   <!--placeholder="Any text query, e.g. 'sentinel', 'SAR', 'ascending', etc"-->
+                                                   <!--class="form-control input-md" type="text">-->
+                                        <!--</div>-->
+                                    <!--</div>-->
+                                <!--</fieldset>-->
+                            <!--</form>-->
+                        <!--</div>-->
+                    <!--</div>-->
+                <!--</div>-->
             </div>
 
 
@@ -258,7 +277,7 @@
                 </p>
 
                 <div class="form-group row">
-                    <p><strong>Mouse: </strong> <span id="mouse">123.123, 456.456</span></p>
+                    <p><strong>Mouse: </strong> <span id="mouse">Lat: 0, Lng: 0</span></p>
                 </div>
             </div>
         </div>
