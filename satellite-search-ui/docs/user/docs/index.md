@@ -36,5 +36,11 @@ Clicking on this image will bring up a larger image.
 
 There are also buttons where you can directly download the scene or view the source directory on the archive.
 
+### Dataset on Tape
+
 If the dataset has been moved to tape storage the download buttons will not be available 
 but there is a link to tell you how to gain access to the dataset.
+
+![alt text][DatasetOnTape Screenshot]
+
+[DatasetOnTape Screenshot]: ./images/DatasetOnTapeScreenshot.png "Infowindow Example - Datset on Tape"
