@@ -1106,6 +1106,10 @@ function clearRect() {
     window.rectangle.setMap(null);
     window.rectangle = undefined;
 
+    // Clear rectangle corner position
+    document.getElementById('NW').innerHTML = '';
+    document.getElementById('SE').innerHTML = '';
+
 }
 
 
@@ -1243,6 +1247,7 @@ window.onload = function () {
 
                 // Show instructions panel if it is closed.
                 $('#collapsePolygonInstructions').collapse('show');
+                document.getElementById('spatial_accordian').click()
 
                 if (window.rectangle !== undefined) {
                     clearRect();
@@ -1296,10 +1301,21 @@ window.onload = function () {
                     rect.setEditable(true);
                     rect.setDraggable(true);
                 });
+
+                rect.addListener('bounds_changed',function() {
+                    var ne = rect.getBounds().getNorthEast();
+                    var sw = rect.getBounds().getSouthWest();
+
+
+                    // update corner position
+                    document.getElementById('NW').innerHTML = ' Lat: ' + ne.lat().toFixed(2) + ' Lng: ' + sw.lng().toFixed(2);
+                    document.getElementById('SE').innerHTML = ' Lat: ' + sw.lat().toFixed(2) + ' Lng: ' + ne.lng().toFixed(2);
+                })
             }
             else {
                 // Hide instructions panel if it is open.
                 $('#collapsePolygonInstructions').collapse('hide');
+                document.getElementById('spatial_accordian').click()
 
                 // clear rectangle drawing listeners and reinstate boundschanged listener.
                 google.maps.event.clearListeners(map, 'mousedown');
@@ -1339,6 +1355,10 @@ window.onload = function () {
                         new google.maps.LatLng(minLat, maxLng)
                     );
                     rect.setBounds(latLngBounds);
+
+                    // Update the rectangle corners in the spatial search pane.
+                    document.getElementById('NW').innerHTML = ' Lat: ' + maxLat.toFixed(2) + ' Lng: ' + minLng.toFixed(2);
+                    document.getElementById('SE').innerHTML = ' Lat: ' + minLat.toFixed(2) + ' Lng: ' + maxLng.toFixed(2);
 
                     window.rectangle = rect
                 }

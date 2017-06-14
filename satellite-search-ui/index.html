@@ -121,7 +121,7 @@
                             </a>
                         </h4>
                     </div>
-                    <div id="collapse_temporal" class="panel-collapse collapse in">
+                    <div id="collapse_temporal" class="panel-collapse collapse">
                         <div class="text-center panel-body">
                             <label class="control-label">Refine Search via Time Range</label>
                             <span data-toggle="popover"
@@ -172,6 +172,20 @@
                                     </div>
                                 </fieldset>
                             </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a id="spatial_accordian" data-toggle="collapse" data-parent="#accordions" href="#collapse_spatial">
+                                Rectangle Search
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapse_spatial" class="panel-collapse collapse">
+                        <div class="panel-body">
                             <p>Use the "Rectangle Search" tool on the map
                                 <span data-toggle="popover"
                                       data-placement="top"
@@ -179,11 +193,16 @@
                                       class="glyphicon glyphicon-question-sign">
 
                                 </span>
-                                to define a rectangular bounding box. Once drawn, click "Apply Filters" to draw the
-                                results.</p>
+                                to define a rectangular bounding box.</p>
+                            <h5>Rectangle Corners</h5>
+                            <p><b>NW:</b><span id="NW"></span></p>
+                            <p><b>SE:</b><span id="SE"></span></p>
+
+                            <button class="btn btn-primary" onclick="cleanup()">Clear Results</button>
                         </div>
                     </div>
                 </div>
+
 
                 <!-- Tree -->
                 <div class="panel panel-default">
