@@ -1259,10 +1259,17 @@ window.onload = function () {
             }
 
             if (tree_menu.treeview('getUnselected').length > 0) {
-                tree_menu.treeview('checkNode', [0])
-            } else {
-                redrawMap(map, false);
+                tree_menu.treeview('checkAll', { silent: true})
+                var unselected = tree_menu.treeview('getUnselected'), i;
+                for (i = 0; i < unselected.length; i++){
+                    tree_menu.treeview('selectNode', [ unselected[i].nodeId, {silent: true}])
+                }
             }
+            // if (tree_menu.treeview('getUnselected').length > 0) {
+            //     tree_menu.treeview('checkNode', [0])
+            // } else {
+            //     redrawMap(map, false);
+            // }
 
 
             $('#polygon_draw').bootstrapToggle('off')
