@@ -6,22 +6,23 @@ and this is growing every day.**
 
 In order to get the most use out of the Satellite Data Finder, it is important to 
 refine your search. The number of hits, for your
-current search parameters, is displayed below the "Export Results" button. 
+current search parameters, is displayed below the **Export Results** button. 
 Only 1000 will be drawn on the map or are extractable
 via the **Export Results** dialog to increase performance.
 
 ### Temporal Filter
 
 This element will allow you to refine your search with temporal parameters.
-You can enter a start time and end time, and the interface will search for
+You can enter a start time and end time, click **Apply Filters** and the interface will search for
 satellite data that was recorded within that period. 
 
 To help you see the distribution of data over time, there is a convenient
 histogram underneath the start and end time box. A larger bar means that more
 data files were recorded within that time period. Note that the histogram
-displays counts for **all** scenes, and is not modified by changing the filters.
+displays counts for **_all_ available data**, and is not modified by changing the filters.
 
-Clicking the histogram bars is a shortcut to selecting a specific year.
+Clicking the histogram bars is a shortcut to selecting a specific year but it will likely be necessary to 
+refine your search further to get the most benefit from the interface.
 
 ### Geographical Search
 
@@ -37,7 +38,7 @@ things below are valid location searches:
 ### Rectangle Search Tool
 
 Found in the top right corner of the map. Toggle **On** by clicking the button. 
-When turned on, draw on the map using the cursor. Once you drawing is complete, the map
+When turned on, draw on the map using the cursor. Once your drawing is complete, the map
 will search for results which intersect the box drawn. 
 
 Only 100 are drawn to avoid overcluttering the map.
@@ -66,7 +67,7 @@ For example:
 
 [Tree Screenshot]: ./images/TreeScreenshot.png "Hierarchy Tree Example"
 
-Given the current selection, there are no datasets from the Landsat Missions. You can try
+Given the current selection, there are no datasets from the Landsat Missions 5 and 7. You can try
 changing the time range or search area.
 
 ### Keyword Search
@@ -83,5 +84,5 @@ These buttons simply apply any search criteria you may have entered. For
 example, if you have supplied a date range and a keyword, clicking "Apply
 Filters" will apply these criteria to your search.
 
-Certain things are done automatically - the Geographical Search and Satellite
-Filter are applied without needing to click "Apply Filters".
+Certain things are done automatically - the Geographical Search will reresh your results once you click **Go** and the Satellite
+Filter is applied without needing to click "Apply Filters".

@@ -4,9 +4,9 @@ CEDA Satellite Data Finder Help Pages
 The Interface
 -------------
 
-The screen in front of you should be split into two sections. On the left
-should be a side panel with accordion-style expanding elements that contain
-useful elements for refining your search parameters. On the right should be a
+The screen in front of you is split into two sections. On the left
+is a side panel with accordion-style expanding elements that contain
+useful elements for refining your search parameters. On the right is a
 large map with coloured polygons overlaid on top.
 
 These polygons are the boundaries of scenes extracted from satellite data
@@ -15,7 +15,7 @@ contained within the CEDA archive.
 You can pan around the map by clicking and dragging on the map. The map's
 bounding box will automatically change, and the interface will automatically
 search for and display scenes within the area. You can also zoom in and out
-using the controls in the bottom right of the map. The map is from Google Maps, so
+using the controls in the bottom right of the map. The map functionality uses Google Maps, so
 the interface should be familiar if you have used that before.
 
 
