@@ -148,24 +148,6 @@ $('#quicklook_modal').on('hidden.bs.modal', function () {
     $('#modal-quicklook-image').attr('onerror', 'imgError(this)')
 
 });
-// -------------------------------ElasticSearch--------------------------------
-function requestFromFilters(full_text) {
-    var i, ft, req;
-
-    req = [];
-    if (full_text.length > 0) {
-        ft = full_text.split(' ');
-        for (i = 0; i < ft.length; i += 1) {
-            req.push({
-                term: {
-                    _all: ft[i].toLowerCase()
-
-                }
-            });
-        }
-        return req;
-    }
-}
 
 // -------------------------------Hierarchy tree ------------------------------
 
@@ -402,6 +384,7 @@ function requestFromTree() {
 }
 
 // -------------------------------ElasticSearch--------------------------------
+
 function requestFromFilters(full_text) {
     var i, ft, req;
 
@@ -520,12 +503,12 @@ function createElasticsearchRequest(gmaps_corners, full_text, size, drawing) {
     request = esRequest(nw, se, size);
 
     // Add other filters from page to query
-    tf = requestFromFilters(full_text);
-    if (tf) {
-        for (i = 0; i < tf.length; i += 1) {
-            request.query.filtered.filter.bool.must.push(tf[i]);
-        }
-    }
+    // tf = requestFromFilters(full_text);
+    // if (tf) {
+    //     for (i = 0; i < tf.length; i += 1) {
+    //         request.query.filtered.filter.bool.must.push(tf[i]);
+    //     }
+    // }
 
     // Tree selection filters.
     vars = requestFromTree();
@@ -945,7 +928,7 @@ function redrawMap(gmap, add_listener) {
     var full_text, request;
 
     // Draw flight tracks
-    full_text = $('#ftext').val();
+    // full_text = $('#ftext').val();
     request = createElasticsearchRequest(gmap.getBounds(), full_text, REQUEST_SIZE);
     sendElasticsearchRequest(request, updateMap, gmap);
 
