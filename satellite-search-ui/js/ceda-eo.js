@@ -176,6 +176,8 @@ function getDocCount(key, aggregatedData) {
     return count
 }
 
+
+
 function getTreeJSON(aggregatedData, numbers) {
     // Produces the JSON which makes up the data section for the Bootstrap treeview.
 
@@ -189,7 +191,14 @@ function getTreeJSON(aggregatedData, numbers) {
 
     // Create JSON for satellites aggregation
     if ("satellites" in tree_buckets) {
-        satellites = tree_buckets['satellites']['buckets'];
+        satellites = tree_buckets['satellites']['buckets'].sort(
+            function (a, b) {
+            if (a.key < b.key)
+                return -1;
+            if (a.key > b.key)
+                return 1;
+            return 0;
+        });
 
         // Create the child JSON
         var i, j, satellite_children = [];
