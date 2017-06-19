@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Refine Search - CEDA Satellite Data Finder Docs</title>
+        <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../css/font-awesome-4.5.0.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="../css/highlight.css">
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <![endif]-->
+	
+	<script src="../js/jquery-1.10.2.min.js"></script>
+        <script src="../js/bootstrap-3.0.3.min.js"></script>
+        <script src="../js/highlight.pack.js"></script> 
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="..">CEDA Satellite Data Finder Docs</a>
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+                <!-- Main navigation -->
+                <ul class="nav navbar-nav">
+                    <li >
+                        <a href="..">Home</a>
+                    </li>
+                    <li class="active">
+                        <a href="./">Refine Search</a>
+                    </li>
+                    <li >
+                        <a href="../export/">Export Results</a>
+                    </li>
+                    <li >
+                        <a href="../troubleshooting/">Troubleshooting</a>
+                    </li>
+                </ul>
+
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                    <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                        <i class="fa fa-search"></i> Search
+                    </a>
+                </li>
+                    <li >
+                        <a rel="next" href="..">
+                            <i class="fa fa-arrow-left"></i> Previous
+                        </a>
+                    </li>
+                    <li >
+                        <a rel="prev" href="../export/">
+                            Next <i class="fa fa-arrow-right"></i>
+                        </a>
+                    </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+        <div class="container">
+                <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="main active"><a href="#refining-your-search">Refining Your Search</a></li>
+            <li><a href="#temporal-filter">Temporal Filter</a></li>
+            <li><a href="#change-map-centre">Change Map Centre</a></li>
+            <li><a href="#rectangle-search">Rectangle Search</a></li>
+            <li><a href="#satellite-filter">Satellite Filter</a></li>
+            <li><a href="#apply-filters">Apply Filters</a></li>
+            <li><a href="#clear-filters">Clear Filters</a></li>
+    </ul>
+</div></div>
+                <div class="col-md-9" role="main">
+
+<h2 id="refining-your-search">Refining Your Search</h2>
+<p><strong>At the moment there are more than 1.4 million satellite scenes in the archive 
+and this is growing every day.</strong></p>
+<p>In order to get the most use out of the Satellite Data Finder, it is important to 
+refine your search. The number of hits, for your
+current search parameters, is displayed below the <strong>Export Results</strong> button. 
+Only 1000 will be drawn on the map or are extractable
+via the <strong>Export Results</strong> dialog to increase performance.</p>
+<h3 id="temporal-filter">Temporal Filter</h3>
+<p>This element will allow you to refine your search with temporal parameters.
+You can enter a start time and end time, click <strong>Apply Filters</strong> and the interface will search for
+satellite data that was recorded within that period. </p>
+<p>To help you see the distribution of data over time, there is a convenient
+histogram underneath the start and end time box. A larger bar means that more
+data files were recorded within that time period. Note that the histogram
+displays counts for <strong><em>all</em> available data</strong>, and is not modified by changing the filters.</p>
+<p>Clicking the histogram bars is a shortcut to selecting a specific year but it will likely be necessary to 
+refine your search further to get the most benefit from the interface.</p>
+<h3 id="change-map-centre">Change Map Centre</h3>
+<p>This element allows you to search for a location. If it finds what you're
+searching for, the map will centre on the matching location. You can enter
+several different types of things to find a location. For example, all of the
+things below are valid location searches:</p>
+<ul>
+<li>Place names (e.g. "Scotland", "London", or "Turl Street")</li>
+<li>Postcodes (e.g. "90210" or "OX11 0QN")</li>
+<li>Coordinates (e.g. "51.2W, 31.0N" or "51.7595, -1.2325")</li>
+</ul>
+<h3 id="rectangle-search">Rectangle Search</h3>
+<p>Found in the top right corner of the map. Toggle <strong>On</strong> by clicking the button. 
+When turned on, draw on the map using the cursor. Once your drawing is complete, the map
+will search for results which intersect the box drawn. </p>
+<p>Only 100 are drawn to avoid overburdening the map.</p>
+<p>You can resize the rectangle using the white nodes. You can also move
+the rectangle by grabbing one of the sides, marked by the black line. </p>
+<p>The coordinates of the NW and SE corners are automatically updated in the <strong>Rectangle Search</strong> pane on the left hand
+side of the screen.</p>
+<p>The <strong>Clear Results</strong> button will remove all the coloured polygons from the screen. This can make it easier to edit
+the rectangular bounding box. Simply click <strong>Apply Filters</strong> to get results matching your bounding box.</p>
+<p>The rectangle and all
+other filters can be removed by clicking "Clear Filters".</p>
+<p>When the rectangle tool is <strong>On</strong>, panning is disabled on the map. Turn the tool off to 
+resume panning.</p>
+<p><img alt="alt text" src="../images/RectangleToolScreenshot.png" title="Rectangle Tool Example" /></p>
+<h3 id="satellite-filter">Satellite Filter</h3>
+<p>This element provides checkboxes to filter down the specific satellites which you want to
+retrieve data from. The number displayed to the right of the element indicates the number
+of datasets available given the current filters.</p>
+<p>For example:</p>
+<p><img alt="alt text" src="../images/TreeScreenshot.png" title="Hierarchy Tree Example" /></p>
+<p>Given the current selection, there are no datasets from the Landsat Missions 5 and 7. You can try
+changing the time range or search area.</p>
+<h3 id="apply-filters">Apply Filters</h3>
+<p>This button simply applys any search criteria you may have entered. For
+example, if you have supplied a date range and a keyword, clicking "Apply
+Filters" will apply these criteria to your search.</p>
+<p>Certain things are done automatically - the Geographical Search will reresh your results once you click <strong>Go</strong> and the Satellite
+Filter is applied without needing to click "Apply Filters".</p>
+<h3 id="clear-filters">Clear Filters</h3>
+<p>This clears the map of all objects, data polygons and rectangles, and resets all the filters to a neutral state.</p></div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>var base_url = '..';</script>
+        <script data-main="../mkdocs/js/search.js" src="../mkdocs/js/require.js"></script>
+        <script src="../js/base.js"></script><div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form role="form">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
