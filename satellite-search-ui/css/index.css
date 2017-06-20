@@ -266,3 +266,43 @@ div .logo {
 .slider.closed {
 	max-height: 0;
 }
+
+
+/* ------------------------------ */
+/* Data coverage popup modal */
+.coverage-modal-content {
+    margin: auto;
+    margin-top: 5vh;
+    display: block;
+    width: 80%;
+    max-width: 700px;
+
+}
+
+#caption {
+    margin: auto;
+    display: block;
+    width: 80%;
+    max-width: 700px;
+    text-align: center;
+    color: #ccc;
+    padding: 10px 0;
+    height: 150px;
+}
+
+.imgclose {
+    position: absolute;
+    top: 15px;
+    right: 35px;
+    color: #f1f1f1;
+    font-size: 40px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.imgclose:hover,
+.imgclose:focus {
+    color: #bbb;
+    text-decoration: none;
+    cursor: pointer;
+}

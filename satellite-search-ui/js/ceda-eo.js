@@ -205,11 +205,7 @@ function getTreeJSON(aggregatedData, numbers) {
         for (i = 0, j = satellites.length; i < j; i++) {
             child = satellites[i]['key'];
             doc_count = getDocCount(child, aggregatedData);
-            if (numbers) {
-                childName = child;
-            } else {
-                childName = child;
-            }
+            childName = child + " <a class='glyphicon glyphicon-globe heatmap' data-mission='" + child + "' href='#'></a>";
 
             child_JSON = {
                 text: titleCase(childName),
@@ -267,7 +263,7 @@ function initTree(response) {
                 treeMenu.treeview('unselectNode', [0, {silent: true}]);
             }
         },
-        onNodeSelected: function (event, data){
+        onNodeSelected: function (event, data) {
             treeMenu.treeview('checkNode', [data.nodeId, {silent: true}]);
             if (siblingState(data.nodeId)) {
                 treeMenu.treeview('checkNode', [0, {silent: true}]);
@@ -279,6 +275,7 @@ function initTree(response) {
         }
     });
     treeMenu.treeview('checkAll');
+
 }
 
 function childSelectToggle(method, children, gmap) {
@@ -406,6 +403,7 @@ function updateTreeDisplay(aggregatedData, gmap) {
             tree_menu.treeview('selectNode', [node.nodeId, {silent: true}]);
         }
     }
+
 }
 
 function requestFromTree() {
@@ -429,6 +427,23 @@ function requestFromTree() {
     }
     return '';
 }
+
+// Open the data coverage modal on mouseover the globe in the tree menu.
+var dataCoverageTimer
+$('body').on({
+        mouseover: function () {
+            var mission = $(this).data('mission')
+            dataCoverageTimer = setTimeout(function () {
+                $('#dataset-coverage-image').attr('src', './img/coverage_maps/' + mission + '.png' )
+                $('#caption').html(mission + " Coverage Map")
+                $('#coverage_modal').modal('show')
+            }, 400);
+        },
+    mouseleave: function () {
+        clearTimeout(dataCoverageTimer)
+    }
+    }, 'a.heatmap'
+);
 
 // -------------------------------ElasticSearch--------------------------------
 

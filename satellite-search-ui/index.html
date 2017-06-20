@@ -374,7 +374,20 @@
                 </div>
             </div>
         </div>
-    </div>
+
+        <!-- Data coverage modal -->
+        <div id="coverage_modal" class="modal">
+
+            <!-- The Close Button -->
+            <span class="imgclose" onclick="$('#coverage_modal').modal('hide')">&times;</span>
+
+            <!-- Modal Content (The Image) -->
+            <img class="coverage-modal-content zoom" id="dataset-coverage-image">
+
+            <!-- Modal Caption (Image Text) -->
+            <div id="caption" class="zoom"></div>
+        </div>
+
 
     <!-- Template rendered by mustache.js for the infoWindow -->
     <script id="infowindowTemplate" type="text/html">
