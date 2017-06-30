@@ -87,6 +87,17 @@ function requestFromMultiselect() {
     return '';
 }
 
+// ---------------------------- Index Radio Buttons ---------------------------
+
+    var index_selectors = $('.index-select')
+    index_selectors.click(function () {
+        index_selectors.removeClass('btn-info')
+        $(this).addClass('btn-info')
+        ES_URL = 'http://jasmin-es1.ceda.ac.uk:9000/' + $(this).data('index') + '/_search';
+
+        redrawMap(map, true)
+    })
+
 // ---------------------------'Export Results' Modal---------------------------
 function updateExportResultsModal(hits) {
     $('#results').html(JSON.stringify(hits, null, '    '));
@@ -536,7 +547,7 @@ function sendHistogramRequest() {
 
 // ------------------------------window.onload---------------------------------
 window.onload = function () {
-    var geocoder, lat, lon, map;
+    var geocoder, lat, lon;
 
     // Google Maps geocoder and map object
     geocoder = new google.maps.Geocoder();
