@@ -94,6 +94,8 @@ function requestFromMultiselect() {
         index_selectors.removeClass('btn-info')
         $(this).addClass('btn-info')
         ES_URL = 'http://jasmin-es1.ceda.ac.uk:9000/' + $(this).data('index') + '/_search';
+        $('#multiselect').empty().multiSelect('refresh')
+
 
         redrawMap(map, true)
     })
@@ -670,6 +672,11 @@ window.onload = function () {
         format: 'yyyy-mm-dd',
         startView: 2
     });
+
+    // set index buttons based on URL on page load
+    index_selectors.removeClass('btn-info')
+    $('#' + INDEX).addClass('btn-info')
+
 
     // Draw histogram
     sendHistogramRequest();
