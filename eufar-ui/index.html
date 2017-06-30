@@ -8,6 +8,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
     <title>EUFAR Flight Finder</title>
+    <link rel="shortcut icon" href="img/favicon.ico">
 
     <link rel="stylesheet" href="./bower_components/bootstrap/dist/css/bootstrap.min.css" type="text/css" />
     <link rel="stylesheet" href="./bower_components/bootstrap/dist/css/bootstrap-theme.min.css" type="text/css" />
@@ -62,6 +63,25 @@
                 <p>
                     <a href="http://data.ceda.ac.uk/badc/eufar/docs/flight_finder/flight_finder_tutorial.mp4">Tutorial Video</a>
                 </p>
+            <hr/>
+                <!-- Radio buttons to select different indexes -->
+            <div class="row">
+                <div class="col-md-12">
+                    <label class="control-label">Choose an index:</label>
+                    <div class="row">
+                        <div class="col-sm-3 text-center ">
+                            <a class="btn btn-primary index-select btn-info" data-index="eufar"> EUFAR</a>
+                        </div>
+                        <div class="col-sm-3 text-center ">
+                            <a class="btn btn-primary index-select" data-index="faam"> FAAM</a>
+                        </div>
+                        <div class="col-sm-3 text-center">
+                            <a class="btn btn-primary index-select" data-index="arsf"> ARSF</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
                 <hr />
                 <p>Click an item to expand the panel.</p>
                 <div class="panel-group" id="accordions">
