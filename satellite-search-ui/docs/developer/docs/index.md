@@ -47,7 +47,7 @@ eufar-ui
     │   └── switch.png
     ├── index.html
     ├── js
-    │   └── ceda-eo.js
+    │   └── ceda-eo-init.js
     ├── LICENSE
     ├── README.md
     └── TESTING.md
