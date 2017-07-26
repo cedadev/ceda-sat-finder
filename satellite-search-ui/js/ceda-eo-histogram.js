@@ -1,8 +1,49 @@
 /**
- * Created by vdn73631 on 25/07/2017.
+ * Created by Richard Smith on 25/07/2017.
+ *
+ *  Handles the drawing of the Histogram in the side pane.
+ *  Builds the ElasticSearch request and draws the Histogram.
  */
 
-// ---------------------------------Histogram----------------------------------
+function sendHistogramRequest() {
+    var req, response, xhr;
+
+    req = {
+        'aggs': {
+            'only_sensible_timestamps': {
+                'filter': {
+                    'range': {
+                        'temporal.start_time': {
+                            'gt': '1990-01-01'
+                        }
+                    }
+                },
+                'aggs': {
+                    'docs_over_time': {
+                        'date_histogram': {
+                            'field': 'temporal.start_time',
+                            'format': 'yyyy',
+                            'interval': 'year',
+                            'min_doc_count': 0
+                        }
+                    }
+                }
+            }
+        },
+        'size': 0
+    };
+
+    xhr = new XMLHttpRequest();
+    xhr.open('POST', ES_URL, true);
+    xhr.send(JSON.stringify(req));
+    xhr.onload = function (e) {
+        if (xhr.readyState === 4) {
+            response = JSON.parse(xhr.responseText);
+            drawHistogram(response);
+        }
+    };
+}
+
 function drawHistogram(request) {
     var ost, buckets, keys, counts, i;
 
@@ -72,47 +113,8 @@ function drawHistogram(request) {
     });
 }
 
-function sendHistogramRequest() {
-    var req, response, xhr;
 
-    req = {
-        'aggs': {
-            'only_sensible_timestamps': {
-                'filter': {
-                    'range': {
-                        'temporal.start_time': {
-                            'gt': '1990-01-01'
-                        }
-                    }
-                },
-                'aggs': {
-                    'docs_over_time': {
-                        'date_histogram': {
-                            'field': 'temporal.start_time',
-                            'format': 'yyyy',
-                            'interval': 'year',
-                            'min_doc_count': 0
-                        }
-                    }
-                }
-            }
-        },
-        'size': 0
-    };
-
-    xhr = new XMLHttpRequest();
-    xhr.open('POST', ES_URL, true);
-    xhr.send(JSON.stringify(req));
-    xhr.onload = function (e) {
-        if (xhr.readyState === 4) {
-            response = JSON.parse(xhr.responseText);
-            drawHistogram(response);
-        }
-    };
-}
-
-// Window resize
-
+// Redraw Histogram on Window resize to make sure that the size of it makes sense and fits in the side pane.
 $(window).resize(function () {
     sendHistogramRequest()
 });

@@ -2,7 +2,6 @@
  * Created by vdn73631 on 25/07/2017.
  */
 
-// -------------------------------Hierarchy tree ------------------------------
 
 function titleCase(string) {
     return string[0].toUpperCase() + string.slice(1);
@@ -108,6 +107,9 @@ function initTree(response) {
         },
         onNodeUnselected: function (event, data) {
             treeMenu.treeview('uncheckNode', [data.nodeId, {silent: true}]);
+
+            // Tick or untick the root node based on the state of the children.
+            // Eg. if one of the children is unchecked, uncheck the root.
             if (siblingState(data.nodeId)) {
                 treeMenu.treeview('checkNode', [0, {silent: true}]);
                 treeMenu.treeview('selectNode', [0, {silent: true}]);
@@ -118,6 +120,9 @@ function initTree(response) {
         },
         onNodeSelected: function (event, data) {
             treeMenu.treeview('checkNode', [data.nodeId, {silent: true}]);
+
+            // Tick or untick the root node based on the state of the children.
+            // Eg. if one of the children is unchecked, uncheck the root.
             if (siblingState(data.nodeId)) {
                 treeMenu.treeview('checkNode', [0, {silent: true}]);
                 treeMenu.treeview('selectNode', [0, {silent: true}]);
@@ -132,6 +137,10 @@ function initTree(response) {
 }
 
 function childSelectToggle(method, children, gmap) {
+    // When user changes the state of the root node checkbox (eg Satellites) modify the children.
+    // Eg. If user ticks Satellites, all the children boxes should be checked and if satellites is unchecked, all children
+    // should be unchecked.
+
     var tree_menu = $('#tree_menu'), child, i;
 
     // Don't trigger redrawMap() until the last child is toggled
@@ -151,7 +160,7 @@ function childSelectToggle(method, children, gmap) {
 }
 
 function siblingState(node) {
-    // tests state of all sibling nodes. Returns true if all of the satellites are checked, and false if one is unchecked.
+    // Tests state of all sibling nodes. Returns true if all of the satellites are checked, and false if one is unchecked.
     var tree = $('#tree_menu');
     var siblings = tree.treeview('getSiblings', [node]);
     var test = [tree.treeview('getNode', [node]).state.checked];

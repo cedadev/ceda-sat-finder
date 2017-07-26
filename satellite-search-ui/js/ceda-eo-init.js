@@ -1,7 +1,7 @@
 /*jslint browser: true, devel: true, sloppy: true*/
 /*global google, $, GeoJSON*/
 
-
+// Handles map drawing functions such as drawing the polygons on the map, listeners and handles the window.onload event.
 
 function getParameterByName(name) {
     // Function from: http://stackoverflow.com/a/901144
@@ -98,6 +98,7 @@ function centreMap(gmap, geocoder, loc) {
 }
 
 function colourSelect(mission) {
+    // Designates a colour to the polygons based on the satellite mission.
     var colour;
     switch (true) {
         case /sentinel\W1.*/gi.test(mission):
@@ -124,6 +125,9 @@ function colourSelect(mission) {
 }
 
 function truncatePole(displayCoords) {
+    // Polygons drawn at the poles were wrapping round the globe as google maps mecator projection is limited to 85N/S.
+    // Function truncates coordinates to 85 N/S for drawing purposes.
+
     var i, truncatedCoords = [];
     var truncate = false;
 
@@ -176,11 +180,14 @@ function truncatePole(displayCoords) {
 
 
 function drawFlightTracks(gmap, hits) {
+    // Add satellite scene polygons onto the map.
+
     var colour_index, geom, hit, i, info_window, options, display;
+
     // Clear old map drawings
     cleanup();
 
-    // only need to pass to truncate filter if searching in region north/south of 70N/S
+    // only need to pass to truncate filter if map is displaying region north/south of 70N/S
     var mapBounds = gmap.getBounds();
     var truncate;
     if (mapBounds.getNorthEast().lat() > 70 || mapBounds.getSouthWest().lat() < -70) {
@@ -204,13 +211,16 @@ function drawFlightTracks(gmap, hits) {
             fillOpacity: 0.1,
             zIndex: i
         };
+
         // Create GeoJSON object
         display = hit._source.spatial.geometries.display;
 
+        // Truncate the polygon coordinates
         if (truncate) {
             display.coordinates = truncatePole(display)
         }
 
+        // Create the polygon
         geom = GeoJSON(display, options);
 
         geom.setMap(gmap);
@@ -247,6 +257,7 @@ function drawFlightTracks(gmap, hits) {
 
 
 function cleanup() {
+    // removes all map objects
     var i;
     for (i = 0; i < geometries.length; i += 1) {
         geometries[i].setMap(null);

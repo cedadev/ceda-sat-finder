@@ -1,5 +1,7 @@
 /**
- * Created by vdn73631 on 25/07/2017.
+ * Created by Richard Smith on 25/07/2017.
+ *
+ * Handles the creation and customisation of Google's InfoWindow object
  */
 
 
