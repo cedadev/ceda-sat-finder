@@ -231,8 +231,12 @@ function updateTreeDisplay(aggregatedData, gmap) {
             if (data.text !== "Satellites") {
                 tree_menu.treeview('selectNode', [data.nodeId]);
 
-                if (!redraw_pause) {
-                    redrawMap(gmap, true)
+                 if (!redraw_pause) {
+                    if (window.rectangle !== undefined) {
+                        queryRect(gmap)
+                    } else {
+                        redrawMap(gmap, true)
+                    }
                 }
 
             } else {
@@ -245,7 +249,11 @@ function updateTreeDisplay(aggregatedData, gmap) {
             if (data.text !== "Satellites") {
                 tree_menu.treeview('unselectNode', [data.nodeId]);
                 if (!redraw_pause) {
-                    redrawMap(gmap, true)
+                    if (window.rectangle !== undefined) {
+                        queryRect(gmap)
+                    } else {
+                        redrawMap(gmap, true)
+                    }
                 }
 
             } else {
