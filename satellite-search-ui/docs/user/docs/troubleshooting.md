@@ -17,6 +17,21 @@ Why is the quicklook image the wrong orientation?
 This is a known issue and has been brought from the ESA (European Space Agency) archive.
 There is no fix at this time. In the future a solution may be explored.
 
+Why can't I see the quicklook image?
+-------------------------------------
+
+There are two options if the quicklook is not loading. 
+
+1. For the Sentinel 3 dataset, there are currently no quicklook images. This will show the image below:
+
+    <img src="../images/no_preview.png" width="200">
+
+2. If the image below is displayed, you need to be signed in at <a href="https://auth.ceda.ac.uk/account/signin/?r=http%3A//data%2Eceda%2Eac%2Euk/" target="_blank">data.ceda.ac.uk</a>
+
+    <img src="../images/unavailable.png" width="200">
+
+
+
 Why is it taking so long to load?
 ---------------------------------
 

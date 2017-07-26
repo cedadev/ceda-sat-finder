@@ -34,7 +34,8 @@ satellite name and instrument name. An example is shown below:
 [Infowindow Screenshot]: ./images/InfowindowScreenshot.png "Infowindow Example"
 
 If there is a quicklook thumbnail image in the archive, this will be displayed.
-Clicking on this image will bring up a larger image.
+Clicking on this image will bring up a larger image. Quicklook images are not available for all datasets.
+In order to view some of the quicklooks, you are required to be signed in using your CEDA account at <a href="https://auth.ceda.ac.uk/account/signin/?r=http%3A//data%2Eceda%2Eac%2Euk/" target="_blank">data.ceda.ac.uk</a>
 
 There are also buttons where you can directly download the scene or view the source directory on the archive.
 

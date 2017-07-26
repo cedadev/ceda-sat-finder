@@ -152,7 +152,7 @@ function childSelectToggle(method, children, gmap) {
         tree_menu.treeview(method, [child])
     }
     if (window.rectangle !== undefined) {
-        queryRect()
+        queryRect(gmap)
     } else {
         redrawMap(gmap, true)
     }
