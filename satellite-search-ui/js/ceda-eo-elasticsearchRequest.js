@@ -6,7 +6,7 @@
 // -------------------------------ElasticSearch--------------------------------
 // Request JSON
 
-function esRequest(nw, se, size) {
+function esRequest(size) {
     // Abstracts the actual request from the main active code
     return {
         "_source": {
@@ -36,18 +36,8 @@ function esRequest(nw, se, size) {
                 },
                 "filter": {
                     "bool": {
-                        "must": [
-                            {
-                                "geo_shape": {
-                                    "spatial.geometries.search": {
-                                        "shape": {
-                                            "type": "envelope",
-                                            "coordinates": [nw, se]
-                                        }
-                                    }
-                                }
-                            }
-                        ],
+                        "must": [],
+                        "should":[],
                         "must_not": [
                             {
                                 "missing": {
@@ -80,6 +70,20 @@ function esRequest(nw, se, size) {
         },
         "size": size
     };
+}
+
+function geo_shapeQuery(envelope) {
+    // Abstraction function to build the geo_shape query
+    return {
+        "geo_shape": {
+            "spatial.geometries.search": {
+                "shape": {
+                    "type": "envelope",
+                    "coordinates": envelope
+                }
+            }
+        }
+    }
 }
 
 function treeRequest() {
@@ -146,9 +150,8 @@ function createElasticsearchRequest(gmaps_corners, full_text, size, drawing) {
         se = [tmp_ne.lng().toString(), tmp_sw.lat().toString()];
     }
 
-
     // ElasticSearch request
-    request = esRequest(nw, se, size);
+    request = esRequest(size);
 
     // Add other filters from page to query
     // tf = requestFromFilters(full_text);
@@ -158,11 +161,29 @@ function createElasticsearchRequest(gmaps_corners, full_text, size, drawing) {
     //     }
     // }
 
+    // Add geo_spatial filters to search
+    // First check to see if the search window crosses the date line
+    var envelope_corners = []
+    if (datelineCheck(nw[0],se[0])){
+        // We have crossed the date line, need to send the search area into two.
+        envelope_corners.push([nw,[180,se[1]]])
+        envelope_corners.push([[-180,nw[1]],se])
+
+    } else {
+        // Not crossing the date line so can just use the search area.
+        envelope_corners.push([nw,se])
+    }
+
+    // Push the geoshape conditions to the main request.
+    for (i=0; i < envelope_corners.length; i++){
+        request.query.filtered.filter.bool.should.push(geo_shapeQuery(envelope_corners[i]));
+    }
+
     // Tree selection filters.
     vars = requestFromTree();
 
     if (vars) {
-        for (i = 0; i < vars.length; i += 1) {
+        for (i = 0; i < vars.length; i++) {
             request.query.filtered.filter.bool.must_not.push(vars[i]);
         }
     }

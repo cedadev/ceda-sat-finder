@@ -34,7 +34,6 @@ var COLOUR_MAP = {
     "other": "#F17CB0"
 };
 var export_modal_open = false;
-var DATELINECROSSING = false;
 
 // -----------------------------------String-----------------------------------
 String.prototype.hashCode = function () {

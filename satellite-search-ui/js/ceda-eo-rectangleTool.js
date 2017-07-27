@@ -27,22 +27,29 @@ function queryRect(map) {
 }
 
 function clearRect() {
-    // Clears rectangle bounding box from the map.
+    // Clears rectangle bounding box from the map and resets all associated variables.
     window.rectangle.setMap(null);
     window.rectangle = undefined;
-    window.DATELINECROSSING = false;
+    window.drawDir = undefined;
     // Clear rectangle corner position
     document.getElementById('NW').innerHTML = '';
     document.getElementById('SE').innerHTML = '';
 
 }
 
+function signTest(lng1,lng2){
+    // Tests if the signs are equal.
+    return Math.sign(lng1) === Math.sign(lng2)
+}
+
 function datelineCheck(lng1,lng2){
     // Check if longitude coordinates cross the dateline
-    if (Math.sign(lng1) !== Math.sign(lng2)){
-        // Make sure that the absolute difference is greater than 180 so that it is the date line and not
-        // the meridian we are crossing.
-        if (Math.abs(lng1 - lng2) > 180){
+    if (!signTest(lng1,lng2)){
+        // If we constrain first entry to be western lng point and second to eastern lng point, then we can know if
+        // we are on the date line or meridian by which way the sign is changing.
+        // On the date line, the western lng is +ve and the eastern is -ve therefore lng1 > lng2
+        // On the meridian, the western lng is -ve and the eastern is +ve so if(lng1 > lng2) would be false.
+        if (lng1 > lng2){
             return true
         }
     }
@@ -87,11 +94,11 @@ $('#polygon_draw').change(
             google.maps.event.addListener(glomap, 'mousedown', function (mEvent) {
                 // Close instruction panel if open
                 $('#collapsePolygonInstructions').collapse('hide');
-                DATELINECROSSING = false
+                drawDir = undefined
                 glomap.draggable = false;
                 latlng1 = mEvent.latLng;
                 dragging = true;
-                pos1 = mEvent.pixel;
+                // pos1 = mEvent.pixel;
             });
 
             google.maps.event.addListener(glomap, 'mousemove', function (mEvent) {
@@ -121,8 +128,6 @@ $('#polygon_draw').change(
                 var ne = rect.getBounds().getNorthEast();
                 var sw = rect.getBounds().getSouthWest();
 
-                DATELINECROSSING = datelineCheck(ne.lng(),sw.lng())
-                
                 // update corner position
                 document.getElementById('NW').innerHTML = ' Lat: ' + ne.lat().toFixed(2) + ' Lng: ' + sw.lng().toFixed(2);
                 document.getElementById('SE').innerHTML = ' Lat: ' + sw.lat().toFixed(2) + ' Lng: ' + ne.lng().toFixed(2);
@@ -167,11 +172,31 @@ $('#polygon_draw').change(
                 var lng2 = latlng2.lng();
 
                 // Handle dateline crossing
-                // Check if lng coordinate has flipped sign
-                DATELINECROSSING = datelineCheck(lng1,lng2)
+                // Determine tthe direction of drawing coordinate.
+                if (lng1 < lng2 && drawDir === undefined){
+                    drawDir = 'east'
+                } else if (lng1 > lng2 && drawDir === undefined){
+                    drawDir = 'west'
+                } else if (lng1 < lng2 && signTest(lng1,lng2)){
+                    drawDir = 'east'
+                } else if (lng1 > lng2 && signTest(lng1,lng2)){
+                    drawDir = 'west'
+                }
+                // Set the east and west lng coordinate.
+                var eastLng,westLng;
+                switch (drawDir){
+                    case 'west':
+                        eastLng = lng2;
+                        westLng = lng1;
+                        break;
 
+                    default:
+                        eastLng = lng1;
+                        westLng = lng2;
+                        break;
+                }
 
-                if (DATELINECROSSING) {
+                if (datelineCheck(lng1,lng2)) {
                     // If it has, we have crossed the dateline.
                     // If we have crossed the dateline, send different coordinates to latLngBounds object which wrap around earth.
                     if (lng1 > lng2){
