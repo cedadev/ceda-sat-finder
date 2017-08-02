@@ -1,7 +1,0 @@
-site_name: CEDA Satellite Data Finder Docs
-pages:
-    - [index.md, Home]
-    - [refine.md, Refine Search]
-    - [export.md, Export Results]
-    - [troubleshooting.md, Troubleshooting]
-theme: mkdocs
