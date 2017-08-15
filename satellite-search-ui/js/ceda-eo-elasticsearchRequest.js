@@ -53,7 +53,7 @@ function esRequest(size) {
         "aggs": {
             "data_count": {
                 "terms": {
-                    "field": "misc.platform.Satellite.raw"
+                    "field": "misc.platform.Satellite.keyword"
                 }
             },
             "all": {
@@ -61,7 +61,7 @@ function esRequest(size) {
                 "aggs": {
                     "satellites": {
                         "terms": {
-                            "field": "misc.platform.Satellite.raw",
+                            "field": "misc.platform.Satellite.keyword",
                             "size": 30
                         }
                     }
@@ -93,7 +93,7 @@ function treeRequest() {
         "aggs": {
             "data_count": {
                 "terms": {
-                    "field": "misc.platform.Satellite.raw"
+                    "field": "misc.platform.Satellite.keyword"
                 }
             },
             "all": {
@@ -101,7 +101,7 @@ function treeRequest() {
                 "aggs": {
                     "satellites": {
                         "terms": {
-                            "field": "misc.platform.Satellite.raw",
+                            "field": "misc.platform.Satellite.keyword",
                             "size": 30
                         }
                     }
