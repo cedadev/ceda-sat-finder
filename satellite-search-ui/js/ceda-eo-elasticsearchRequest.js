@@ -209,7 +209,6 @@ function createElasticsearchRequest(gmaps_corners, full_text, size, drawing) {
         request.query.bool.filter.bool.must.push(temporal);
     }
 
-    console.log(JSON.stringify(request))
     return request;
 }
 
