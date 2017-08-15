@@ -30,22 +30,22 @@ function esRequest(size) {
             "_score"
         ],
         "query": {
-            "filtered": {
-                "query": {
+            "bool": {
+                "must": {
                     "match_all": {}
                 },
                 "filter": {
                     "bool": {
-                        "must": [],
-                        "should":[],
-                        "must_not": [
+                        "must": [
                             {
-                                "missing": {
+                                "exists": {
                                     "field": "spatial.geometries.display.type"
                                 }
 
                             }
-                        ]
+                        ],
+                        "should": [],
+                        "must_not": []
                     }
                 }
             }
@@ -53,7 +53,7 @@ function esRequest(size) {
         "aggs": {
             "data_count": {
                 "terms": {
-                    "field": "misc.platform.Satellite.keyword"
+                    "field": "misc.platform.Satellite.raw"
                 }
             },
             "all": {
@@ -61,7 +61,7 @@ function esRequest(size) {
                 "aggs": {
                     "satellites": {
                         "terms": {
-                            "field": "misc.platform.Satellite.keyword",
+                            "field": "misc.platform.Satellite.raw",
                             "size": 30
                         }
                     }
@@ -93,7 +93,7 @@ function treeRequest() {
         "aggs": {
             "data_count": {
                 "terms": {
-                    "field": "misc.platform.Satellite.keyword"
+                    "field": "misc.platform.Satellite.raw"
                 }
             },
             "all": {
@@ -101,7 +101,7 @@ function treeRequest() {
                 "aggs": {
                     "satellites": {
                         "terms": {
-                            "field": "misc.platform.Satellite.keyword",
+                            "field": "misc.platform.Satellite.raw",
                             "size": 30
                         }
                     }
@@ -164,19 +164,19 @@ function createElasticsearchRequest(gmaps_corners, full_text, size, drawing) {
     // Add geo_spatial filters to search
     // First check to see if the search window crosses the date line
     var envelope_corners = []
-    if (datelineCheck(nw[0],se[0])){
+    if (datelineCheck(nw[0], se[0])) {
         // We have crossed the date line, need to send the search area into two.
-        envelope_corners.push([nw,[180,se[1]]])
-        envelope_corners.push([[-180,nw[1]],se])
+        envelope_corners.push([nw, [180, se[1]]])
+        envelope_corners.push([[-180, nw[1]], se])
 
     } else {
         // Not crossing the date line so can just use the search area.
-        envelope_corners.push([nw,se])
+        envelope_corners.push([nw, se])
     }
 
     // Push the geoshape conditions to the main request.
-    for (i=0; i < envelope_corners.length; i++){
-        request.query.filtered.filter.bool.should.push(geo_shapeQuery(envelope_corners[i]));
+    for (i = 0; i < envelope_corners.length; i++) {
+        request.query.bool.filter.bool.should.push(geo_shapeQuery(envelope_corners[i]));
     }
 
     // Tree selection filters.
@@ -184,7 +184,7 @@ function createElasticsearchRequest(gmaps_corners, full_text, size, drawing) {
 
     if (vars) {
         for (i = 0; i < vars.length; i++) {
-            request.query.filtered.filter.bool.must_not.push(vars[i]);
+            request.query.bool.filter.bool.must_not.push(vars[i]);
         }
     }
 
@@ -206,9 +206,10 @@ function createElasticsearchRequest(gmaps_corners, full_text, size, drawing) {
 
     if (temporal.range['temporal.start_time'].to !== null ||
         temporal.range['temporal.start_time'].from !== null) {
-        request.query.filtered.filter.bool.must.push(temporal);
+        request.query.bool.filter.bool.must.push(temporal);
     }
 
+    console.log(JSON.stringify(request))
     return request;
 }
 
