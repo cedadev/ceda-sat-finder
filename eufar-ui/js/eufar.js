@@ -60,7 +60,7 @@ function displayAggregatedVariables(aggregations) {
     var select, i, buckets;
 
     select = $('#multiselect');
-    buckets = aggregations.variables.buckets;
+    buckets = aggregations.variables.std_name.values.buckets;
     for (i = 0; i < buckets.length; i += 1) {
         select.multiSelect('addOption', {
             value: buckets[i].key,
@@ -94,6 +94,7 @@ function requestFromMultiselect() {
         index_selectors.removeClass('btn-info')
         $(this).addClass('btn-info')
         ES_URL = 'http://jasmin-es1.ceda.ac.uk:9000/' + $(this).data('index') + '/_search';
+        sendHistogramRequest()
         $('#multiselect').empty().multiSelect('refresh')
 
 
@@ -144,64 +145,80 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
                 'temporal'
             ]
         },
-        'filter': {
-            'and': {
-                'must': [
-                    {
-                        'geo_shape': {
-                            'spatial.geometries.search': {
-                                'shape': {
-                                    'type': 'envelope',
-                                    'coordinates': [nw, se]
+        'query': {
+            'bool': {
+                'filter': {
+                    'bool': {
+                        'must': [
+                            {
+                                'geo_shape': {
+                                    'spatial.geometries.search': {
+                                        'shape': {
+                                            'type': 'envelope',
+                                            'coordinates': [nw, se]
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "exists": {
+                                    "field": "spatial.geometries.display.type"
                                 }
                             }
-                        }
-                    },
-                    {
-                        "not": {
-                            "missing": {
-                                "field": "spatial.geometries.display.type"
-                            }
-                        }
+                        ],
+                        'must_not': []
                     }
-                ]
-            }
-        },
-        'aggs': {
-            'variables': {
-                'terms': {
-                    'field': 'parameters.value',
-                    'size': 30
                 }
             }
         },
+    'aggs' : {
+          'variables': {
+              'nested':{
+                  'path': 'parameters'
+              },
+              'aggs': {
+                  'std_name': {
+                      'filter': {
+                          'term': {
+                              'parameters.name': 'standard_name'
+                          }
+                      },
+                      'aggs': {
+                          'values': {
+                              'terms':{
+                                  'field': 'parameters.value.raw'
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
         'size': size
     };
 
     no_photography = {
-        'not': {
             'term': {
                 'spatial.geometries.display.type': 'point'
             }
-        }
     };
 
     if (!$('#photography_checkbox').prop('checked')) {
-        request.filter.and.must.push(no_photography);
+        request.query.bool.filter.bool.must_not.push(no_photography);
     }
 
     // Add other filters from page to query
     tf = requestFromFilters(full_text);
     if (tf) {
         for (i = 0; i < tf.length; i += 1) {
-            request.filter.and.must.push(tf[i]);
+            request.query.bool.filter.bool.must.push(tf[i]);
         }
     }
 
     vars = requestFromMultiselect();
     if (vars) {
         for (i = 0; i < vars.length; i += 1) {
-            request.filter.and.must.push(vars[i]);
+            request.query.bool.filter.bool.must.push(vars[i]);
         }
     }
 
@@ -223,9 +240,10 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
 
     if (temporal.range['temporal.start_time'].to !== null ||
             temporal.range['temporal.start_time'].from !== null) {
-        request.filter.and.must.push(temporal);
+        request.query.bool.filter.bool.must.push(temporal);
     }
 
+    console.log(JSON.stringify(request))
     return request;
 }
 
@@ -461,6 +479,7 @@ function drawHistogram(request) {
 
     ost = request.aggregations.only_sensible_timestamps;
     buckets = ost.docs_over_time.buckets;
+    console.log(JSON.stringify(buckets))
     keys = [];
     counts = [];
     for (i = 0; i < buckets.length; i += 1) {
@@ -535,7 +554,6 @@ function sendHistogramRequest() {
         },
         'size': 0
     };
-
     xhr = new XMLHttpRequest();
     xhr.open('POST', ES_URL, true);
     xhr.send(JSON.stringify(req));
