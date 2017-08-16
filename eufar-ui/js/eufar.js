@@ -243,7 +243,6 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
         request.query.bool.filter.bool.must.push(temporal);
     }
 
-    console.log(JSON.stringify(request))
     return request;
 }
 
@@ -479,7 +478,6 @@ function drawHistogram(request) {
 
     ost = request.aggregations.only_sensible_timestamps;
     buckets = ost.docs_over_time.buckets;
-    console.log(JSON.stringify(buckets))
     keys = [];
     counts = [];
     for (i = 0; i < buckets.length; i += 1) {
