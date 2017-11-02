@@ -114,44 +114,42 @@ def es_query(satellite,nw,se):
     '''
 
     return {
-         "_source": {
-                "include": [
-                    "spatial.geometries.display"
-                ]
-            },
-        "query":{
-            "filtered": {
-               "query": { "match_all": {}
-               },
-               "filter": {
-                   "bool": {
-                       "must": [
-                          {
-                              "geo_shape": {
+        "_source": {
+            "include": [
+                "spatial.geometries.display"
+            ]
+        },
+        "query": {
+            "bool": {
+                "must": {
+                    "match_all": {}
+                },
+                "filter": {
+                    "bool": {
+                        "must": [
+                            {
+                                "geo_shape": {
                                     "spatial.geometries.search": {
                                         "shape": {
                                             "type": "envelope",
-                                                "coordinates" : [nw, se]
-                                                }
-                                            }
+                                            "coordinates": [nw, se]
                                         }
+                                    }
+                                }
 
-                          },
-                          {"match":
-                            {
-                                "misc.platform.Satellite.raw" : satellite
+                            },
+                            {"match":
+                                {
+                                    "misc.platform.Satellite.raw": satellite
+                                }
+                            },
+                            {"exists": {
+                                "field": "spatial.geometries.display.type"
                             }
-                          }
-                       ],
-                       "must_not": [
-                          {
-                              "missing": {
-                                    "field": "spatial.geometries.display.type"
-                                        }
-                          }
-                       ]
-                   }
-               }
+                            }
+                        ]
+                    }
+                }
             }
         }
     }
