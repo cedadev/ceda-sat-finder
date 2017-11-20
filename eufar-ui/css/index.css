@@ -69,6 +69,7 @@ div .logo {
     padding-right: 27px;
     min-width: 300px;
     width: 27.5%;
-    max-height: 600px;
+    max-height: 100vh;
     float: left;
+    overflow-y: auto;
 }
