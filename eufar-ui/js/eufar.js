@@ -124,6 +124,39 @@ function requestFromFilters(full_text) {
     }
 }
 
+function signTest(lng1,lng2){
+    // Tests if the signs are equal.
+    return Math.sign(lng1) === Math.sign(lng2)
+}
+
+function datelineCheck(lng1,lng2){
+    // Check if longitude coordinates cross the dateline
+    if (!signTest(lng1,lng2)){
+        // If we constrain first entry to be western lng point and second to eastern lng point, then we can know if
+        // we are on the date line or meridian by which way the sign is changing.
+        // On the date line, the western lng is +ve and the eastern is -ve therefore lng1 > lng2
+        // On the meridian, the western lng is -ve and the eastern is +ve so if(lng1 > lng2) would be false.
+        if (lng1 > lng2){
+            return true
+        }
+    }
+    return false
+}
+
+function geo_shapeQuery(envelope) {
+    // Abstraction function to build the geo_shape query
+    return {
+        "geo_shape": {
+            "spatial.geometries.search": {
+                "shape": {
+                    "type": "envelope",
+                    "coordinates": envelope
+                }
+            }
+        }
+    }
+}
+
 function createElasticsearchRequest(gmaps_corners, full_text, size) {
     var i, end_time, tmp_ne, tmp_sw, no_photography, nw,
         se, start_time, request, temporal, tf, vars;
@@ -132,6 +165,18 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
     tmp_sw = gmaps_corners.getSouthWest();
     nw = [tmp_sw.lng().toString(), tmp_ne.lat().toString()];
     se = [tmp_ne.lng().toString(), tmp_sw.lat().toString()];
+
+    // First check to see if the search window crosses the date line
+    var envelope_corners = []
+    if (datelineCheck(nw[0], se[0])) {
+        // We have crossed the date line, need to send the search area into two.
+        envelope_corners.push([nw, [180, se[1]]])
+        envelope_corners.push([[-180, nw[1]], se])
+
+    } else {
+        // Not crossing the date line so can just use the search area.
+        envelope_corners.push([nw, se])
+    }
 
     // ElasticSearch request
     request = {
@@ -151,22 +196,13 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
                     'bool': {
                         'must': [
                             {
-                                'geo_shape': {
-                                    'spatial.geometries.search': {
-                                        'shape': {
-                                            'type': 'envelope',
-                                            'coordinates': [nw, se]
-                                        }
-                                    }
-                                }
-                            },
-                            {
                                 "exists": {
                                     "field": "spatial.geometries.display.type"
                                 }
                             }
                         ],
-                        'must_not': []
+                        'must_not': [],
+                        'should':[]
                     }
                 }
             }
@@ -196,6 +232,11 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
       },
         'size': size
     };
+
+    // Push the geoshape conditions to the main request.
+    for (i = 0; i < envelope_corners.length; i++) {
+        request.query.bool.filter.bool.should.push(geo_shapeQuery(envelope_corners[i]));
+    }
 
     no_photography = {
             'term': {
@@ -405,6 +446,7 @@ function drawFlightTracks(gmap, hits) {
         geom = GeoJSON(display, options);
 
         geom.setMap(gmap);
+
         geometries.push(geom);
 
         // Construct info window
