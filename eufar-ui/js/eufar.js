@@ -252,6 +252,7 @@ function sendElasticsearchRequest(request, callback, gmap) {
     // Construct and send XMLHttpRequest
     xhr = new XMLHttpRequest();
     xhr.open('POST', ES_URL, true);
+    xhr.setRequestHeader("Content-Type", "application/json")
     xhr.send(JSON.stringify(request));
     xhr.onload = function () {
         if (xhr.readyState === 4) {
@@ -554,6 +555,7 @@ function sendHistogramRequest() {
     };
     xhr = new XMLHttpRequest();
     xhr.open('POST', ES_URL, true);
+    xhr.setRequestHeader("Content-Type", "application/json")
     xhr.send(JSON.stringify(req));
     xhr.onload = function (e) {
         if (xhr.readyState === 4) {

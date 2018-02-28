@@ -35,6 +35,7 @@ function sendHistogramRequest() {
 
     xhr = new XMLHttpRequest();
     xhr.open('POST', ES_URL, true);
+    xhr.setRequestHeader("Content-Type", "application/json")
     xhr.send(JSON.stringify(req));
     xhr.onload = function (e) {
         if (xhr.readyState === 4) {
