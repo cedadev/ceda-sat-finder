@@ -124,24 +124,13 @@ function requestFromFilters(full_text) {
     }
 }
 
-function signTest(lng1,lng2){
-    // Tests if the signs are equal.
-    return Math.sign(lng1) === Math.sign(lng2)
-}
 
 function datelineCheck(lng1,lng2){
-    // Check if longitude coordinates cross the dateline
-    if (!signTest(lng1,lng2)){
-        // If we constrain first entry to be western lng point and second to eastern lng point, then we can know if
-        // we are on the date line or meridian by which way the sign is changing.
-        // On the date line, the western lng is +ve and the eastern is -ve therefore lng1 > lng2
-        // On the meridian, the western lng is -ve and the eastern is +ve so if(lng1 > lng2) would be false.
-        if (lng1 > lng2){
-            return true
-        }
-    }
-    return false
+    // If we constrain the first entry to be the western lng point and the second the eastern lng point, then we know if
+    // two search areas are required by checking if the west lng is greater than the east lng.
+    return (lng1 > lng2)
 }
+
 
 function geo_shapeQuery(envelope) {
     // Abstraction function to build the geo_shape query
@@ -232,7 +221,7 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
       },
         'size': size
     };
-
+    
     // Push the geoshape conditions to the main request.
     for (i = 0; i < envelope_corners.length; i++) {
         request.query.bool.filter.bool.should.push(geo_shapeQuery(envelope_corners[i]));
