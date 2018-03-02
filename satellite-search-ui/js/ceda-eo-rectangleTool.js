@@ -57,178 +57,176 @@ function datelineCheck(lng1,lng2){
 }
 
 // Handles events when toggling on the rectangle tool.
-$('#polygon_draw').change(
-    function () {
+function rectToolToggle () {
 
-        if ($('#polygon_draw').prop('checked')) {
+    if ($('#polygon_draw').prop('checked')) {
 
-            // Show instructions panel if it is closed.
-            $('#collapsePolygonInstructions').collapse('show');
+        // Show instructions panel if it is closed.
+        $('#collapsePolygonInstructions').collapse('show');
 
-            // Open rectangle search panel if not already open. Using the link for the panel title
-            // rather than the bootstrap method so that the panel still behaves like an accordian.
-            if (!$('#collapse_spatial').hasClass('in')){
-                document.getElementById('spatial_accordian').click()
-            }
-
-            if (window.rectangle !== undefined) {
-                clearRect();
-            }
-
-            // Clear all the satellite product objects to allow user to draw.
-            for (i = 0; i < geometries.length; i += 1) {
-                geom = geometries[i];
-                geom.setMap(null)
-            }
-
-            glomap.setOptions({'draggable': false});
-            glomap.setOptions({'keyboardShortcuts': false});
-
-            var dragging = false;
-            var rect;
-
-            rect = new google.maps.Rectangle({
-                map: glomap
-            });
-
-            google.maps.event.addListener(glomap, 'mousedown', function (mEvent) {
-                // Close instruction panel if open
-                $('#collapsePolygonInstructions').collapse('hide');
-                drawDir = undefined
-                glomap.draggable = false;
-                latlng1 = mEvent.latLng;
-                dragging = true;
-                // pos1 = mEvent.pixel;
-            });
-
-            google.maps.event.addListener(glomap, 'mousemove', function (mEvent) {
-                latlng2 = mEvent.latLng;
-                showRect();
-            });
-
-            google.maps.event.addListener(glomap, 'mouseup', function (mEvent) {
-                glomap.draggable = true;
-                dragging = false;
-
-            });
-
-            google.maps.event.addListener(rect, 'mouseup', function (data) {
-                glomap.draggable = true;
-                dragging = false;
-
-                // Trigger apply filter at the conclusion of the drawing
-                $('#applyfil').trigger('click');
-
-                // Allow the user to resize and drag the rectangle at the conclusion of drawing.
-                rect.setEditable(true);
-                rect.setDraggable(true);
-            });
-
-            rect.addListener('bounds_changed',function() {
-                var ne = rect.getBounds().getNorthEast();
-                var sw = rect.getBounds().getSouthWest();
-
-                // update corner position
-                document.getElementById('NW').innerHTML = ' Lat: ' + ne.lat().toFixed(2) + ' Lng: ' + sw.lng().toFixed(2);
-                document.getElementById('SE').innerHTML = ' Lat: ' + sw.lat().toFixed(2) + ' Lng: ' + ne.lng().toFixed(2);
-            })
+        // Open rectangle search panel if not already open. Using the link for the panel title
+        // rather than the bootstrap method so that the panel still behaves like an accordian.
+        if (!$('#collapse_spatial').hasClass('in')){
+            document.getElementById('spatial_accordian').click()
         }
-        else {
-            // Hide instructions panel if it is open.
+
+        if (window.rectangle !== undefined) {
+            clearRect();
+        }
+
+        // Clear all the satellite product objects to allow user to draw.
+        for (i = 0; i < geometries.length; i += 1) {
+            geom = geometries[i];
+            geom.setMap(null)
+        }
+
+        glomap.setOptions({'draggable': false});
+        glomap.setOptions({'keyboardShortcuts': false});
+
+        var dragging = false;
+        var rect;
+
+        rect = new google.maps.Rectangle({
+            map: glomap
+        });
+
+        google.maps.event.addListener(glomap, 'mousedown', function (mEvent) {
+            // Close instruction panel if open
             $('#collapsePolygonInstructions').collapse('hide');
+            drawDir = undefined
+            glomap.draggable = false;
+            latlng1 = mEvent.latLng;
+            dragging = true;
+            // pos1 = mEvent.pixel;
+        });
 
-            // Hide Rectangle Search accordian panel if open.
-            $('#collapse_spatial').collapse('hide');
+        google.maps.event.addListener(glomap, 'mousemove', function (mEvent) {
+            latlng2 = mEvent.latLng;
+            showRect();
+        });
 
-            // clear rectangle drawing listeners and reinstate boundschanged listener.
-            google.maps.event.clearListeners(glomap, 'mousedown');
-            google.maps.event.clearListeners(glomap, 'mouseup');
-            addBoundsChangedListener(glomap);
-
+        google.maps.event.addListener(glomap, 'mouseup', function (mEvent) {
+            glomap.draggable = true;
             dragging = false;
-            glomap.setOptions({draggable: true});
-            glomap.keyboardShortcuts = true;
 
-        }
+        });
 
-        function showRect() {
-            if (dragging) {
-                if (rect === undefined) {
-                    rect = new google.maps.Rectangle({
-                        map: glomap
-                    });
+        google.maps.event.addListener(rect, 'mouseup', function (data) {
+            glomap.draggable = true;
+            dragging = false;
 
-                } else {
-                    rect.setEditable(false)
-                }
+            // Trigger apply filter at the conclusion of the drawing
+            $('#applyfil').trigger('click');
 
-                // allow rectangle drawing from any angle.
-                var lat1 = latlng1.lat();
-                var lat2 = latlng2.lat();
-                var minLat = lat1 < lat2 ? lat1 : lat2;
-                var maxLat = lat1 < lat2 ? lat2 : lat1;
+            // Allow the user to resize and drag the rectangle at the conclusion of drawing.
+            rect.setEditable(true);
+            rect.setDraggable(true);
+        });
 
-                var lng1 = latlng1.lng();
-                var lng2 = latlng2.lng();
+        rect.addListener('bounds_changed',function() {
+            var ne = rect.getBounds().getNorthEast();
+            var sw = rect.getBounds().getSouthWest();
 
-                // Handle dateline crossing
-                // Determine tthe direction of drawing coordinate.
-                if (lng1 < lng2 && drawDir === undefined){
-                    drawDir = 'east'
-                } else if (lng1 > lng2 && drawDir === undefined){
-                    drawDir = 'west'
-                } else if (lng1 < lng2 && signTest(lng1,lng2)){
-                    drawDir = 'east'
-                } else if (lng1 > lng2 && signTest(lng1,lng2)){
-                    drawDir = 'west'
-                }
-                // Set the east and west lng coordinate.
-                var eastLng,westLng;
-                switch (drawDir){
-                    case 'west':
-                        eastLng = lng2;
-                        westLng = lng1;
-                        break;
+            // update corner position
+            document.getElementById('NW').innerHTML = ' Lat: ' + ne.lat().toFixed(2) + ' Lng: ' + sw.lng().toFixed(2);
+            document.getElementById('SE').innerHTML = ' Lat: ' + sw.lat().toFixed(2) + ' Lng: ' + ne.lng().toFixed(2);
+        })
+    }
+    else {
+        // Hide instructions panel if it is open.
+        $('#collapsePolygonInstructions').collapse('hide');
 
-                    default:
-                        eastLng = lng1;
-                        westLng = lng2;
-                        break;
-                }
+        // Hide Rectangle Search accordian panel if open.
+        $('#collapse_spatial').collapse('hide');
 
-                if (datelineCheck(lng1,lng2)) {
-                    // If it has, we have crossed the dateline.
-                    // If we have crossed the dateline, send different coordinates to latLngBounds object which wrap around earth.
-                    if (lng1 > lng2){
-                        // we are crossing the dateline east
-                        lng2 = 180 + (180+lng2)
-                    }
-                    else {
-                        // we are crossing the date line west
-                        lng2 = -180 - (180-lng2)
-                    }
-                }
+        // clear rectangle drawing listeners and reinstate boundschanged listener.
+        google.maps.event.clearListeners(glomap, 'mousedown');
+        google.maps.event.clearListeners(glomap, 'mouseup');
+        addBoundsChangedListener(glomap);
 
-                var minLng = lng1 < lng2 ? lng1 : lng2;
-                var maxLng = lng1 < lng2 ? lng2 : lng1;
+        dragging = false;
+        glomap.setOptions({draggable: true});
+        glomap.keyboardShortcuts = true;
 
-                var latLngBounds = new google.maps.LatLngBounds(
-                    //ne
-                    new google.maps.LatLng(maxLat, minLng),
-                    //sw
-                    new google.maps.LatLng(minLat, maxLng)
-                );
-                rect.setBounds(latLngBounds);
+    }
 
-                // Reset coordinates to normal world coordinates for the text interface.
-                if (maxLng > 180){maxLng-= 360}
-                if (minLng < -180){ minLng+= 360}
-                // Update the rectangle corners in the spatial search pane.
-                document.getElementById('NW').innerHTML = ' Lat: ' + maxLat.toFixed(2) + ' Lng: ' + minLng.toFixed(2);
-                document.getElementById('SE').innerHTML = ' Lat: ' + minLat.toFixed(2) + ' Lng: ' + maxLng.toFixed(2);
+    function showRect() {
+        if (dragging) {
+            if (rect === undefined) {
+                rect = new google.maps.Rectangle({
+                    map: glomap
+                });
 
-                window.rectangle = rect
+            } else {
+                rect.setEditable(false)
             }
+
+            // allow rectangle drawing from any angle.
+            var lat1 = latlng1.lat();
+            var lat2 = latlng2.lat();
+            var minLat = lat1 < lat2 ? lat1 : lat2;
+            var maxLat = lat1 < lat2 ? lat2 : lat1;
+
+            var lng1 = latlng1.lng();
+            var lng2 = latlng2.lng();
+
+            // Handle dateline crossing
+            // Determine tthe direction of drawing coordinate.
+            if (lng1 < lng2 && drawDir === undefined){
+                drawDir = 'east'
+            } else if (lng1 > lng2 && drawDir === undefined){
+                drawDir = 'west'
+            } else if (lng1 < lng2 && signTest(lng1,lng2)){
+                drawDir = 'east'
+            } else if (lng1 > lng2 && signTest(lng1,lng2)){
+                drawDir = 'west'
+            }
+            // Set the east and west lng coordinate.
+            var eastLng,westLng;
+            switch (drawDir){
+                case 'west':
+                    eastLng = lng2;
+                    westLng = lng1;
+                    break;
+
+                default:
+                    eastLng = lng1;
+                    westLng = lng2;
+                    break;
+            }
+
+            if (datelineCheck(lng1,lng2)) {
+                // If it has, we have crossed the dateline.
+                // If we have crossed the dateline, send different coordinates to latLngBounds object which wrap around earth.
+                if (lng1 > lng2){
+                    // we are crossing the dateline east
+                    lng2 = 180 + (180+lng2)
+                }
+                else {
+                    // we are crossing the date line west
+                    lng2 = -180 - (180-lng2)
+                }
+            }
+
+            var minLng = lng1 < lng2 ? lng1 : lng2;
+            var maxLng = lng1 < lng2 ? lng2 : lng1;
+
+            var latLngBounds = new google.maps.LatLngBounds(
+                //ne
+                new google.maps.LatLng(maxLat, minLng),
+                //sw
+                new google.maps.LatLng(minLat, maxLng)
+            );
+            rect.setBounds(latLngBounds);
+
+            // Reset coordinates to normal world coordinates for the text interface.
+            if (maxLng > 180){maxLng-= 360}
+            if (minLng < -180){ minLng+= 360}
+            // Update the rectangle corners in the spatial search pane.
+            document.getElementById('NW').innerHTML = ' Lat: ' + maxLat.toFixed(2) + ' Lng: ' + minLng.toFixed(2);
+            document.getElementById('SE').innerHTML = ' Lat: ' + minLat.toFixed(2) + ' Lng: ' + maxLng.toFixed(2);
+
+            window.rectangle = rect
         }
     }
-);
+}

@@ -329,7 +329,7 @@ $('#applyfil').one('click', function(){
 
     // makes sure that the drawing tool is always off on page load.
     window.unload = function() {
-        document.getElementById('polygon_draw').bootstrapToggle('off')
+        document.getElementById$('polygon_draw').checked = false
     };
 
 // ------------------------------window.onload---------------------------------
@@ -454,12 +454,10 @@ window.onload = function () {
             }
 
             // Make sure the rectangle drawing tool is deactivated.
-            $('#polygon_draw').bootstrapToggle('off')
+            $('#polygon_draw').prop('checked', false).change()
 
         }
     );
-
-
 
 
 
@@ -488,6 +486,9 @@ window.onload = function () {
 
     // Draw histogram
     sendHistogramRequest();
+
+    // Add rectangle toggle listener
+    $('#polygon_draw').change(rectToolToggle)
 
 
     //---------------------------- Map main loop ------------------------------
