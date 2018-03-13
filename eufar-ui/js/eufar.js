@@ -221,7 +221,7 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
       },
         'size': size
     };
-    
+
     // Push the geoshape conditions to the main request.
     for (i = 0; i < envelope_corners.length; i++) {
         request.query.bool.filter.bool.should.push(geo_shapeQuery(envelope_corners[i]));
