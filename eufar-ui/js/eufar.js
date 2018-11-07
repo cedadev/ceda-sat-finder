@@ -152,8 +152,8 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
 
     tmp_ne = gmaps_corners.getNorthEast();
     tmp_sw = gmaps_corners.getSouthWest();
-    nw = [tmp_sw.lng().toString(), tmp_ne.lat().toString()];
-    se = [tmp_ne.lng().toString(), tmp_sw.lat().toString()];
+    nw = [tmp_sw.lng(), tmp_ne.lat()];
+    se = [tmp_ne.lng(), tmp_sw.lat()];
 
     // First check to see if the search window crosses the date line
     var envelope_corners = []
@@ -272,7 +272,7 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
             temporal.range['temporal.start_time'].from !== null) {
         request.query.bool.filter.bool.must.push(temporal);
     }
-
+    console.log(request)
     return request;
 }
 
@@ -449,7 +449,7 @@ function drawFlightTracks(gmap, hits) {
                 return function (e) {
                     var j;
 
-                    google.maps.event.clearListeners(gmap, 'bounds_changed');
+                    google.maps.event.clearListeners(gmap, 'idle');
 
                     for (j = 0; j < info_windows.length; j += 1) {
                         info_windows[j].close();
@@ -499,7 +499,7 @@ function redrawMap(gmap, add_listener) {
 }
 
 function addBoundsChangedListener(gmap) {
-    google.maps.event.addListenerOnce(gmap, 'bounds_changed', function () {
+    google.maps.event.addListenerOnce(gmap, 'idle', function () {
         redrawMap(gmap, true);
     });
 }
@@ -736,5 +736,8 @@ window.onload = function () {
     });
 
     //---------------------------- Map main loop ------------------------------
-    addBoundsChangedListener(map);
+
+     google.maps.event.addListenerOnce(map, 'tilesloaded', function() {
+         redrawMap(map, true)
+      })
 };
