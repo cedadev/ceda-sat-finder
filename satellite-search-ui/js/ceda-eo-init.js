@@ -492,15 +492,15 @@ window.onload = function () {
 
 
     //---------------------------- Map main loop ------------------------------
-    google.maps.event.addListenerOnce(map, 'bounds_changed', function () {
+    google.maps.event.addListenerOnce(map, 'tilesloaded', function () {
         // init Tree
         var bounds, tmp_ne, tmp_sw, nw, se, request;
 
         bounds = map.getBounds();
         tmp_ne = bounds.getNorthEast();
         tmp_sw = bounds.getSouthWest();
-        nw = [tmp_sw.lng().toString(), tmp_ne.lat().toString()];
-        se = [tmp_ne.lng().toString(), tmp_sw.lat().toString()];
+        nw = [tmp_sw.lng(), tmp_ne.lat()];
+        se = [tmp_ne.lng(), tmp_sw.lat()];
 
         sendElasticsearchRequest(treeRequest(), initTree, false);
     });
