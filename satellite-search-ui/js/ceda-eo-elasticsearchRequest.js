@@ -10,7 +10,7 @@ function esRequest(size) {
     // Abstracts the actual request from the main active code
     return {
         "_source": {
-            "include": [
+            "includes": [
                 "data_format.format",
                 "file.filename",
                 "file.path",
@@ -146,8 +146,8 @@ function createElasticsearchRequest(gmaps_corners, full_text, size, drawing) {
 
         tmp_ne = gmaps_corners.getNorthEast();
         tmp_sw = gmaps_corners.getSouthWest();
-        nw = [tmp_sw.lng().toString(), tmp_ne.lat().toString()];
-        se = [tmp_ne.lng().toString(), tmp_sw.lat().toString()];
+        nw = [tmp_sw.lng(), tmp_ne.lat()];
+        se = [tmp_ne.lng(), tmp_sw.lat()];
     }
 
     // ElasticSearch request
