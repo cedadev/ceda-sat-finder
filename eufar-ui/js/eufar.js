@@ -15,7 +15,7 @@ function getParameterByName(name) {
 // Window constants
 var REQUEST_SIZE = 400;
 var INDEX = getParameterByName('index') || 'eufar';
-var ES_URL = 'http://jasmin-es1.ceda.ac.uk:9000/' + INDEX + '/_search';
+var ES_URL = 'https://jasmin-es1.ceda.ac.uk/' + INDEX + '/_search';
 var TRACK_COLOURS = [
     '#4D4D4D', '#5DA5DA', '#FAA43A',
     '#60BD68', '#F17CB0', '#B2912F',
