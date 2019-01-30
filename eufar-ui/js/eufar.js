@@ -93,7 +93,7 @@ function requestFromMultiselect() {
     index_selectors.click(function () {
         index_selectors.removeClass('btn-info')
         $(this).addClass('btn-info')
-        ES_URL = 'http://jasmin-es1.ceda.ac.uk/' + $(this).data('index') + '/_search';
+        ES_URL = 'https://jasmin-es1.ceda.ac.uk/' + $(this).data('index') + '/_search';
         sendHistogramRequest()
         $('#multiselect').empty().multiSelect('refresh')
 
