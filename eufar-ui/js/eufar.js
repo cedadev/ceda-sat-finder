@@ -13,9 +13,10 @@ function getParameterByName(name) {
 }
 
 // Window constants
+const ES_HOST = 'https://elasticsearch.ceda.ac.uk/'
 var REQUEST_SIZE = 400;
 var INDEX = getParameterByName('index') || 'eufar';
-var ES_URL = 'https://jasmin-es1.ceda.ac.uk/' + INDEX + '/_search';
+var ES_URL = ES_HOST + INDEX + '/_search';
 var TRACK_COLOURS = [
     '#4D4D4D', '#5DA5DA', '#FAA43A',
     '#60BD68', '#F17CB0', '#B2912F',
@@ -93,7 +94,7 @@ function requestFromMultiselect() {
     index_selectors.click(function () {
         index_selectors.removeClass('btn-info')
         $(this).addClass('btn-info')
-        ES_URL = 'https://jasmin-es1.ceda.ac.uk/' + $(this).data('index') + '/_search';
+        ES_URL = ES_HOST + $(this).data('index') + '/_search';
         sendHistogramRequest()
         $('#multiselect').empty().multiSelect('refresh')
 

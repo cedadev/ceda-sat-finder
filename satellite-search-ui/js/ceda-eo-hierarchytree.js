@@ -286,7 +286,7 @@ function requestFromTree() {
             if (selection[i].text !== "Satellites") {
                 req.push({
                     match: {
-                        'misc.platform.Satellite.raw': selection[i].text.split(' ')[0]
+                        'misc.platform.Satellite.raw': selection[i].text.split('<a')[0].trim()
 
                     }
                 });
