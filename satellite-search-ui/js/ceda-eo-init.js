@@ -292,7 +292,14 @@ function updateMap(response, gmap) {
     if (response.hits) {
         // Update "hits" and "response time" fields
         $('#resptime').html(response.took);
-        $('#numresults').html(response.hits.total);
+        console.log(response.hits.total)
+        let result_count_string = ''
+        if (response.hits.total.relation === 'gte'){
+            result_count_string = '>' + response.hits.total.value
+        } else {
+            result_count_string = response.hits.total.value
+        }
+        $('#numresults').html(result_count_string);
 
         // Draw flight tracks on a map
         drawFlightTracks(gmap, response.hits.hits);
