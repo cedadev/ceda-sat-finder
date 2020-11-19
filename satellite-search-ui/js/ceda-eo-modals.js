@@ -15,7 +15,7 @@ $('#raw_json').click(
             req = createElasticsearchRequest(rectBounds(), $('#ftext').val(), REQUEST_SIZE, true);
 
         } else {
-            req = createElasticsearchRequest(map.getBounds(), $('#ftext').val(), REQUEST_SIZE);
+            req = createElasticsearchRequest(glomap.getBounds(), $('#ftext').val(), REQUEST_SIZE);
         }
         sendElasticsearchRequest(req, updateRawJSON);
     }
@@ -29,7 +29,7 @@ $('#file_paths').click(
             req = createElasticsearchRequest(rectBounds(), $('#ftext').val(), REQUEST_SIZE, true);
 
         } else {
-            req = createElasticsearchRequest(map.getBounds(), $('#ftext').val(), REQUEST_SIZE);
+            req = createElasticsearchRequest(glomap.getBounds(), $('#ftext').val(), REQUEST_SIZE);
         }
         sendElasticsearchRequest(req, updateFilePaths);
     }
@@ -43,7 +43,7 @@ $('#dl_urls').click(
             req = createElasticsearchRequest(rectBounds(), $('#ftext').val(), REQUEST_SIZE, true);
 
         } else {
-            req = createElasticsearchRequest(map.getBounds(), $('#ftext').val(), REQUEST_SIZE);
+            req = createElasticsearchRequest(glomap.getBounds(), $('#ftext').val(), REQUEST_SIZE);
         }
         sendElasticsearchRequest(req, updateDownloadPaths);
     }
