@@ -10,10 +10,19 @@
 function rectBounds() {
     // Returns [[NW], [SE]] bounds array
     current_bounds = window.rectangle.getBounds();
-    var ne = current_bounds.getNorthEast();
-    var sw = current_bounds.getSouthWest();
 
-    return [[sw.lng(), ne.lat()], [ne.lng(), sw.lat()]]
+    // Convert to JSON
+    let json_bounds = current_bounds.toJSON();
+
+    // return nw, sw in (long,lat) format
+    let rect_bounds = [[json_bounds.west, json_bounds.north], [json_bounds.east, json_bounds.south]]
+
+    // There seems to be a bug in the Google API which means that north and south are being incorrectly reported
+    if (json_bounds.north < json_bounds.south){
+        rect_bounds = [[json_bounds.west, json_bounds.south], [json_bounds.east, json_bounds.north]]
+    }
+
+    return rect_bounds
 }
 
 function queryRect(map) {
