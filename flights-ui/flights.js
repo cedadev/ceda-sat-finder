@@ -78,9 +78,17 @@ function requestFromMultiselect() {
     if (vars) {
         for (i = 0; i < vars.length; i += 1) {
             req.push({
+                /*
+                "simple_query_string": {
+                    "query": vars
+                }
+                */
                 term: {
                     _all: vars[i]
                 }
+                /*
+                Updated to use simple query string
+                */
             });
         }
         return req;
@@ -116,9 +124,15 @@ function requestFromFilters(full_text) {
         ft = full_text.split(' ');
         for (i = 0; i < ft.length; i += 1) {
             req.push({
-                term: {
-                    _all: ft[i].toLowerCase()
+                /*
+                "simple_query_string":{
+                    "query": ft
                 }
+                */
+                "_all": ft[i].toLowerCase()
+                /*
+                Redundant _all updated to use simple query string
+                */
             });
         }
         return req;
@@ -193,7 +207,8 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
                         ],
                         'must_not': [],
                         'should':[]
-                    }
+                    },
+                    'term':[]
                 }
             }
         },
@@ -239,10 +254,19 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
     }
 
     // Add other filters from page to query
+    /*
     tf = requestFromFilters(full_text);
     if (tf) {
         for (i = 0; i < tf.length; i += 1) {
             request.query.bool.filter.bool.must.push(tf[i]);
+        }
+    }
+    Original code 12/10/2022
+    */
+    tf = requestFromFilters(full_text);
+    if (tf) {
+        for (i = 0; i < tf.length; i += 1) {
+            request.query.bool.filter.term.push(tf[i]);
         }
     }
 
@@ -284,11 +308,13 @@ function sendElasticsearchRequest(request, callback, gmap) {
     xhr = new XMLHttpRequest();
     xhr.open('POST', ES_URL, true);
     xhr.setRequestHeader("Content-Type", "application/json")
-    xhr.send(JSON.stringify(request));
+    var request_str = JSON.stringify(request)
+    xhr.send(request_str);
     xhr.onload = function () {
         if (xhr.readyState === 4) {
-            response = JSON.parse(xhr.responseText);
 
+            response = JSON.parse(xhr.responseText);
+            
             if (gmap) {
                 callback(response, gmap);
             } else {
