@@ -77,19 +77,7 @@ function requestFromMultiselect() {
 
     if (vars) {
         for (i = 0; i < vars.length; i += 1) {
-            req.push({
-                /*
-                "simple_query_string": {
-                    "query": vars
-                }
-                */
-                term: {
-                    _all: vars[i]
-                }
-                /*
-                Updated to use simple query string
-                */
-            });
+            req.push(vars[i]);
         }
         return req;
     }
@@ -123,22 +111,19 @@ function requestFromFilters(full_text) {
     if (full_text.length > 0) {
         ft = full_text.split(' ');
         for (i = 0; i < ft.length; i += 1) {
-            req.push({
-                /*
-                "simple_query_string":{
-                    "query": ft
-                }
-                */
-                "_all": ft[i].toLowerCase()
-                /*
-                Redundant _all updated to use simple query string
-                */
-            });
+            req.push(ft[i].toLowerCase());
         }
         return req;
     }
 }
 
+function requestFromFlightNum(){
+    var fn;
+    fn = $('#flightnum').val();
+    if (fn.length > 0){
+        return fn.split(' ');
+    }
+}
 
 function datelineCheck(lng1,lng2){
     // If we constrain the first entry to be the western lng point and the second the eastern lng point, then we know if
@@ -203,12 +188,20 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
                                 "exists": {
                                     "field": "spatial.geometries.display.type"
                                 }
+                            },
+                            /*
+                            {
+                                "term":{
+                                    "misc.flight_info.flight_num":{
+                                        "value":"b358"
+                                    }
+                                }
                             }
+                            */
                         ],
                         'must_not': [],
                         'should':[]
-                    },
-                    'term':[]
+                    }
                 }
             }
         },
@@ -237,21 +230,22 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
       },
         'size': size
     };
-
+    var is_push = true;
     // Push the geoshape conditions to the main request.
-    for (i = 0; i < envelope_corners.length; i++) {
-        request.query.bool.filter.bool.should.push(geo_shapeQuery(envelope_corners[i]));
-    }
+    if (is_push){
+        for (i = 0; i < envelope_corners.length; i++) {
+            request.query.bool.filter.bool.should.push(geo_shapeQuery(envelope_corners[i]));
+        }
 
-    no_photography = {
+        no_photography = {
             'term': {
                 'spatial.geometries.display.type': 'point'
             }
-    };
+        };
 
-    if (!$('#photography_checkbox').prop('checked')) {
-        request.query.bool.filter.bool.must_not.push(no_photography);
-    }
+        if (!$('#photography_checkbox').prop('checked')) {
+            request.query.bool.filter.bool.must_not.push(no_photography);
+        }
 
     // Add other filters from page to query
     /*
@@ -263,41 +257,73 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
     }
     Original code 12/10/2022
     */
-    tf = requestFromFilters(full_text);
-    if (tf) {
-        for (i = 0; i < tf.length; i += 1) {
-            request.query.bool.filter.term.push(tf[i]);
+        var search_str = "";
+        tf = requestFromFilters(full_text);
+        if (tf) {
+            for (i = 0; i < tf.length; i += 1) {
+                if (search_str.length > 0){
+                    search_str = search_str.concat(" AND ", tf[i]);
+                }
+                else{
+                    search_str = tf[i];
+                }
+            }
         }
-    }
-
-    vars = requestFromMultiselect();
-    if (vars) {
-        for (i = 0; i < vars.length; i += 1) {
-            request.query.bool.filter.bool.must.push(vars[i]);
+        vars = requestFromMultiselect();
+        if (vars) {
+            for (i = 0; i < vars.length; i += 1) {
+                if (search_str.length > 0){
+                    search_str = search_str.concat(" AND ", vars[i]);
+                }
+                else{
+                    search_str = vars[i];
+                }
+            }
         }
-    }
-
-    temporal = {
-        range: {
-            'temporal.start_time': {}
+        if (search_str.length > 0){
+            var query_str = {
+                "query_string":
+                {
+                    "query": search_str
+                }
+            };
+            request.query.bool.filter.bool.must.push(query_str);
         }
-    };
 
-    start_time = $('#start_time').val();
-    if (start_time !== '') {
-        temporal.range['temporal.start_time'].from = start_time;
-    }
+        fnums = requestFromFlightNum();
+        // fnums is an array of flight numbers
+        if (fnums){
+            request.query.bool.filter.bool.must.push(
+                { 
+                    "terms":
+                    {
+                        "misc.flight_info.flight_num": fnums
+                    }
+            });
+        }
 
-    end_time = $('#end_time').val();
-    if (end_time !== '') {
-        temporal.range['temporal.start_time'].to = end_time;
-    }
+        temporal = {
+            range: {
+                'temporal.start_time': {}
+            }
+        };
 
-    if (temporal.range['temporal.start_time'].to !== null ||
-            temporal.range['temporal.start_time'].from !== null) {
-        request.query.bool.filter.bool.must.push(temporal);
+        start_time = $('#start_time').val();
+        if (start_time !== '') {
+            temporal.range['temporal.start_time'].from = start_time;
+        }
+
+        end_time = $('#end_time').val();
+        if (end_time !== '') {
+            temporal.range['temporal.start_time'].to = end_time;
+        }
+
+        if (temporal.range['temporal.start_time'].to !== null ||
+                temporal.range['temporal.start_time'].from !== null) {
+            request.query.bool.filter.bool.must.push(temporal);
+        }
+        console.log(request)
     }
-    console.log(request)
     return request;
 }
 
@@ -647,9 +673,14 @@ window.onload = function () {
 	});
 
     //------------------------------- Buttons -------------------------------
-    $('#location_search').click(
-        function () {
-            centreMap(map, geocoder, $('#location').val());
+    $('#flightnum').keypress(
+        function (e) {
+            var charcode = e.charCode || e.keyCode || e.which;
+            if (charcode === 13) {
+                cleanup();
+                redrawMap(map, false);
+                return false;
+            }
         }
     );
 
@@ -663,7 +694,7 @@ window.onload = function () {
             }
         }
     );
-
+/*
     $('#location').keypress(
         function (e) {
             var charcode = e.charCode || e.keyCode || e.which;
@@ -673,7 +704,7 @@ window.onload = function () {
             }
         }
     );
-
+        */
     $('#applyfil').click(
         function () {
             cleanup();
@@ -686,6 +717,7 @@ window.onload = function () {
             $('#start_time').val('');
             $('#end_time').val('');
             $('#ftext').val('');
+            $('#flightnum').val('');
             clearAggregatedVariables();
             cleanup();
             redrawMap(map, false);

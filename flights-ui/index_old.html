@@ -7,7 +7,7 @@
     <!-- This is to force Internet Explorer to at least *try* to be standards-compliant -->
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-    <title>CEDA Flight Finder</title>
+    <title>EUFAR Flight Finder</title>
 
     <!-- Web Links -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" type="text/css" />
@@ -51,25 +51,15 @@
         <div id="sidebar">
             <div id="filter">
                 <div class="wide text-center">
-                    <!-- Old EUFAR Logo - add other flight logos or remove
                     <a href="http://www.eufar.net/" alt="EUFAR Website">
                         <img class="logo" src="./img/eufar.png" alt="EUFAR logo" />
-                    </a>
-                    -->
-                    <a href="http://www.ncas.ac.uk/" alt="NCAS Website">
-                        <img class="logo" 
-                        src="https://artefacts.ceda.ac.uk/themes/orgtheme_ceda_serv/0.2/_assets/img/ncas_logo_transparent_blacktext.png" 
-                        alt="NCAS logo" />
                     </a>
                     <a href="http://www.ceda.ac.uk/" alt="CEDA Website">
                         <img class="logo" src="./img/ceda.png" alt="CEDA logo" />
                     </a>
-                    <a href="http://www.nceo.ac.uk/" alt="NCEO Website">
-                        <img class="logo" src="https://artefacts.ceda.ac.uk/themes/orgtheme_ceda_serv/0.2/_assets/img/nceologo200.png" alt="NCEO logo" />
-                    </a>
                 </div>
-                <h2>CEDA Flight Finder</h2>
-                <p>Search for flights within the CEDA archive using the parameters below. Locate flights over specific areas using the map tool or filter specific flights by flight number, keyword, temporal or variable filters. Flights from FAAM, NERC-ARSF, SAFIRE, AWI-Polar5, Kit-Enduro, and INTA-CASA aircraft and the APEX instrument flown on the DLR aircraft are now included.</p>
+                <h2>EUFAR Flight Finder</h2>
+                <p>Search for flights within the EUFAR archive using the parameters below. Refine your search with geographical, temporal, and text search terms. Flights from FAAM, NERC-ARSF, SAFIRE, AWI-Polar5, Kit-Enduro, and INTA-CASA aircraft and the APEX instrument flown on the DLR aircraft are now included.</p>
                 <div class="row">
                     <div class="col-md-12">
                         <div class="row">
@@ -107,12 +97,11 @@
                 <hr />
                 <p>Click an item to expand the panel.</p>
                 <div class="panel-group" id="accordions">
-                    <!-- Flight Number Search-->
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <h4 class="panel-title">
                                 <a data-toggle="collapse" data-parent="#accordions" href="#collapse_centre_map">
-                                    Flight Number Search
+                                    Geographical Search
                                 </a>
                             </h4>
                         </div>
@@ -121,11 +110,17 @@
                                 <form class="form-horizontal">
                                     <fieldset>
                                         <div class="form-group">
-                                            <label class="control-label" for="param">Enter Specific Flight Number</label>
-                                            <span data-toggle="popover" data-content="Enter a specific flight number to view a single flight" class="glyphicon glyphicon-question-sign"></span>
+                                            <label class="control-label" for="param">Centre Map on Location</label>
+                                            <span data-toggle="popover" data-content="Search by latitude/longitude, postcode, or location name." class="glyphicon glyphicon-question-sign"></span>
 
                                             <div class="controls">
-                                                <input id="flightnum" name="flightnum" placeholder="e.g. b527 " class="form-control input-md" type="text">
+                                                <input id="location" name="location" placeholder="e.g. Poland, or 51.5 0.13 (lat,lon)" class="form-control input-md" type="text">
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group col-centered">
+                                            <div class="controls">
+                                                <button type="button" id="location_search" class="btn btn-primary">Go</button>
                                             </div>
                                         </div>
                                     </fieldset>
@@ -133,7 +128,30 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Keyword Search -->
+
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordions" href="#collapse_temporal">
+                                    Temporal Filter
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapse_temporal" class="panel-collapse collapse">
+                            <div class="text-center panel-body">
+                                <label class="control-label">Refine Search via Time Range</label>
+                                <span data-toggle="popover" data-content="Choose a start and end time to refine the search by." class="glyphicon glyphicon-question-sign"></span>
+                                <div class="input-daterange input-group" id="datepicker">
+                                    <input id="start_time" type="text" class="input-sm form-control" name="start" />
+                                    <span class="input-group-addon">to</span>
+                                    <input id="end_time" type="text" class="input-sm form-control" name="end" />
+                                </div>
+                                <span data-toggle="popover" data-content="Please note: Histogram does not change when filters are applied." class="glyphicon glyphicon-question-sign"></span>
+                                <div id="date_histogram"></div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <h4 class="panel-title">
@@ -158,30 +176,7 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Temporal Filter -->
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <h4 class="panel-title">
-                                <a data-toggle="collapse" data-parent="#accordions" href="#collapse_temporal">
-                                    Temporal Filter
-                                </a>
-                            </h4>
-                        </div>
-                        <div id="collapse_temporal" class="panel-collapse collapse">
-                            <div class="text-center panel-body">
-                                <label class="control-label">Refine Search via Time Range</label>
-                                <span data-toggle="popover" data-content="Choose a start and end time to refine the search by." class="glyphicon glyphicon-question-sign"></span>
-                                <div class="input-daterange input-group" id="datepicker">
-                                    <input id="start_time" type="text" class="input-sm form-control" name="start" />
-                                    <span class="input-group-addon">to</span>
-                                    <input id="end_time" type="text" class="input-sm form-control" name="end" />
-                                </div>
-                                <span data-toggle="popover" data-content="Please note: Histogram does not change when filters are applied." class="glyphicon glyphicon-question-sign"></span>
-                                <div id="date_histogram"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Variable Filter -->
+
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <h4 class="panel-title">
