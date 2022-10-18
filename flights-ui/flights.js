@@ -1,6 +1,44 @@
 /*jslint browser: true, devel: true, sloppy: true*/
 /*global google, $, GeoJSON*/
 
+// -----------------------------------Utils-----------------------------------
+function formatDate(dt){
+    var time, date;
+    var df, dfor;
+    time = dt.split('T')[1];
+    date = dt.split('T')[0];
+
+    df = date.split('-');
+    dfor = df[2] + '/' + df[1] + '/' + df[0];
+
+    return time + ' ' + dfor;
+}
+
+function formatDates(start, end, content){
+    var times, df, dfor
+    // Format start and end times
+    if (start.split('T')[0] == end.split('T')[0]){
+        // Same date
+        times = start.split('T')[1] + ' - ' + end.split('T')[1];
+        df = start.split('T')[0].split('-');
+        dfor = df[2] + '/' + df[1] + '/' + df[0]; 
+
+        content += '<p><strong>Flight Time: </strong>' +
+                    times + '</p>' +
+                    '<p><strong>Date: </strong>' +
+                    dfor + '</p>';
+    }
+    else {
+        // Write as start and end times
+        content += '<p><strong>Start Time: </strong>' +
+                   formatDate(start) + '</p>' +
+                   '<p><strong>End Time: </strong>' +
+                   formatDate(end) + '</p>';
+    }
+    return content
+}
+
+
 function getParameterByName(name) {
     // Function from: http://stackoverflow.com/a/901144
     name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
@@ -420,26 +458,24 @@ function createInfoWindow(hit) {
     var content, info;
 
     hit = hit._source;
-    content = '<section><p><strong>Filename: </strong>' +
-              hit.file.filename + '</p>';
 
-    if (hit.temporal) {
-        content += '<p><strong>Start Time: </strong>' +
-                   hit.temporal.start_time + '</p>' +
-                   '<p><strong>End Time: </strong>' +
-                   hit.temporal.end_time + '</p>';
-    }
-
+    content = "<section>"
+    
     if (hit.misc.flight_info) {
         if (hit.misc.flight_info.flight_num) {
-            content += '<p><strong>Flight Num: </strong>"' +
-                       hit.misc.flight_info.flight_num + '"</p>';
+            content += '<p><strong>Flight Number: </strong>' +
+                       hit.misc.flight_info.flight_num 
+            if (hit.misc.flight_info.organisation) {
+                content += ' (' + hit.misc.flight_info.organisation.toUpperCase() + ')' + '</p>';
+            }
+            else{
+                content += '</p>';
+            }
         }
+    }
 
-        if (hit.misc.flight_info.organisation) {
-            content += '<p><strong>Organisation: </strong>"' +
-                       hit.misc.flight_info.organisation + '"</p>';
-        }
+    if (hit.temporal) {
+        content = formatDates(hit.temporal.start_time, hit.temporal.end_time, content);
     }
 
     if (hit.misc.instrument) {
@@ -448,6 +484,9 @@ function createInfoWindow(hit) {
                        hit.misc.instrument.instrument + '"</p>';
         }
     }
+
+    content += '<p><strong>Filename: </strong>' +
+              hit.file.filename + '</p>';
 
     content += '<p><a target="_blank" href="http://data.ceda.ac.uk' +
                hit.file.path + '">Get this data file</a></p>';
