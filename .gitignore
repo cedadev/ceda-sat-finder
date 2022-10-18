@@ -1,3 +1,4 @@
 satellite-search-ui/img/thumbnails
 testing/
 flights-ui/bower_components_local/
+python_scripts/test_es.py
