@@ -3,3 +3,4 @@ testing/
 flights-ui/bower_components_local/
 python_scripts/test_es.py
 python_scripts/__pycache__/
+metadata/
