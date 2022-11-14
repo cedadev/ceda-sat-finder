@@ -51,9 +51,10 @@ function getParameterByName(name) {
 }
 
 // Window constants
-const ES_HOST = 'https://elasticsearch.ceda.ac.uk/'
+//const ES_HOST = 'https://elasticsearch.ceda.ac.uk/'
+const ES_HOST = 'https://es9.ceda.ac.uk:9200/'
 var REQUEST_SIZE = 400;
-var INDEX = getParameterByName('index') || 'eufar';
+var INDEX = "stac-flightfinder-items"; //getParameterByName('index') || 'eufar';
 var ES_URL = ES_HOST + INDEX + '/_search';
 var TRACK_COLOURS = [
     '#4D4D4D', '#5DA5DA', '#FAA43A',
@@ -209,12 +210,11 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
     request = {
         '_source': {
             'include': [
-                'data_format.format',
-                'file.filename',
-                'file.path',
-                'misc',
-                'spatial.geometries.display',
-                'temporal'
+                'es_id',
+                'description_path',
+                'collection',
+                'geometry.display',
+                'properties',
             ]
         },
         'query': {
@@ -224,18 +224,9 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
                         'must': [
                             {
                                 "exists": {
-                                    "field": "spatial.geometries.display.type"
+                                    "field": "geometry.display.type"
                                 }
                             },
-                            /*
-                            {
-                                "term":{
-                                    "misc.flight_info.flight_num":{
-                                        "value":"b358"
-                                    }
-                                }
-                            }
-                            */
                         ],
                         'must_not': [],
                         'should':[]
@@ -266,9 +257,9 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
               }
           }
       },
-        'size': size
+        'size': 400
     };
-    var is_push = true;
+    var is_push = false;
     // Push the geoshape conditions to the main request.
     if (is_push){
         for (i = 0; i < envelope_corners.length; i++) {
@@ -277,7 +268,7 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
 
         no_photography = {
             'term': {
-                'spatial.geometries.display.type': 'point'
+                'geometry.display.type': 'point'
             }
         };
 
@@ -335,43 +326,37 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
                 { 
                     "terms":
                     {
-                        "misc.flight_info.flight_num": fnums
+                        "properties.flight_num": fnums
                     }
             });
         }
 
-        temporal = {
-            range: {
-                'temporal.start_time': {}
-            }
-        };
-
         start_time = $('#start_time').val();
-        if (start_time !== '') {
-            temporal.range['temporal.start_time'].from = start_time;
-        }
-
         end_time = $('#end_time').val();
+        if (start_time !== '') {
+            request.query.bool.filter.bool.must.push({
+                "properties.start_datetime":start_time
+            });
+        }
         if (end_time !== '') {
-            temporal.range['temporal.start_time'].to = end_time;
+            request.query.bool.filter.bool.must.push({
+                "properties.end_datetime":end_time
+            });
         }
 
-        if (temporal.range['temporal.start_time'].to !== null ||
-                temporal.range['temporal.start_time'].from !== null) {
-            request.query.bool.filter.bool.must.push(temporal);
-        }
-        console.log(request)
+        console.log(request);
     }
     return request;
 }
 
 function sendElasticsearchRequest(request, callback, gmap) {
     var xhr, response;
-
+    //runElasticRequest('stac-flightfinder-items');
     // Construct and send XMLHttpRequest
     xhr = new XMLHttpRequest();
     xhr.open('POST', ES_URL, true);
     xhr.setRequestHeader("Content-Type", "application/json")
+    xhr.setRequestHeader("ApiKey","b0cc021feec53216cb470b36bec8786b10da4aa02d60edb91ade5aae43c07ee6")
     var request_str = JSON.stringify(request)
     xhr.send(request_str);
     xhr.onload = function () {
@@ -455,44 +440,77 @@ function centreMap(gmap, geocoder, loc) {
 }
 
 function createInfoWindow(hit) {
-    var content, info;
+    var content, info, index;
 
     hit = hit._source;
 
     content = "<section>"
     
-    if (hit.misc.flight_info) {
-        if (hit.misc.flight_info.flight_num) {
-            content += '<p><strong>Flight Number: </strong>' +
-                       hit.misc.flight_info.flight_num 
-            if (hit.misc.flight_info.organisation) {
-                content += ' (' + hit.misc.flight_info.organisation.toUpperCase() + ')' + '</p>';
-            }
-            else{
-                content += '</p>';
+    if (hit.properties.flight_num) {
+        content += '<p><strong>Flight Number: </strong>' +
+                    hit.properties.flight_num 
+        content += ' (' + hit.collection.toUpperCase() + ')' + '</p>';
+    } else if (hit.properties.pcode) {
+        // Probably an arsf flight
+        content += '<p><strong>Project Code: </strong>' +
+                    hit.properties.pcode[0] +
+                    ' (' + hit.collection.toUpperCase() + ')' + '</p>';
+    }
+
+    if (hit.properties.aircraft){
+        content += '<p><strong>Aircraft: </strong>' +
+                    hit.properties.aircraft;
+        if (hit.properties.platform) {
+            content += ' (' + hit.properties.platform + ')';
+        }
+        content += '</p>';
+    } 
+
+    // Reset content
+    content = formatDates(hit.properties.start_datetime, hit.properties.end_datetime, content);
+
+    // crew, altitude
+    if (hit.properties.instruments){
+        var i;
+        content += '<p><strong>Instrument: </strong>' + hit.properties.instruments[0];
+        for (i = 1; i < hit.properties.instruments.length; i += 1) {
+            content += ',' + hit.properties.instruments[i];
+        }
+        content += '</p>';
+    }
+
+    if (hit.properties.variables){
+        var i;
+        content += '<p><strong>Variables: </strong>' + hit.properties.variables[0];
+        for (i = 1; i < hit.properties.variables.length; i += 1) {
+            content += ',' + hit.properties.variables[i];
+        }
+        content += '</p>';
+    }
+
+    // Aircraft, variables, locations, platform, instruments, crew, altitude
+    if (hit.properties.location){
+        // location is item or array
+        var i;
+        if (typeof hit.properties.location == 'object'){
+            content += '<p><strong>Location: </strong>' + hit.properties.location ;
+        } else {
+            content += '<p><strong>Locations: </strong>' + hit.properties.location[0];
+            for (i = 1; i < hit.properties.location.length; i += 1) {
+                content += ',' + hit.properties.location[i];
             }
         }
-    }
-
-    if (hit.temporal) {
-        content = formatDates(hit.temporal.start_time, hit.temporal.end_time, content);
-    }
-
-    if (hit.misc.instrument) {
-        if (hit.misc.instrument.instrument) {
-            content += '<p><strong>Instrument: </strong>"' +
-                       hit.misc.instrument.instrument + '"</p>';
+        if (hit.properties.altitude){
+            content += ' (' + hit.properties.altitude + ')';
         }
+        content += '</p>';
+
     }
 
-    content += '<p><strong>Filename: </strong>' +
-              hit.file.filename + '</p>';
+    // Add crew here
 
     content += '<p><a target="_blank" href="http://data.ceda.ac.uk' +
-               hit.file.path + '">Get this data file</a></p>';
-
-    content += '<p><a target="_blank" href="http://data.ceda.ac.uk' +
-               hit.file.path.truncatePath(2) + '">Get data for this flight</a></p>';    
+               hit.description_path + '">Get data for this flight</a></p>';    
 
     content += '</section>';
     info = new google.maps.InfoWindow(
@@ -511,7 +529,7 @@ function drawFlightTracks(gmap, hits) {
     for (i = 0; i < hits.length; i += 1) {
         hit = hits[i];
 
-        colour_index = (hit._id.hashCode() % TRACK_COLOURS.length);
+        colour_index = (hit.idhash.hashCode() % TRACK_COLOURS.length);
         if (colour_index < 0) {
             colour_index = -colour_index;
         }
@@ -523,7 +541,7 @@ function drawFlightTracks(gmap, hits) {
         };
 
         // Create GeoJSON object
-        display = hit._source.spatial.geometries.display;
+        display = hit.geometry.display;
         geom = GeoJSON(display, options);
 
         geom.setMap(gmap);
