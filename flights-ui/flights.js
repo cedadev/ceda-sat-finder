@@ -51,7 +51,8 @@ function getParameterByName(name) {
 }
 
 // Window constants
-const ES_HOST = 'https://elasticsearch.ceda.ac.uk/'
+//const ES_HOST = 'https://elasticsearch.ceda.ac.uk/'
+const ES_HOST = 'http://localhost:8010/proxy/'
 var REQUEST_SIZE = 400;
 var INDEX = "stac-flightfinder-items"; //getParameterByName('index') || 'eufar';
 var ES_URL = ES_HOST + INDEX + '/_search';
@@ -348,6 +349,17 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
     return request;
 }
 
+function requestData(request, callback, gmap){
+    sendElasticsearchRequest(request, callback, gmap);
+    //getTestJson(callback, gmap);
+}
+
+function getTestJson(callback, gmap){
+    $.getJSON("jsons/test1.json", function(json){
+        callback(json,gmap)
+    });
+}
+
 function sendElasticsearchRequest(request, callback, gmap) {
     var xhr, response;
     //runElasticRequest('stac-flightfinder-items');
@@ -355,14 +367,14 @@ function sendElasticsearchRequest(request, callback, gmap) {
     xhr = new XMLHttpRequest();
     xhr.open('POST', ES_URL, true);
     xhr.setRequestHeader("Content-Type", "application/json")
-    xhr.setRequestHeader("Authorization","Basic");
+    //xhr.setRequestHeader("Authorization","Basic");
     //xhr.setRequestHeader("x-api-key","b0cc021feec53216cb470b36bec8786b10da4aa02d60edb91ade5aae43c07ee6")
     var request_str = JSON.stringify(request)
     xhr.send(request_str);
     xhr.onload = function () {
-        if (xhr.status == 401){
+        /*if (xhr.status == 401){
             window.alert('401: ES Content Not Loaded')
-        }
+        }*/
         if (xhr.readyState === 4) {
 
             response = JSON.parse(xhr.responseText);
@@ -474,21 +486,34 @@ function createInfoWindow(hit) {
 
     // crew, altitude
     if (hit.properties.instruments){
-        var i;
-        content += '<p><strong>Instrument: </strong>' + hit.properties.instruments[0];
-        for (i = 1; i < hit.properties.instruments.length; i += 1) {
-            content += ',' + hit.properties.instruments[i];
+        var i, inst_count, buff;
+        content += '<p><strong>Instrument(s): </strong>' + hit.properties.instruments[0];
+
+        if (hit.properties.instruments.length < 3){
+            inst_count = hit.properties.instruments.length;
+            buff = '';
         }
-        content += '</p>';
+        else{
+            inst_count = 3;
+            buff = '...';
+        }
+
+        for (i = 1; i < inst_count; i += 1) {
+            content += ', ' + hit.properties.instruments[i];
+        }
+
+        content += buff + '</p>';
     }
 
     if (hit.properties.variables){
         var i;
-        content += '<p><strong>Variables: </strong>' + hit.properties.variables[0];
-        for (i = 1; i < hit.properties.variables.length; i += 1) {
-            content += ',' + hit.properties.variables[i];
+        if (hit.properties.variables.length > 1 || hit.properties.variables[0] != ""){
+            content += '<p><strong>Variables: </strong>' + hit.properties.variables[0];
+            for (i = 1; i < hit.properties.variables.length; i += 1) {
+                content += ',' + hit.properties.variables[i];
+            }
+            content += '</p>';
         }
-        content += '</p>';
     }
 
     // Aircraft, variables, locations, platform, instruments, crew, altitude
@@ -512,8 +537,10 @@ function createInfoWindow(hit) {
 
     // Add crew here
 
-    content += '<p><a target="_blank" href="http://data.ceda.ac.uk' +
-               hit.description_path + '">Get data for this flight</a></p>';    
+    var href_log = "window.location='http://data.ceda.ac.uk";
+
+    content += '<button onclick=' + href_log +
+               hit.description_path + "'>View Flight Data in CEDA Archive</button>";    
 
     content += '</section>';
     info = new google.maps.InfoWindow(
@@ -528,11 +555,12 @@ function createInfoWindow(hit) {
 
 function drawFlightTracks(gmap, hits) {
     var colour_index, geom, hit, i, info_window, options, display;
+    var geoms = [];
 
     for (i = 0; i < hits.length; i += 1) {
         hit = hits[i];
 
-        colour_index = (hit.idhash.hashCode() % TRACK_COLOURS.length);
+        colour_index = (hit._id.hashCode() % TRACK_COLOURS.length);
         if (colour_index < 0) {
             colour_index = -colour_index;
         }
@@ -543,14 +571,24 @@ function drawFlightTracks(gmap, hits) {
             strokeOpacity: 0.6
         };
 
-        // Create GeoJSON object
-        display = hit.geometry.display;
-        geom = GeoJSON(display, options);
+        // Create GeoJSON object - deal with MultiLineString
+        display = hit._source.geometry.display;
+        if (display.type == "MultiLineString"){
+            for (var i=0; i<display.coordinates.length; i++)
 
-        geom.setMap(gmap);
-
-        geometries.push(geom);
-
+            geom = GeoJSON({
+                "coordinates": display.coordinates[i],
+                "type":"LineString"}, options);
+            geoms.push(geom);
+        }
+        else{
+            geom = GeoJSON(display, options);
+            geoms.push(geom);
+        }
+        for(var i=0; i<geoms.length; i++){
+            geoms[i].setMap(gmap);
+            geometries.push(geoms[i]);
+        }
         // Construct info window
         info_window = createInfoWindow(hit);
         info_windows.push(info_window);
@@ -602,7 +640,7 @@ function redrawMap(gmap, add_listener) {
     // Draw flight tracks
     full_text = $('#ftext').val();
     request = createElasticsearchRequest(gmap.getBounds(), full_text, REQUEST_SIZE);
-    sendElasticsearchRequest(request, updateMap, gmap);
+    requestData(request, updateMap, gmap);
 
     if (add_listener === true) {
         window.setTimeout(function () {
@@ -700,7 +738,7 @@ function sendHistogramRequest() {
     xhr = new XMLHttpRequest();
     xhr.open('POST', ES_URL, true);
     xhr.setRequestHeader("Content-Type", "application/json")
-    xhr.setRequestHeader("Authorization","Basic");
+    //xhr.setRequestHeader("Authorization","Basic");
     //xhr.setRequestHeader("x-api-key","b0cc021feec53216cb470b36bec8786b10da4aa02d60edb91ade5aae43c07ee6")
     xhr.send(JSON.stringify(req));
     xhr.onload = function (e) {
@@ -791,14 +829,14 @@ window.onload = function () {
         function () {
             var req;
             req = createElasticsearchRequest(map.getBounds(), $('#ftext').val(), 100);
-            sendElasticsearchRequest(req, updateRawJSON);
+            requestData(req, updateRawJSON);
         }
     );
 
     $('#file_paths').click(
         function () {
             var req;
-            sendElasticsearchRequest(req, updateFilePaths);
+            requestData(req, updateFilePaths);
             req = createElasticsearchRequest(map.getBounds(), $('#ftext').val(), 100);
         }
     );
@@ -806,7 +844,7 @@ window.onload = function () {
     $('#dl_urls').click(
         function () {
             var req;
-            sendElasticsearchRequest(req, updateDownloadPaths);
+            requestData(req, updateDownloadPaths);
             req = createElasticsearchRequest(map.getBounds(), $('#ftext').val(), 100);
         }
     );
