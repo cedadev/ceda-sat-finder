@@ -305,7 +305,16 @@ function updateMap(response, gmap) {
         $('#numresults').html(result_count_string);
 
         // Draw flight tracks on a map
-        drawFlightTracks(gmap, response.hits.hits);
+        var gridsquare_check = document.getElementById("gridsquare_checkbox");
+        if (gridsquare_check.checked){
+            var x = 1;
+            // gridSquareManager(gmap, response.hits.hits);
+            // possible use later on - 14/11/2022
+            // draw grid squares instead of all hits
+        } 
+        else {
+            drawFlightTracks(gmap, response.hits.hits);
+        }
 
         // Toggle loading modal
         if (!export_modal_open) {
@@ -500,6 +509,10 @@ window.onload = function () {
 
     // Add rectangle toggle listener
     $('#polygon_draw').change(rectToolToggle)
+
+    $('#gridsquare_checkbox').change(function () {
+        redrawMap(map, false);
+    });
 
 
     //---------------------------- Map main loop ------------------------------

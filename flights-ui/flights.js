@@ -51,8 +51,7 @@ function getParameterByName(name) {
 }
 
 // Window constants
-//const ES_HOST = 'https://elasticsearch.ceda.ac.uk/'
-const ES_HOST = 'https://es9.ceda.ac.uk:9200/'
+const ES_HOST = 'https://elasticsearch.ceda.ac.uk/'
 var REQUEST_SIZE = 400;
 var INDEX = "stac-flightfinder-items"; //getParameterByName('index') || 'eufar';
 var ES_URL = ES_HOST + INDEX + '/_search';
@@ -356,10 +355,14 @@ function sendElasticsearchRequest(request, callback, gmap) {
     xhr = new XMLHttpRequest();
     xhr.open('POST', ES_URL, true);
     xhr.setRequestHeader("Content-Type", "application/json")
-    xhr.setRequestHeader("ApiKey","b0cc021feec53216cb470b36bec8786b10da4aa02d60edb91ade5aae43c07ee6")
+    xhr.setRequestHeader("Authorization","Basic");
+    //xhr.setRequestHeader("x-api-key","b0cc021feec53216cb470b36bec8786b10da4aa02d60edb91ade5aae43c07ee6")
     var request_str = JSON.stringify(request)
     xhr.send(request_str);
     xhr.onload = function () {
+        if (xhr.status == 401){
+            window.alert('401: ES Content Not Loaded')
+        }
         if (xhr.readyState === 4) {
 
             response = JSON.parse(xhr.responseText);
@@ -697,6 +700,8 @@ function sendHistogramRequest() {
     xhr = new XMLHttpRequest();
     xhr.open('POST', ES_URL, true);
     xhr.setRequestHeader("Content-Type", "application/json")
+    xhr.setRequestHeader("Authorization","Basic");
+    //xhr.setRequestHeader("x-api-key","b0cc021feec53216cb470b36bec8786b10da4aa02d60edb91ade5aae43c07ee6")
     xhr.send(JSON.stringify(req));
     xhr.onload = function (e) {
         if (xhr.readyState === 4) {
