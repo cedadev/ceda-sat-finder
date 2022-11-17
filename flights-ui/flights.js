@@ -51,9 +51,9 @@ function getParameterByName(name) {
 }
 
 // Window constants
-//const ES_HOST = 'https://elasticsearch.ceda.ac.uk/'
-const ES_HOST = 'http://localhost:8010/proxy/'
-var REQUEST_SIZE = 400;
+const ES_HOST = 'https://elasticsearch.ceda.ac.uk/'
+//const ES_HOST = 'http://localhost:8010/proxy/'
+var REQUEST_SIZE = 30;
 var INDEX = "stac-flightfinder-items"; //getParameterByName('index') || 'eufar';
 var ES_URL = ES_HOST + INDEX + '/_search';
 var TRACK_COLOURS = [
@@ -153,6 +153,17 @@ function requestFromFilters(full_text) {
             req.push(ft[i].toLowerCase());
         }
         return req;
+    }
+}
+
+function requestFromSize(){
+    var size;
+    size = $('#size').val();
+    if (size==""){
+        return "40";
+    }
+    else {
+        return size;
     }
 }
 
@@ -257,7 +268,7 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
               }
           }
       },
-        'size': 400
+        'size': requestFromSize(),
     };
     var is_push = false;
     // Push the geoshape conditions to the main request.
@@ -277,15 +288,6 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
         }
 
     // Add other filters from page to query
-    /*
-    tf = requestFromFilters(full_text);
-    if (tf) {
-        for (i = 0; i < tf.length; i += 1) {
-            request.query.bool.filter.bool.must.push(tf[i]);
-        }
-    }
-    Original code 12/10/2022
-    */
         var search_str = "";
         tf = requestFromFilters(full_text);
         if (tf) {
@@ -367,8 +369,6 @@ function sendElasticsearchRequest(request, callback, gmap) {
     xhr = new XMLHttpRequest();
     xhr.open('POST', ES_URL, true);
     xhr.setRequestHeader("Content-Type", "application/json")
-    //xhr.setRequestHeader("Authorization","Basic");
-    //xhr.setRequestHeader("x-api-key","b0cc021feec53216cb470b36bec8786b10da4aa02d60edb91ade5aae43c07ee6")
     var request_str = JSON.stringify(request)
     xhr.send(request_str);
     xhr.onload = function () {
@@ -376,9 +376,8 @@ function sendElasticsearchRequest(request, callback, gmap) {
             window.alert('401: ES Content Not Loaded')
         }*/
         if (xhr.readyState === 4) {
-
             response = JSON.parse(xhr.responseText);
-            
+
             if (gmap) {
                 callback(response, gmap);
             } else {
@@ -392,7 +391,7 @@ function updateMap(response, gmap) {
     if (response.hits) {
         // Update "hits" and "response time" fields
         $('#resptime').html(response.took);
-        $('#numresults').html(response.hits.total);
+        $('#numresults').html(response.hits.hits.length);
 
         // Draw flight tracks on a map
         drawFlightTracks(gmap, response.hits.hits);
@@ -537,10 +536,11 @@ function createInfoWindow(hit) {
 
     // Add crew here
 
-    var href_log = "window.location='http://data.ceda.ac.uk";
+    var href_start = "window.open('http://data.ceda.ac.uk";
+    var href_end = "','_blank')"
 
-    content += '<button onclick=' + href_log +
-               hit.description_path + "'>View Flight Data in CEDA Archive</button>";    
+    content += '<button onclick=' + href_start +
+               hit.description_path + href_end + ">View Flight Data in CEDA Archive</button>";    
 
     content += '</section>';
     info = new google.maps.InfoWindow(
@@ -554,11 +554,12 @@ function createInfoWindow(hit) {
 }
 
 function drawFlightTracks(gmap, hits) {
-    var colour_index, geom, hit, i, info_window, options, display;
-    var geoms = [];
+    var colour_index, geom, hit, i, info_window, options, display, gs;
+    var geometries = [];
+    var count_lines = 0;
+    var limit = hits.length;
 
-    for (i = 0; i < hits.length; i += 1) {
-        hit = hits[i];
+    for (hit of hits) {
 
         colour_index = (hit._id.hashCode() % TRACK_COLOURS.length);
         if (colour_index < 0) {
@@ -573,56 +574,53 @@ function drawFlightTracks(gmap, hits) {
 
         // Create GeoJSON object - deal with MultiLineString
         display = hit._source.geometry.display;
-        if (display.type == "MultiLineString"){
-            for (var i=0; i<display.coordinates.length; i++)
+        geoms = GeoJSON(display, options);
+        count_lines++;
+        for (geom of geoms){
+            geom.setMap(gmap);
+            count_lines++;
+        }
+        
+        geometries.push(geoms);
 
-            geom = GeoJSON({
-                "coordinates": display.coordinates[i],
-                "type":"LineString"}, options);
-            geoms.push(geom);
-        }
-        else{
-            geom = GeoJSON(display, options);
-            geoms.push(geom);
-        }
-        for(var i=0; i<geoms.length; i++){
-            geoms[i].setMap(gmap);
-            geometries.push(geoms[i]);
-        }
-        // Construct info window
+        // Construct info windo
         info_window = createInfoWindow(hit);
         info_windows.push(info_window);
     }
-
+    $('#numlines').html(count_lines);
+    
     for (i = 0; i < geometries.length; i += 1) {
-        google.maps.event.addListener(geometries[i], 'click',
-            (function (i, e) {
-                return function (e) {
-                    var j;
+        var geoms = geometries[i];
+        for (line of geoms){
+            google.maps.event.addListener(line, 'click',
+                (function (i, e) {
+                    return function (e) {
 
-                    google.maps.event.clearListeners(gmap, 'idle');
+                        google.maps.event.clearListeners(gmap, 'idle');
 
-                    for (j = 0; j < info_windows.length; j += 1) {
-                        info_windows[j].close();
-                    }
+                        for (info_window of info_windows) {
+                            info_window.close();
+                        }
 
-                    info_windows[i].setPosition(e.latLng);
-                    info_windows[i].open(gmap, null);
+                        info_windows[i].setPosition(e.latLng);
+                        info_windows[i].open(gmap, null);
 
-                    window.setTimeout(function () {
-                        addBoundsChangedListener(gmap);
-                    }, 500);
-                };
-            }
-        )(i));
+                        window.setTimeout(function () {
+                            addBoundsChangedListener(gmap);
+                        }, 500);
+                    };
+                }
+            )(i));
+        }
     }
 }
 
 function cleanup() {
-    var i;
 
-    for (i = 0; i < geometries.length; i += 1) {
-        geometries[i].setMap(null);
+    for (var i=0; i<geometries.length; i++) {
+        for (var j=0; j<geometries[i].length; j++){
+            geometries[i][j].setMap(null);
+        }
     }
     geometries = [];
 
@@ -738,8 +736,6 @@ function sendHistogramRequest() {
     xhr = new XMLHttpRequest();
     xhr.open('POST', ES_URL, true);
     xhr.setRequestHeader("Content-Type", "application/json")
-    //xhr.setRequestHeader("Authorization","Basic");
-    //xhr.setRequestHeader("x-api-key","b0cc021feec53216cb470b36bec8786b10da4aa02d60edb91ade5aae43c07ee6")
     xhr.send(JSON.stringify(req));
     xhr.onload = function (e) {
         if (xhr.readyState === 4) {
@@ -774,6 +770,17 @@ window.onload = function () {
 
     //------------------------------- Buttons -------------------------------
     $('#flightnum').keypress(
+        function (e) {
+            var charcode = e.charCode || e.keyCode || e.which;
+            if (charcode === 13) {
+                cleanup();
+                redrawMap(map, false);
+                return false;
+            }
+        }
+    );
+
+    $('#size').keypress(
         function (e) {
             var charcode = e.charCode || e.keyCode || e.which;
             if (charcode === 13) {
