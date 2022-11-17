@@ -130,9 +130,22 @@
                                         </div>
                                     </fieldset>
                                 </form>
+                                <form class="form-horizontal">
+                                    <fieldset>
+                                        <div class="form-group">
+                                            <label class="control-label" for="param">Enter maximum number of flights to display</label>
+                                            <span data-toggle="popover" data-content="Cap Number of Retrieved Flights" class="glyphicon glyphicon-question-sign"></span>
+
+                                            <div class="controls">
+                                                <input id="size" name="size" placeholder="e.g. 40" class="form-control input-md" type="text">
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </form>
                             </div>
                         </div>
                     </div>
+
                     <!-- Keyword Search -->
                     <div class="panel panel-default">
                         <div class="panel-heading">
@@ -224,11 +237,10 @@
                 <hr />
                 <div class="form-group">
                     <p class="form-group row">
-                        <strong><span id="numresults">0</span></strong> hits with current selection.
+                        <strong><span id="numresults">0</span></strong> Hits with current selection (<span id="resptime">0</span> ms)
                     </p>
-
                     <p class="form-group row">
-                        <strong><span id="resptime">0</span></strong> milliseconds for response.
+                        <strong><span id="numlines">0</span></strong> Line sequences with current selection.
                     </p>
 
                     <div class="form-group row">
