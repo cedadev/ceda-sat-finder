@@ -69,6 +69,7 @@ var GeoJSON = function(geojson, options) {
 
             case "LineString":
                 path = [];
+                googleObj = [];
                 for (i = 0; i < geojsonGeometry.coordinates.length; i++) {
                     coord = geojsonGeometry.coordinates[i];
                     ll = new google.maps.LatLng(coord[1], coord[0]);
@@ -76,10 +77,10 @@ var GeoJSON = function(geojson, options) {
                 }
 
                 opts.path = path;
-                googleObj = new google.maps.Polyline(opts);
+                googleObj.push(new google.maps.Polyline(opts));
 
                 if (geojsonProperties) {
-                    googleObj.set("geojsonProperties", geojsonProperties);
+                    googleObj[0].set("geojsonProperties", geojsonProperties);
                 }
 
                 break;
