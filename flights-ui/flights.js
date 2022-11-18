@@ -364,7 +364,6 @@ function getTestJson(callback, gmap){
 
 function sendElasticsearchRequest(request, callback, gmap) {
     var xhr, response;
-    //runElasticRequest('stac-flightfinder-items');
     // Construct and send XMLHttpRequest
     xhr = new XMLHttpRequest();
     xhr.open('POST', ES_URL, true);
@@ -372,9 +371,6 @@ function sendElasticsearchRequest(request, callback, gmap) {
     var request_str = JSON.stringify(request)
     xhr.send(request_str);
     xhr.onload = function () {
-        /*if (xhr.status == 401){
-            window.alert('401: ES Content Not Loaded')
-        }*/
         if (xhr.readyState === 4) {
             response = JSON.parse(xhr.responseText);
 
