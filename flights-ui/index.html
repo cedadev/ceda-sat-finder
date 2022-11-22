@@ -20,6 +20,7 @@
     <link rel="shortcut icon" href="./img/favicon.ico">
 </head>
 <body>
+    <!-- Pop up Info Box -->
     <div class="modal fade" id="export_modal" tabindex="-1" role="dialog" aria-labelledby="export_modal_label" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -47,15 +48,16 @@
             </div>
         </div>
     </div>
+
+
     <div id="main">
+
+        <!-- Selection UI-->
         <div id="sidebar">
+            <!-- Top Description Section -->
             <div id="filter">
                 <div class="wide text-center">
-                    <!-- Old EUFAR Logo - add other flight logos or remove
-                    <a href="http://www.eufar.net/" alt="EUFAR Website">
-                        <img class="logo" src="./img/eufar.png" alt="EUFAR logo" />
-                    </a>
-                    -->
+                    <!-- Logos for Sidebar Display-->
                     <a href="http://www.ncas.ac.uk/" alt="NCAS Website">
                         <img class="logo" 
                         src="https://artefacts.ceda.ac.uk/themes/orgtheme_ceda_serv/0.2/_assets/img/ncas_logo_transparent_blacktext.png" 
@@ -69,7 +71,7 @@
                     </a>
                 </div>
                 <h2>CEDA Flight Finder</h2>
-                <p>Search for flights within the CEDA archive using the parameters below. Locate flights over specific areas using the map tool or filter specific flights by flight number, keyword, temporal or variable filters. Flights from FAAM, NERC-ARSF, SAFIRE, AWI-Polar5, Kit-Enduro, and INTA-CASA aircraft and the APEX instrument flown on the DLR aircraft are now included.</p>
+                <p>Search for flights within the CEDA flights index using the parameters below. Search for specific flights by Collection, Flight Code, Instrument or Keyword Search, or filter specific flights by temporal geospatial parameters. Flights from FAAM, NERC-ARSF, SAFIRE, AWI-Polar5, Kit-Enduro, and INTA-CASA aircraft and the APEX instrument flown on the DLR aircraft are now included.</p>
                 <div class="row">
                     <div class="col-md-12">
                         <div class="row">
@@ -86,37 +88,21 @@
                     </div>
                 </div>
             <hr/>
-                <!-- Radio buttons to select different indexes -->
-            <div class="row">
-                <div class="col-md-12">
-                    <label class="control-label">Choose a collection:</label>
-                    <div class="row">
-                        <div class="col-sm-3 text-center ">
-                            <a class="btn btn-primary index-select btn-info" id="eufar" data-index="eufar"> EUFAR</a>
-                        </div>
-                        <div class="col-sm-3 text-center ">
-                            <a class="btn btn-primary index-select" data-index="faam" id="faam"> FAAM</a>
-                        </div>
-                        <div class="col-sm-3 text-center">
-                            <a class="btn btn-primary index-select" data-index="arsf" id="arsf"> ARSF</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- UI Widgets and Panels -->
 
-                <hr />
                 <p>Click an item to expand the panel.</p>
                 <div class="panel-group" id="accordions">
-                    <!-- Flight Number Search-->
+
+                    <!-- Flight Search-->
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <h4 class="panel-title">
-                                <a data-toggle="collapse" data-parent="#accordions" href="#collapse_centre_map">
-                                    Flight Number Search
+                                <a data-toggle="collapse" data-parent="#accordions" href="#collapse_flight">
+                                    Flight Search
                                 </a>
                             </h4>
                         </div>
-                        <div id="collapse_centre_map" class="panel-collapse collapse">
+                        <div id="collapse_flight" class="panel-collapse collapse">
                             <div class="panel-body">
                                 <form class="form-horizontal">
                                     <fieldset>
@@ -125,7 +111,7 @@
                                             <span data-toggle="popover" data-content="Enter a specific flight number to view a single flight" class="glyphicon glyphicon-question-sign"></span>
 
                                             <div class="controls">
-                                                <input id="flightnum" name="flightnum" placeholder="e.g. b527 " class="form-control input-md" type="text">
+                                                <input id="fnumtext" name="fnumtext" placeholder="e.g. b527 " class="form-control input-md" type="text">
                                             </div>
                                         </div>
                                     </fieldset>
@@ -137,7 +123,7 @@
                                             <span data-toggle="popover" data-content="Cap Number of Retrieved Flights" class="glyphicon glyphicon-question-sign"></span>
 
                                             <div class="controls">
-                                                <input id="size" name="size" placeholder="e.g. 40" class="form-control input-md" type="text">
+                                                <input id="fpoptext" name="fpoptext" placeholder="e.g. 40" class="form-control input-md" type="text">
                                             </div>
                                         </div>
                                     </fieldset>
@@ -163,7 +149,7 @@
                                             <label class="control-label" for="param">Keyword Search</label>
                                             <span data-toggle="popover" data-content="Search for any keyword, e.g.: 'eagle', 'nox', 'photography', etc." class="glyphicon glyphicon-question-sign"></span>
                                             <div class="controls">
-                                                <input id="ftext" name="ftext" placeholder="Any text query, e.g. 'velocity', 'safire', etc" class="form-control input-md" type="text">
+                                                <input id="kwtext" name="kwtext" placeholder="Any text query, e.g. 'velocity', 'safire', etc" class="form-control input-md" type="text">
                                             </div>
                                         </div>
                                     </fieldset>
@@ -171,6 +157,77 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Instrument Filter -->
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordions" href="#collapse_instrument">
+                                    Instrument Filter
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapse_instrument" class="panel-collapse collapse">
+                            <div class="panel-body">
+                                <form class="text-center">
+                                    <fieldset>
+                                        <label class="control-label" for="param">Instrument Name</label>
+                                        <span data-toggle="popover" data-content="A list of instruments. Click an instrument to only include files with that instrument." class="glyphicon glyphicon-question-sign"></span>
+                                        <select id="inst_multiselect" multiple="multiple">
+                                        </select>
+                                    </fieldset>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Collection Filter -->
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordions" href="#collapse_collection">
+                                    Collection Filter
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapse_collection" class="panel-collapse collapse">
+                            <div class="panel-body">
+                                <form class="text-center">
+                                    <fieldset>
+                                        <label class="control-label" for="param">Collection Name</label>
+                                        <span data-toggle="popover" data-content="A list of collections extracted from the flights index. Click a collection to only include files with that collection." class="glyphicon glyphicon-question-sign"></span>
+                                        <select id="coll_multiselect" multiple="multiple">
+                                        </select>
+                                    </fieldset>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Variable Filter -->
+                    <!--
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordions" href="#collapse_variables">
+                                    Variable Filter
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapse_variables" class="panel-collapse collapse">
+                            <div class="panel-body">
+                                <form class="text-center">
+                                    <fieldset>
+                                        <label class="control-label" for="param">Variable Name</label>
+                                        <span data-toggle="popover" data-content="A list of variables extracted from the flights index. Click a variable to only include files with that variable." class="glyphicon glyphicon-question-sign"></span>
+                                        <select id="var_multiselect" multiple="multiple">
+                                        </select>
+                                    </fieldset>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    -->
                     <!-- Temporal Filter -->
                     <div class="panel panel-default">
                         <div class="panel-heading">
@@ -194,12 +251,13 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Variable Filter -->
+
+                    <!-- Geospatial Filter -->
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <h4 class="panel-title">
                                 <a data-toggle="collapse" data-parent="#accordions" href="#collapse_variables">
-                                    Variable Filter
+                                    Geospatial Filter
                                 </a>
                             </h4>
                         </div>
@@ -207,7 +265,7 @@
                             <div class="panel-body">
                                 <form class="text-center">
                                     <fieldset>
-                                        <label class="control-label" for="param">Variable Name (Document Count)</label>
+                                        <label class="control-label" for="param">Geospatial Filter</label>
                                         <span data-toggle="popover" data-content="A list of words extracted from the variable lists in each file, sorted by freuquency of occurrence. Click a variable to only include files with that variable." class="glyphicon glyphicon-question-sign"></span>
                                         <select id="multiselect" multiple="multiple">
                                         </select>
@@ -216,11 +274,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="checkbox">
-                        <label>
-                            <input id="photography_checkbox" type="checkbox" /> Include photography?
-                        </label>
-                    </div>
+
                 </div>
 
                 <div class="form-group text-center">
@@ -249,6 +303,8 @@
                 </div>
             </div>
         </div>
+
+        <!-- Google Map API -->
         <div id="map"></div>
     </div>
 
@@ -265,6 +321,7 @@
     <script src="./js/index.js" type="text/javascript"></script>
     <!--<script src="./js/es-client.js" type="text/javascript"></script>-->
     <script src="./js/GeoJSON.js" type="text/javascript"></script>
+    <script src="./js/widgets.js" type="text/javascript"></script>
     <script src="./flights.js" type="text/javascript"></script>
 </body>
 </html>

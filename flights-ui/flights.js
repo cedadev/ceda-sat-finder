@@ -90,39 +90,6 @@ String.prototype.truncatePath = function (levels) {
     return t_path;
 };
 
-// ------------------------------Variable Filter-------------------------------
-function clearAggregatedVariables() {
-    var select = $('#multiselect').html('');
-    select.multiSelect('refresh');
-}
-
-function displayAggregatedVariables(aggregations) {
-    var select, i, buckets;
-
-    select = $('#multiselect');
-    buckets = aggregations.variables.std_name.values.buckets;
-    for (i = 0; i < buckets.length; i += 1) {
-        select.multiSelect('addOption', {
-            value: buckets[i].key,
-            text: (buckets[i].key + ' (' + buckets[i].doc_count + ')')
-        });
-    }
-}
-
-function requestFromMultiselect() {
-    var i, vars, req;
-    req = [];
-    vars = $('#multiselect').val();
-
-    if (vars) {
-        for (i = 0; i < vars.length; i += 1) {
-            req.push(vars[i]);
-        }
-        return req;
-    }
-    return '';
-}
-
 // ---------------------------- Index Radio Buttons ---------------------------
 
     var index_selectors = $('.index-select')
@@ -131,9 +98,7 @@ function requestFromMultiselect() {
         $(this).addClass('btn-info')
         ES_URL = ES_HOST + $(this).data('index') + '/_search';
         sendHistogramRequest()
-        $('#multiselect').empty().multiSelect('refresh')
-
-
+        refreshMultiselects()
         redrawMap(map, true)
     })
 
@@ -143,37 +108,6 @@ function updateExportResultsModal(hits) {
 }
 
 // -------------------------------ElasticSearch--------------------------------
-function requestFromFilters(full_text) {
-    var i, ft, req;
-
-    req = [];
-    if (full_text.length > 0) {
-        ft = full_text.split(' ');
-        for (i = 0; i < ft.length; i += 1) {
-            req.push(ft[i].toLowerCase());
-        }
-        return req;
-    }
-}
-
-function requestFromSize(){
-    var size;
-    size = $('#size').val();
-    if (size==""){
-        return "40";
-    }
-    else {
-        return size;
-    }
-}
-
-function requestFromFlightNum(){
-    var fn;
-    fn = $('#flightnum').val();
-    if (fn.length > 0){
-        return fn.split(' ');
-    }
-}
 
 function datelineCheck(lng1,lng2){
     // If we constrain the first entry to be the western lng point and the second the eastern lng point, then we know if
@@ -196,7 +130,7 @@ function geo_shapeQuery(envelope) {
     }
 }
 
-function createElasticsearchRequest(gmaps_corners, full_text, size) {
+function createElasticsearchRequest(gmaps_corners, fpop) {
     var i, end_time, tmp_ne, tmp_sw, no_photography, nw,
         se, start_time, request, temporal, tf, vars;
 
@@ -247,49 +181,38 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
         },
     'aggs' : {
           'variables': {
-              'nested':{
-                  'path': 'parameters'
-              },
-              'aggs': {
-                  'std_name': {
-                      'filter': {
-                          'term': {
-                              'parameters.name': 'standard_name'
-                          }
-                      },
-                      'aggs': {
-                          'values': {
-                              'terms':{
-                                  'field': 'parameters.value.raw'
-                              }
-                          }
-                      }
-                  }
+              "terms":{
+                "field":"variables.keyword"
               }
-          }
+          },
+          'instruments': {
+            "terms":{
+                "field":"instruments.keyword",
+                "size":10
+              }
+          },
+          'collections':{
+            "terms":{
+                "field":"collection.keyword"
+            }
+          },
       },
-        'size': requestFromSize(),
+        'size': fpop,
     };
-    var is_push = false;
+    var is_push = true;
     // Push the geoshape conditions to the main request.
     if (is_push){
+        /*
         for (i = 0; i < envelope_corners.length; i++) {
             request.query.bool.filter.bool.should.push(geo_shapeQuery(envelope_corners[i]));
         }
-
-        no_photography = {
-            'term': {
-                'geometry.display.type': 'point'
-            }
-        };
-
-        if (!$('#photography_checkbox').prop('checked')) {
-            request.query.bool.filter.bool.must_not.push(no_photography);
-        }
-
+        */
     // Add other filters from page to query
         var search_str = "";
-        tf = requestFromFilters(full_text);
+        var ivar, insts, colls, tf;
+
+
+        tf = requestFromKeyword();
         if (tf) {
             for (i = 0; i < tf.length; i += 1) {
                 if (search_str.length > 0){
@@ -300,17 +223,42 @@ function createElasticsearchRequest(gmaps_corners, full_text, size) {
                 }
             }
         }
-        vars = requestFromMultiselect();
+        vars = requestFromMultiselect('#var_multiselect');
         if (vars) {
-            for (i = 0; i < vars.length; i += 1) {
+            for (ivar of vars) {
                 if (search_str.length > 0){
-                    search_str = search_str.concat(" AND ", vars[i]);
+                    search_str = search_str.concat(" AND ", ivar);
                 }
                 else{
-                    search_str = vars[i];
+                    search_str = ivar;
                 }
             }
         }
+
+        insts = requestFromMultiselect('#inst_multiselect');
+        if (insts) {
+            for (inst of insts) {
+                if (search_str.length > 0){
+                    search_str = search_str.concat(" AND ", inst);
+                }
+                else{
+                    search_str = inst;
+                }
+            }
+        }
+
+        colls = requestFromMultiselect('#coll_multiselect');
+        if (colls) {
+            for (coll of colls) {
+                if (search_str.length > 0){
+                    search_str = search_str.concat(" AND ", coll);
+                }
+                else{
+                    search_str = coll;
+                }
+            }
+        }
+
         if (search_str.length > 0){
             var query_str = {
                 "query_string":
@@ -391,11 +339,26 @@ function updateMap(response, gmap) {
 
         // Draw flight tracks on a map
         drawFlightTracks(gmap, response.hits.hits);
+        var temp = geometries;
     }
 
     if (response.aggregations) {
         // Generate variable aggregation on map and display
-        displayAggregatedVariables(response.aggregations);
+        if (response.aggregations.variables){
+            displayAggregatedVariables(
+                response.aggregations.variables.buckets,
+                '#var_multiselect');
+        }
+        if (response.aggregations.instruments){
+            displayAggregatedVariables(
+                response.aggregations.instruments.buckets,
+                '#inst_multiselect');
+        }
+        if (response.aggregations.collections){
+            displayAggregatedVariables(
+                response.aggregations.collections.buckets,
+                '#coll_multiselect');
+        }
     }
 }
 
@@ -551,7 +514,6 @@ function createInfoWindow(hit) {
 
 function drawFlightTracks(gmap, hits) {
     var colour_index, geom, hit, i, info_window, options, display, gs;
-    var geometries = [];
     var count_lines = 0;
     var limit = hits.length;
 
@@ -632,8 +594,8 @@ function redrawMap(gmap, add_listener) {
     cleanup();
 
     // Draw flight tracks
-    full_text = $('#ftext').val();
-    request = createElasticsearchRequest(gmap.getBounds(), full_text, REQUEST_SIZE);
+    fpop = requestFromFlightPop()
+    request = createElasticsearchRequest(gmap.getBounds(), fpop);
     requestData(request, updateMap, gmap);
 
     if (add_listener === true) {
@@ -810,6 +772,7 @@ window.onload = function () {
         */
     $('#applyfil').click(
         function () {
+            var temp = geometries;
             cleanup();
             redrawMap(map, false);
         }
@@ -831,7 +794,7 @@ window.onload = function () {
     $('#raw_json').click(
         function () {
             var req;
-            req = createElasticsearchRequest(map.getBounds(), $('#ftext').val(), 100);
+            req = createElasticsearchRequest(map.getBounds(), 100);
             requestData(req, updateRawJSON);
         }
     );
@@ -840,7 +803,7 @@ window.onload = function () {
         function () {
             var req;
             requestData(req, updateFilePaths);
-            req = createElasticsearchRequest(map.getBounds(), $('#ftext').val(), 100);
+            req = createElasticsearchRequest(map.getBounds(), 100);
         }
     );
 
@@ -848,7 +811,7 @@ window.onload = function () {
         function () {
             var req;
             requestData(req, updateDownloadPaths);
-            req = createElasticsearchRequest(map.getBounds(), $('#ftext').val(), 100);
+            req = createElasticsearchRequest(map.getBounds(), 100);
         }
     );
 
@@ -859,7 +822,29 @@ window.onload = function () {
     );
 
     //----------------------------- UI Widgets -------------------------------
-    $('#multiselect').multiSelect(
+    $('#var_multiselect').multiSelect(
+        {
+            afterSelect: function () {
+                redrawMap(map, false);
+            },
+            afterDeselect: function () {
+                redrawMap(map, false);
+            }
+        }
+    );
+
+    $('#coll_multiselect').multiSelect(
+        {
+            afterSelect: function () {
+                redrawMap(map, false);
+            },
+            afterDeselect: function () {
+                redrawMap(map, false);
+            }
+        }
+    );
+
+    $('#inst_multiselect').multiSelect(
         {
             afterSelect: function () {
                 redrawMap(map, false);
