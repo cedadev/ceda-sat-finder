@@ -276,7 +276,8 @@ function createElasticsearchRequest(gmaps_corners, fpop) {
                 { 
                     "terms":
                     {
-                        "properties.flight_num": fnums
+                        "properties.flight_num": fnums,
+                        "properties.pcode":fnums
                     }
             });
         }

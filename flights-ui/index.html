@@ -51,13 +51,31 @@
 
 
     <div id="main">
+<!--navbar navbar-expand-lg fixed-top navbar-dark bg-primary-->
+
+<!-- src="https://artefacts.ceda.ac.uk/themes/orgtheme_ceda_serv/0.2/_assets/img/ncas_logo_transparent_blacktext.png"
+    https://artefacts.ceda.ac.uk/themes/orgtheme_ceda_serv/0.2/_assets/img/nceologo200.png
+ -->
+        <!--
+        <div class="topbar">
+            <a href="http://www.ceda.ac.uk/" alt="CEDA Website">
+                <img class="logo" 
+                src="./img/ceda.png" 
+                alt="CEDA logo" />
+            </a>
+            <a href="http://www.ncas.ac.uk/" alt="NCAS Website">
+                <img class="logo" 
+                src="https://artefacts.ceda.ac.uk/themes/orgtheme_ceda_serv/0.2/_assets/img/ncas_logo_transparent_blacktext.png"
+                alt="NCAS logo" />
+            </a>
+        </div>
+    -->
 
         <!-- Selection UI-->
         <div id="sidebar">
             <!-- Top Description Section -->
             <div id="filter">
                 <div class="wide text-center">
-                    <!-- Logos for Sidebar Display-->
                     <a href="http://www.ncas.ac.uk/" alt="NCAS Website">
                         <img class="logo" 
                         src="https://artefacts.ceda.ac.uk/themes/orgtheme_ceda_serv/0.2/_assets/img/ncas_logo_transparent_blacktext.png" 
@@ -65,9 +83,6 @@
                     </a>
                     <a href="http://www.ceda.ac.uk/" alt="CEDA Website">
                         <img class="logo" src="./img/ceda.png" alt="CEDA logo" />
-                    </a>
-                    <a href="http://www.nceo.ac.uk/" alt="NCEO Website">
-                        <img class="logo" src="https://artefacts.ceda.ac.uk/themes/orgtheme_ceda_serv/0.2/_assets/img/nceologo200.png" alt="NCEO logo" />
                     </a>
                 </div>
                 <h2>CEDA Flight Finder</h2>
@@ -107,11 +122,11 @@
                                 <form class="form-horizontal">
                                     <fieldset>
                                         <div class="form-group">
-                                            <label class="control-label" for="param">Enter Specific Flight Number</label>
-                                            <span data-toggle="popover" data-content="Enter a specific flight number to view a single flight" class="glyphicon glyphicon-question-sign"></span>
+                                            <label class="control-label" for="param">Enter Flight Number or Project Code</label>
+                                            <span data-toggle="popover" data-content="Enter a specific flight number or project code to view a single flight set" class="glyphicon glyphicon-question-sign"></span>
 
                                             <div class="controls">
-                                                <input id="fnumtext" name="fnumtext" placeholder="e.g. b527 " class="form-control input-md" type="text">
+                                                <input id="fnumtext" name="fnumtext" placeholder="e.g. b527, 95_01 " class="form-control input-md" type="text">
                                             </div>
                                         </div>
                                     </fieldset>
@@ -228,6 +243,7 @@
                         </div>
                     </div>
                     -->
+                    
                     <!-- Temporal Filter -->
                     <div class="panel panel-default">
                         <div class="panel-heading">
@@ -253,6 +269,7 @@
                     </div>
 
                     <!-- Geospatial Filter -->
+                    <!--
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <h4 class="panel-title">
@@ -274,6 +291,7 @@
                             </div>
                         </div>
                     </div>
+                    -->
 
                 </div>
 
