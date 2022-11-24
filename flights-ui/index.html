@@ -220,7 +220,6 @@
                     </div>
 
                     <!-- Variable Filter -->
-                    <!--
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <h4 class="panel-title">
@@ -242,7 +241,6 @@
                             </div>
                         </div>
                     </div>
-                    -->
                     
                     <!-- Temporal Filter -->
                     <div class="panel panel-default">
@@ -257,12 +255,12 @@
                             <div class="text-center panel-body">
                                 <label class="control-label">Refine Search via Time Range</label>
                                 <span data-toggle="popover" data-content="Choose a start and end time to refine the search by." class="glyphicon glyphicon-question-sign"></span>
+                                <p><strong>New: </strong>Click on the Histogram to apply a Time Range</p>
                                 <div class="input-daterange input-group" id="datepicker">
                                     <input id="start_time" type="text" class="input-sm form-control" name="start" />
                                     <span class="input-group-addon">to</span>
                                     <input id="end_time" type="text" class="input-sm form-control" name="end" />
                                 </div>
-                                <span data-toggle="popover" data-content="Please note: Histogram does not change when filters are applied." class="glyphicon glyphicon-question-sign"></span>
                                 <div id="date_histogram"></div>
                             </div>
                         </div>
@@ -273,17 +271,17 @@
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <h4 class="panel-title">
-                                <a data-toggle="collapse" data-parent="#accordions" href="#collapse_variables">
+                                <a data-toggle="collapse" data-parent="#accordions" href="#collapse_geospatial">
                                     Geospatial Filter
                                 </a>
                             </h4>
                         </div>
-                        <div id="collapse_variables" class="panel-collapse collapse">
+                        <div id="collapse_geospatial" class="panel-collapse collapse">
                             <div class="panel-body">
                                 <form class="text-center">
                                     <fieldset>
                                         <label class="control-label" for="param">Geospatial Filter</label>
-                                        <span data-toggle="popover" data-content="A list of words extracted from the variable lists in each file, sorted by freuquency of occurrence. Click a variable to only include files with that variable." class="glyphicon glyphicon-question-sign"></span>
+                                        <span data-toggle="popover" data-content="Select Maximum, minimum latitude and longitudes for flights" class="glyphicon glyphicon-question-sign"></span>
                                         <select id="multiselect" multiple="multiple">
                                         </select>
                                     </fieldset>
@@ -309,7 +307,7 @@
                 <hr />
                 <div class="form-group">
                     <p class="form-group row">
-                        <strong><span id="numresults">0</span></strong> Hits with current selection (<span id="resptime">0</span> ms)
+                        <strong><span id="numresults">0</span></strong> Flights with current selection (<span id="resptime">0</span> ms)
                     </p>
                     <p class="form-group row">
                         <strong><span id="numlines">0</span></strong> Line sequences with current selection.

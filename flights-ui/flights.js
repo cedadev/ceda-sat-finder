@@ -1,8 +1,9 @@
 /*jslint browser: true, devel: true, sloppy: true*/
 /*global google, $, GeoJSON*/
 
-// -----------------------------------Utils-----------------------------------
+// ---------------------------------- Utils -----------------------------------
 function formatDate(dt){
+    // Function for splitting date from ES-style format to human readable time/date
     var time, date;
     var df, dfor;
     time = dt.split('T')[1];
@@ -15,8 +16,8 @@ function formatDate(dt){
 }
 
 function formatDates(start, end, content){
-    var times, df, dfor
-    // Format start and end times
+    // Function for formatting start- and end-times into human-readable version for display
+    var times, df, dfor;
     if (start.split('T')[0] == end.split('T')[0]){
         // Same date
         times = start.split('T')[1] + ' - ' + end.split('T')[1];
@@ -35,10 +36,10 @@ function formatDates(start, end, content){
                    '<p><strong>End Time: </strong>' +
                    formatDate(end) + '</p>';
     }
-    return content
+    return content;
 }
 
-
+// Currently Unused Util
 function getParameterByName(name) {
     // Function from: http://stackoverflow.com/a/901144
     name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
@@ -53,7 +54,6 @@ function getParameterByName(name) {
 // Window constants
 const ES_HOST = 'https://elasticsearch.ceda.ac.uk/'
 //const ES_HOST = 'http://localhost:8010/proxy/'
-var REQUEST_SIZE = 30;
 var INDEX = "stac-flightfinder-items"; //getParameterByName('index') || 'eufar';
 var ES_URL = ES_HOST + INDEX + '/_search';
 var TRACK_COLOURS = [
@@ -62,7 +62,7 @@ var TRACK_COLOURS = [
     '#B276B2', '#DECF3F', '#F15854'
 ];
 
-// -----------------------------------String-----------------------------------
+// -------------------------- String Hash For Colors --------------------------
 String.prototype.hashCode = function () {
     // Please see: http://bit.ly/1dSyf18 for original
     var i, c, hash;
@@ -80,6 +80,7 @@ String.prototype.hashCode = function () {
     return hash;
 };
 
+// Currently Unused String function
 String.prototype.truncatePath = function (levels) {
     // Removes 'levels' directories from a path, e.g.:
     // '/usr/bin/path/to/something/useful'.truncatePath(3);
@@ -90,19 +91,7 @@ String.prototype.truncatePath = function (levels) {
     return t_path;
 };
 
-// ---------------------------- Index Radio Buttons ---------------------------
-
-    var index_selectors = $('.index-select')
-    index_selectors.click(function () {
-        index_selectors.removeClass('btn-info')
-        $(this).addClass('btn-info')
-        ES_URL = ES_HOST + $(this).data('index') + '/_search';
-        sendHistogramRequest()
-        refreshMultiselects()
-        redrawMap(map, true)
-    })
-
-// ---------------------------'Export Results' Modal---------------------------
+// -------------------------- 'Export Results' Modal --------------------------
 function updateExportResultsModal(hits) {
     $('#results').html(JSON.stringify(hits, null, '    '));
 }
@@ -115,8 +104,8 @@ function datelineCheck(lng1,lng2){
     return (lng1 > lng2)
 }
 
-
-function geo_shapeQuery(envelope) {
+// Currently Unused ShapeQuery Formation Function
+function geoShapeRequest(envelope) {
     // Abstraction function to build the geo_shape query
     return {
         "geo_shape": {
@@ -130,9 +119,56 @@ function geo_shapeQuery(envelope) {
     }
 }
 
+function getTimeRequest(){
+    // Function for assembling temporal request
+    var start_time, end_time;
+    var def_start, def_end;
+    var range;
+
+    start_time = $('#start_time').val();
+    end_time = $('#end_time').val();
+
+    def_start = '1985-01-01';
+    def_end = '2022-11-24';
+
+    if (start_time == ''){
+        if (end_time == ''){
+            range = '';
+        }
+        else {
+            range = {
+                "properties.start_datetime":{
+                    "from":def_start,
+                    "to":end_time
+                }
+            };
+        }
+    } else {
+        if (end_time == ''){
+            range = {
+                "properties.start_datetime":{
+                    "from":start_time,
+                    "to":def_time
+                }
+            }
+        }
+        else {
+            range = {
+                "properties.start_datetime":{
+                    "from":start_time,
+                    "to":end_time
+                }
+            }
+        }
+    }
+    return range;
+
+}
+
 function createElasticsearchRequest(gmaps_corners, fpop) {
-    var i, end_time, tmp_ne, tmp_sw, no_photography, nw,
-        se, start_time, request, temporal, tf, vars;
+    // Function for assembling all components of elasticsearch request
+    
+    var i, tmp_ne, tmp_sw, nw, se, request, tf, vars;
 
     tmp_ne = gmaps_corners.getNorthEast();
     tmp_sw = gmaps_corners.getSouthWest();
@@ -182,12 +218,12 @@ function createElasticsearchRequest(gmaps_corners, fpop) {
     'aggs' : {
           'variables': {
               "terms":{
-                "field":"variables.keyword"
+                "field":"properties.variables.keyword"
               }
           },
           'instruments': {
             "terms":{
-                "field":"instruments.keyword",
+                "field":"properties.instruments.keyword",
                 "size":10
               }
           },
@@ -204,14 +240,14 @@ function createElasticsearchRequest(gmaps_corners, fpop) {
     if (is_push){
         /*
         for (i = 0; i < envelope_corners.length; i++) {
-            request.query.bool.filter.bool.should.push(geo_shapeQuery(envelope_corners[i]));
+            request.query.bool.filter.bool.should.push(geoShapeRequest(envelope_corners[i]));
         }
         */
     // Add other filters from page to query
         var search_str = "";
         var ivar, insts, colls, tf;
 
-
+        // Keyword Push
         tf = requestFromKeyword();
         if (tf) {
             for (i = 0; i < tf.length; i += 1) {
@@ -223,6 +259,7 @@ function createElasticsearchRequest(gmaps_corners, fpop) {
                 }
             }
         }
+        // Vars Push
         vars = requestFromMultiselect('#var_multiselect');
         if (vars) {
             for (ivar of vars) {
@@ -234,7 +271,7 @@ function createElasticsearchRequest(gmaps_corners, fpop) {
                 }
             }
         }
-
+        // Instruments Push
         insts = requestFromMultiselect('#inst_multiselect');
         if (insts) {
             for (inst of insts) {
@@ -246,7 +283,7 @@ function createElasticsearchRequest(gmaps_corners, fpop) {
                 }
             }
         }
-
+        // Collections Push
         colls = requestFromMultiselect('#coll_multiselect');
         if (colls) {
             for (coll of colls) {
@@ -258,7 +295,7 @@ function createElasticsearchRequest(gmaps_corners, fpop) {
                 }
             }
         }
-
+        // Push All Strings
         if (search_str.length > 0){
             var query_str = {
                 "query_string":
@@ -269,51 +306,44 @@ function createElasticsearchRequest(gmaps_corners, fpop) {
             request.query.bool.filter.bool.must.push(query_str);
         }
 
+        // Flight Number Filter
         fnums = requestFromFlightNum();
         // fnums is an array of flight numbers
         if (fnums){
             request.query.bool.filter.bool.must.push(
                 { 
-                    "terms":
+                    "term":
                     {
                         "properties.flight_num": fnums,
-                        "properties.pcode":fnums
                     }
             });
         }
 
-        start_time = $('#start_time').val();
-        end_time = $('#end_time').val();
-        if (start_time !== '') {
-            request.query.bool.filter.bool.must.push({
-                "properties.start_datetime":start_time
-            });
+        range = getTimeRequest();
+        if (range){
+            request.query.bool.filter.bool.must.push({range});
         }
-        if (end_time !== '') {
-            request.query.bool.filter.bool.must.push({
-                "properties.end_datetime":end_time
-            });
-        }
-
         console.log(request);
     }
     return request;
 }
 
 function requestData(request, callback, gmap){
+    // Simple test function to switch to test data
     sendElasticsearchRequest(request, callback, gmap);
     //getTestJson(callback, gmap);
 }
 
 function getTestJson(callback, gmap){
+    // Retrieve test json data - outdated 24/11/2022
     $.getJSON("jsons/test1.json", function(json){
         callback(json,gmap)
     });
 }
 
 function sendElasticsearchRequest(request, callback, gmap) {
+    // Function for constructing XHR XML Request and handling HttpResponse from ES Cluster
     var xhr, response;
-    // Construct and send XMLHttpRequest
     xhr = new XMLHttpRequest();
     xhr.open('POST', ES_URL, true);
     xhr.setRequestHeader("Content-Type", "application/json")
@@ -333,6 +363,7 @@ function sendElasticsearchRequest(request, callback, gmap) {
 }
 
 function updateMap(response, gmap) {
+    // Function for updating map and UI interface after response is received
     if (response.hits) {
         // Update "hits" and "response time" fields
         $('#resptime').html(response.took);
@@ -364,6 +395,7 @@ function updateMap(response, gmap) {
 }
 
 function updateRawJSON(response) {
+    // Pipe Function - no real use
     updateExportResultsModal(response.hits.hits);
 }
 
@@ -392,7 +424,7 @@ function updateDownloadPaths(response) {
 }
 
 
-// -----------------------------------Map--------------------------------------
+// ---------------------------------- Map -------------------------------------
 var geometries = [];
 var info_windows = [];
 
@@ -445,23 +477,25 @@ function createInfoWindow(hit) {
 
     // crew, altitude
     if (hit.properties.instruments){
-        var i, inst_count, buff;
-        content += '<p><strong>Instrument(s): </strong>' + hit.properties.instruments[0];
+        if (hit.properties.instruments[0]){
+            var i, inst_count, buff;
+            content += '<p><strong>Instrument(s): </strong>' + hit.properties.instruments[0];
 
-        if (hit.properties.instruments.length < 3){
-            inst_count = hit.properties.instruments.length;
-            buff = '';
-        }
-        else{
-            inst_count = 3;
-            buff = '...';
-        }
+            if (hit.properties.instruments.length < 3){
+                inst_count = hit.properties.instruments.length;
+                buff = '';
+            }
+            else{
+                inst_count = 3;
+                buff = '...';
+            }
 
-        for (i = 1; i < inst_count; i += 1) {
-            content += ', ' + hit.properties.instruments[i];
-        }
+            for (i = 1; i < inst_count; i += 1) {
+                content += ', ' + hit.properties.instruments[i];
+            }
 
-        content += buff + '</p>';
+            content += buff + '</p>';
+        }
     }
 
     if (hit.properties.variables){
@@ -475,7 +509,6 @@ function createInfoWindow(hit) {
         }
     }
 
-    // Aircraft, variables, locations, platform, instruments, crew, altitude
     if (hit.properties.location){
         // location is item or array
         var i;
@@ -612,8 +645,8 @@ function addBoundsChangedListener(gmap) {
     });
 }
 
-// ---------------------------------Histogram----------------------------------
-function drawHistogram(request) {
+// -------------------------------- Histogram ---------------------------------
+function drawHistogram(map, request) {
     var ost, buckets, keys, counts, i;
 
     ost = request.aggregations.only_sensible_timestamps;
@@ -629,7 +662,7 @@ function drawHistogram(request) {
         chart: {
             type: 'column',
             height: 200,
-            width: document.getElementById('filter').offsetWidth * 0.75
+            width: document.getElementById('filter').offsetWidth * 0.75,
         },
         title: {
             text: ''
@@ -655,35 +688,71 @@ function drawHistogram(request) {
             column: {
                 borderWidth: 0,
                 groupPadding: 0,
-                pointPadding: 0
+                pointPadding: 0,
+                cursor: 'pointer',
+                point: {
+                    events: {
+                        click: function(){
+                            // Refine time window here - and only refresh hist if category not already monthly
+                            var date = this.category;
+                            if (date.length < 5){
+                                sendHistogramRequest(map, date);
+                                $('#start_time').val(date + '-01-01' );
+                                $('#end_time').val(date + '-12-31');
+                                redrawMap(map, false);
+                            } else {
+                                // Don't update histogram but do update map
+                                // Reset time picker values
+                                var date_arr = date.split('-');
+                                $('#start_time').val(date_arr[1] + '-' + date_arr[0] + '-01');
+                                $('#end_time').val(date_arr[1] + '-' + date_arr[0] + '-31');
+                                redrawMap(map, false);
+                            }
+                        }
+                    }
+                }
             }
         },
         series: [{
-            name: 'Number of documents',
+            name: 'Number of flights',
             data: counts
         }]
     });
 }
 
-function sendHistogramRequest() {
+function sendHistogramRequest(map, timespecifier) {
     var req, response, xhr;
+    var range, interval, format;
 
+    if (timespecifier == 'all'){
+        range = {'range':{
+            'properties.start_datetime': {
+                'gt': '1985-01-01'
+            }}
+        };
+        format = 'yyyy';
+        interval = 'year';
+    }
+    else {
+        range = {'range':{
+            'properties.start_datetime': {
+                'gt': timespecifier+'-01-01',
+                'lt': timespecifier+'-12-31'
+            }}
+        };
+        format = 'MM-yyyy';
+        interval = 'month';
+    }
     req = {
         'aggs': {
             'only_sensible_timestamps': {
-                'filter': {
-                    'range': {
-                        'temporal.start_time': {
-                            'gt': '2000-01-01'
-                        }
-                    }
-                },
+                'filter': range,
                 'aggs': {
                     'docs_over_time': {
                         'date_histogram': {
-                            'field': 'temporal.start_time',
-                            'format': 'MM-yyyy',
-                            'interval': 'month',
+                            'field': 'properties.start_datetime',
+                            'format': format,
+                            'interval': interval,
                             'min_doc_count': 0
                         }
                     }
@@ -699,12 +768,12 @@ function sendHistogramRequest() {
     xhr.onload = function (e) {
         if (xhr.readyState === 4) {
             response = JSON.parse(xhr.responseText);
-            drawHistogram(response);
+            drawHistogram(map, response);
         }
     };
 }
 
-// ------------------------------window.onload---------------------------------
+// ----------------------------- window.onload --------------------------------
 window.onload = function () {
     var geocoder, lat, lon;
 
@@ -728,53 +797,38 @@ window.onload = function () {
 	});
 
     //------------------------------- Buttons -------------------------------
-    $('#flightnum').keypress(
+    $('#fnumtext').keypress(
         function (e) {
             var charcode = e.charCode || e.keyCode || e.which;
             if (charcode === 13) {
-                cleanup();
                 redrawMap(map, false);
                 return false;
             }
         }
     );
 
-    $('#size').keypress(
+    $('#fpoptext').keypress(
         function (e) {
             var charcode = e.charCode || e.keyCode || e.which;
             if (charcode === 13) {
-                cleanup();
                 redrawMap(map, false);
                 return false;
             }
         }
     );
 
-    $('#ftext').keypress(
+    $('#kwtext').keypress(
         function (e) {
             var charcode = e.charCode || e.keyCode || e.which;
             if (charcode === 13) {
-                cleanup();
                 redrawMap(map, false);
                 return false;
             }
         }
     );
-/*
-    $('#location').keypress(
-        function (e) {
-            var charcode = e.charCode || e.keyCode || e.which;
-            if (charcode === 13) {
-                centreMap(map, geocoder, $('#location').val());
-                return false;
-            }
-        }
-    );
-        */
+
     $('#applyfil').click(
         function () {
-            var temp = geometries;
-            cleanup();
             redrawMap(map, false);
         }
     );
@@ -783,11 +837,12 @@ window.onload = function () {
         function () {
             $('#start_time').val('');
             $('#end_time').val('');
-            $('#ftext').val('');
-            $('#flightnum').val('');
+            $('#fpoptext').val('');
+            $('#fnumtext').val('');
+            $('#kwtext').val('');
             clearAggregatedVariables();
-            cleanup();
             redrawMap(map, false);
+            sendHistogramRequest(map, 'all');
         }
     );
 
@@ -870,13 +925,8 @@ window.onload = function () {
         startView: 2
     });
 
-    // set index buttons based on URL on page load
-    index_selectors.removeClass('btn-info')
-    $('#' + INDEX).addClass('btn-info')
-
-
     // Draw histogram
-    sendHistogramRequest();
+    sendHistogramRequest(map, 'all');
 
     // 'Include photography' checkbox
     $('#photography_checkbox').change(function () {

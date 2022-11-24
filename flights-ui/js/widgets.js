@@ -40,7 +40,7 @@ function refreshMultiselects(){
 
 function requestFromFlightNum(){
     var fn;
-    fn = $('#fntext').val();
+    fn = $('#fnumtext').val();
     if (fn){
         if (typeof fn == "object"){
             return fn.split(' ');
@@ -65,10 +65,10 @@ function requestFromFlightPop(){
 function requestFromKeyword(){
     var kw, kwtext, kwargs, req;
 
-    kwtext = $('#kwtext').val()
+    kwtext = $('#kwtext').val();
     req = [];
     if (kwtext) {
-        kwargs = kw.split(' ');
+        kwargs = kwtext.split(' ');
         for (kw of kwargs) {
             req.push(kw.toLowerCase());
         }
