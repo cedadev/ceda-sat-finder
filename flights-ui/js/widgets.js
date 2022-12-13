@@ -3,8 +3,14 @@ function clearAggregatedVariables() {
     select.multiSelect('refresh');
     var select = $('#inst_multiselect').html('');
     select.multiSelect('refresh');
-    var select = $('#coll_multiselect').html('');
-    select.multiSelect('refresh');
+}
+
+function clearAggregatedVariablesAsButtons(){
+    var child;
+    var parent = document.getElementById('coll_select');
+    while (parent.firstChild) {
+        parent.removeChild(parent.firstChild);
+    }
 }
 
 function displayAggregatedVariables(buckets, wname) {
@@ -17,6 +23,52 @@ function displayAggregatedVariables(buckets, wname) {
             text: (buckets[i].key + ' (' + buckets[i].doc_count + ')')
         });
     }
+}
+
+function resetAggregatedVariablesAsButtons() {
+    var cbutton;
+    var wname = 'coll_select';
+    var parent = document.getElementById(wname);
+    for (cbutton of parent.childNodes){
+        try {
+        cbutton.classList.remove('btn-info');
+        } catch (e) {}
+    }
+}
+
+function requestFromButtons() {
+    var cbutton, coll;
+    var wname = 'coll_select';
+    var parent = document.getElementById(wname);
+    for (cbutton of parent.childNodes){
+        try {
+            if (cbutton.classList.contains('btn-info')){
+                coll = cbutton.id;
+            }
+        } catch (e) {}
+    }
+    return coll;
+}
+
+function displayAggregatedVariablesAsButtons(buckets, wname, gmap) {
+    var cbutton;
+    var parent = document.getElementById(wname);
+    for (i = 0; i < buckets.length; i += 1) {
+        cbutton = document.createElement('a');
+        cbutton.classList.add("btn");
+        cbutton.classList.add("btn-primary");
+        cbutton.classList.add("index-select");
+        cbutton.id = buckets[i].key;
+        cbutton.innerHTML = buckets[i].key.toUpperCase();
+        cbutton.onclick = function(){
+            // Refresh whole window with redirect
+            resetAggregatedVariablesAsButtons();
+            this.classList.add('btn-info');
+            redrawMap(gmap, false, false);
+        };
+        parent.appendChild(cbutton);
+    }
+    //$(wname) = parent;
 }
 
 function requestFromMultiselect(wname) {
@@ -58,7 +110,7 @@ function requestFromFlightPop(){
         return fpoptext;
     }
     else {
-        return "40";
+        return undefined;
     }
 }
 
