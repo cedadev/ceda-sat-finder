@@ -53,7 +53,6 @@ function getParameterByName(name) {
 
 // Window constants
 const ES_HOST = 'https://elasticsearch.ceda.ac.uk/'
-//const ES_HOST = 'http://localhost:8010/proxy/'
 var INDEX = "stac-flightfinder-items"; //getParameterByName('index') || 'eufar';
 var ES_URL = ES_HOST + INDEX + '/_search';
 var TRACK_COLOURS = [
@@ -61,6 +60,8 @@ var TRACK_COLOURS = [
     '#60BD68', '#F17CB0', '#B2912F',
     '#B276B2', '#DECF3F', '#F15854'
 ];
+
+var FPOP = 500;
 
 // -------------------------- String Hash For Colors --------------------------
 String.prototype.hashCode = function () {
@@ -107,9 +108,11 @@ function datelineCheck(lng1,lng2){
 // Currently Unused ShapeQuery Formation Function
 function geoShapeRequest(envelope) {
     // Abstraction function to build the geo_shape query
+    return null;
+    /*
     return {
         "geo_shape": {
-            "spatial.geometries.search": {
+            "geometries.search": { // Can't do this yet
                 "shape": {
                     "type": "envelope",
                     "coordinates": envelope
@@ -117,6 +120,7 @@ function geoShapeRequest(envelope) {
             }
         }
     }
+    */
 }
 
 function getTimeRequest(){
@@ -165,27 +169,33 @@ function getTimeRequest(){
 
 }
 
-function createElasticsearchRequest(gmaps_corners, fpop) {
+function createElasticsearchRequest(gmaps_corners, fpop, drawing) {
     // Function for assembling all components of elasticsearch request
     
     var i, tmp_ne, tmp_sw, nw, se, request, tf, vars;
 
-    tmp_ne = gmaps_corners.getNorthEast();
-    tmp_sw = gmaps_corners.getSouthWest();
-    nw = [tmp_sw.lng(), tmp_ne.lat()];
-    se = [tmp_ne.lng(), tmp_sw.lat()];
+    if (drawing) {
+        nw = gmaps_corners[0];
+        se = gmaps_corners[1];
+        // First check to see if the search window crosses the date line
+        var envelope_corners = []
+        if (datelineCheck(nw[0], se[0])) {
+            // We have crossed the date line, need to send the search area into two.
+            envelope_corners.push([nw, [180, se[1]]])
+            envelope_corners.push([[-180, nw[1]], se])
 
-    // First check to see if the search window crosses the date line
-    var envelope_corners = []
-    if (datelineCheck(nw[0], se[0])) {
-        // We have crossed the date line, need to send the search area into two.
-        envelope_corners.push([nw, [180, se[1]]])
-        envelope_corners.push([[-180, nw[1]], se])
-
-    } else {
-        // Not crossing the date line so can just use the search area.
-        envelope_corners.push([nw, se])
+        } else {
+            // Not crossing the date line so can just use the search area.
+            envelope_corners.push([nw, se])
+        }
     }
+    /*
+    else {
+        tmp_ne = gmaps_corners.getNorthEast();
+        tmp_sw = gmaps_corners.getSouthWest();
+        nw = [tmp_sw.lng(), tmp_ne.lat()];
+        se = [tmp_ne.lng(), tmp_sw.lat()];
+    } */
 
     // ElasticSearch request
     request = {
@@ -215,34 +225,40 @@ function createElasticsearchRequest(gmaps_corners, fpop) {
                 }
             }
         },
-    'aggs' : {
-          'variables': {
-              "terms":{
-                "field":"properties.variables.keyword"
-              }
-          },
-          'instruments': {
-            "terms":{
-                "field":"properties.instruments.keyword",
-                "size":10
-              }
-          },
-          'collections':{
-            "terms":{
-                "field":"collection.keyword"
-            }
-          },
-      },
+        'aggs' : {
+            'variables': {
+                "terms":{
+                    "field":"properties.variables.keyword"
+                }
+            },
+            'instruments': {
+                "terms":{
+                    "field":"properties.instruments.keyword",
+                    "size":10
+                }
+            },
+            'collections':{
+                "terms":{
+                    "field":"collection.keyword"
+                }
+            },
+        },
         'size': fpop,
+        'sort':[{
+            'properties.start_datetime':{
+                'order':'desc'
+            }
+        }]
+
     };
     var is_push = true;
     // Push the geoshape conditions to the main request.
     if (is_push){
-        /*
-        for (i = 0; i < envelope_corners.length; i++) {
-            request.query.bool.filter.bool.should.push(geoShapeRequest(envelope_corners[i]));
+        if (drawing && false){
+            for (i = 0; i < envelope_corners.length; i++) {
+                request.query.bool.filter.bool.should.push(geoShapeRequest(envelope_corners[i]));
+            }
         }
-        */
     // Add other filters from page to query
         var search_str = "";
         var ivar, insts, colls, tf;
@@ -284,15 +300,13 @@ function createElasticsearchRequest(gmaps_corners, fpop) {
             }
         }
         // Collections Push
-        colls = requestFromMultiselect('#coll_multiselect');
-        if (colls) {
-            for (coll of colls) {
-                if (search_str.length > 0){
-                    search_str = search_str.concat(" AND ", coll);
-                }
-                else{
-                    search_str = coll;
-                }
+        coll = requestFromButtons();
+        if (coll) {
+            if (search_str.length > 0){
+                search_str = search_str.concat(" AND ", coll);
+            }
+            else{
+                search_str = coll;
             }
         }
         // Push All Strings
@@ -328,20 +342,20 @@ function createElasticsearchRequest(gmaps_corners, fpop) {
     return request;
 }
 
-function requestData(request, callback, gmap){
+function requestData(request, callback, gmap, fulldraw){
     // Simple test function to switch to test data
-    sendElasticsearchRequest(request, callback, gmap);
+    sendElasticsearchRequest(request, callback, gmap, fulldraw);
     //getTestJson(callback, gmap);
 }
 
 function getTestJson(callback, gmap){
     // Retrieve test json data - outdated 24/11/2022
     $.getJSON("jsons/test1.json", function(json){
-        callback(json,gmap)
+        callback(json,gmap, false)
     });
 }
 
-function sendElasticsearchRequest(request, callback, gmap) {
+function sendElasticsearchRequest(request, callback, gmap, fulldraw) {
     // Function for constructing XHR XML Request and handling HttpResponse from ES Cluster
     var xhr, response;
     xhr = new XMLHttpRequest();
@@ -354,15 +368,15 @@ function sendElasticsearchRequest(request, callback, gmap) {
             response = JSON.parse(xhr.responseText);
 
             if (gmap) {
-                callback(response, gmap);
+                callback(response, gmap, fulldraw);
             } else {
-                callback(response);
+                callback(response, fulldraw);
             }
         }
     };
 }
 
-function updateMap(response, gmap) {
+function updateMap(response, gmap, fulldraw) {
     // Function for updating map and UI interface after response is received
     if (response.hits) {
         // Update "hits" and "response time" fields
@@ -386,10 +400,10 @@ function updateMap(response, gmap) {
                 response.aggregations.instruments.buckets,
                 '#inst_multiselect');
         }
-        if (response.aggregations.collections){
-            displayAggregatedVariables(
-                response.aggregations.collections.buckets,
-                '#coll_multiselect');
+        
+        if (response.aggregations.collections && fulldraw){
+            displayAggregatedVariablesAsButtons(
+                response.aggregations.collections.buckets,'coll_select', gmap);
         }
     }
 }
@@ -622,15 +636,21 @@ function cleanup() {
     info_windows = [];
 }
 
-function redrawMap(gmap, add_listener) {
+function redrawMap(gmap, add_listener, fulldraw) {
     var full_text, request;
 
     cleanup();
 
     // Draw flight tracks
-    fpop = requestFromFlightPop()
-    request = createElasticsearchRequest(gmap.getBounds(), fpop);
-    requestData(request, updateMap, gmap);
+    var fpop = requestFromFlightPop()
+    if (!fpop){
+        fpop = FPOP;
+    }
+    if (parseInt(fpop) > 1000){
+        fpop = 1000;
+    }
+    request = createElasticsearchRequest(null, fpop, false);
+    requestData(request, updateMap, gmap, fulldraw);
 
     if (add_listener === true) {
         window.setTimeout(function () {
@@ -641,7 +661,8 @@ function redrawMap(gmap, add_listener) {
 
 function addBoundsChangedListener(gmap) {
     google.maps.event.addListenerOnce(gmap, 'idle', function () {
-        redrawMap(gmap, true);
+        if (window.rectangle === undefined)
+            redrawMap(gmap, true, false);
     });
 }
 
@@ -699,14 +720,14 @@ function drawHistogram(map, request) {
                                 sendHistogramRequest(map, date);
                                 $('#start_time').val(date + '-01-01' );
                                 $('#end_time').val(date + '-12-31');
-                                redrawMap(map, false);
+                                redrawMap(map, false, false);
                             } else {
                                 // Don't update histogram but do update map
                                 // Reset time picker values
                                 var date_arr = date.split('-');
                                 $('#start_time').val(date_arr[1] + '-' + date_arr[0] + '-01');
                                 $('#end_time').val(date_arr[1] + '-' + date_arr[0] + '-31');
-                                redrawMap(map, false);
+                                redrawMap(map, false, false);
                             }
                         }
                     }
@@ -796,12 +817,25 @@ window.onload = function () {
 		$('#mouse').html(lat + ', ' + lon);
 	});
 
-    //------------------------------- Buttons -------------------------------
+    //------------------------------- Text Input -------------------------------
     $('#fnumtext').keypress(
         function (e) {
             var charcode = e.charCode || e.keyCode || e.which;
             if (charcode === 13) {
-                redrawMap(map, false);
+                if (window.rectangle !== undefined) {
+                    queryRect(map);
+                } else {
+                    redrawMap(map, false, false);
+                }
+            }
+        }
+    );
+
+    $('#location').keypress(
+        function (e) {
+            var charcode = e.charCode || e.keyCode || e.which;
+            if (charcode === 13) {
+                centreMap(map, geocoder, $('#location').val());
                 return false;
             }
         }
@@ -811,8 +845,11 @@ window.onload = function () {
         function (e) {
             var charcode = e.charCode || e.keyCode || e.which;
             if (charcode === 13) {
-                redrawMap(map, false);
-                return false;
+                if (window.rectangle !== undefined) {
+                    queryRect(map);
+                } else {
+                    redrawMap(map, false, false);
+                }
             }
         }
     );
@@ -821,15 +858,22 @@ window.onload = function () {
         function (e) {
             var charcode = e.charCode || e.keyCode || e.which;
             if (charcode === 13) {
-                redrawMap(map, false);
-                return false;
+                if (window.rectangle !== undefined) {
+                    queryRect(map);
+                } else {
+                    redrawMap(map, false, false);
+                }
             }
         }
     );
 
     $('#applyfil').click(
-        function () {
-            redrawMap(map, false);
+        function() {
+            if (window.rectangle !== undefined) {
+                queryRect(map);
+            } else {
+                redrawMap(map, false, false);
+            }
         }
     );
 
@@ -840,9 +884,15 @@ window.onload = function () {
             $('#fpoptext').val('');
             $('#fnumtext').val('');
             $('#kwtext').val('');
+            if (window.rectangle !== undefined) {
+                clearRect();
+            }
             clearAggregatedVariables();
-            redrawMap(map, false);
+            clearAggregatedVariablesAsButtons();
+            redrawMap(map, false, true);
             sendHistogramRequest(map, 'all');
+            // Make sure the rectangle drawing tool is deactivated.
+            $('#polygon_draw').prop('checked', false).change()
         }
     );
 
@@ -850,24 +900,24 @@ window.onload = function () {
     $('#raw_json').click(
         function () {
             var req;
-            req = createElasticsearchRequest(map.getBounds(), 100);
-            requestData(req, updateRawJSON);
+            req = createElasticsearchRequest(null, FPOP, false);
+            requestData(req, updateRawJSON, false);
         }
     );
 
     $('#file_paths').click(
         function () {
             var req;
-            requestData(req, updateFilePaths);
-            req = createElasticsearchRequest(map.getBounds(), 100);
+            requestData(req, updateFilePaths, false);
+            req = createElasticsearchRequest(null, FPOP, false);
         }
     );
 
     $('#dl_urls').click(
         function () {
             var req;
-            requestData(req, updateDownloadPaths);
-            req = createElasticsearchRequest(map.getBounds(), 100);
+            requestData(req, updateDownloadPaths, false);
+            req = createElasticsearchRequest(null, FPOP, false);
         }
     );
 
@@ -881,21 +931,10 @@ window.onload = function () {
     $('#var_multiselect').multiSelect(
         {
             afterSelect: function () {
-                redrawMap(map, false);
+                redrawMap(map, false, false);
             },
             afterDeselect: function () {
-                redrawMap(map, false);
-            }
-        }
-    );
-
-    $('#coll_multiselect').multiSelect(
-        {
-            afterSelect: function () {
-                redrawMap(map, false);
-            },
-            afterDeselect: function () {
-                redrawMap(map, false);
+                redrawMap(map, false, false);
             }
         }
     );
@@ -903,10 +942,10 @@ window.onload = function () {
     $('#inst_multiselect').multiSelect(
         {
             afterSelect: function () {
-                redrawMap(map, false);
+                redrawMap(map, false, false);
             },
             afterDeselect: function () {
-                redrawMap(map, false);
+                redrawMap(map, false, false);
             }
         }
     );
@@ -928,14 +967,19 @@ window.onload = function () {
     // Draw histogram
     sendHistogramRequest(map, 'all');
 
+    // Add rectangle toggle listener
+    $('#polygon_draw').change(function(){
+        rectToolToggle(map)
+    })
+
     // 'Include photography' checkbox
     $('#photography_checkbox').change(function () {
-        redrawMap(map, false);
+        redrawMap(map, false, false);
     });
 
     //---------------------------- Map main loop ------------------------------
 
      google.maps.event.addListenerOnce(map, 'tilesloaded', function() {
-         redrawMap(map, true)
+         redrawMap(map, true, true)
       })
 };
