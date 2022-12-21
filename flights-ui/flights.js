@@ -108,8 +108,6 @@ function datelineCheck(lng1,lng2){
 // Currently Unused ShapeQuery Formation Function
 function geoShapeRequest(envelope) {
     // Abstraction function to build the geo_shape query
-    return null;
-    /*
     return {
         "geo_shape": {
             "geometries.search": { // Can't do this yet
@@ -120,7 +118,6 @@ function geoShapeRequest(envelope) {
             }
         }
     }
-    */
 }
 
 function getTimeRequest(){
@@ -254,7 +251,7 @@ function createElasticsearchRequest(gmaps_corners, fpop, drawing) {
     var is_push = true;
     // Push the geoshape conditions to the main request.
     if (is_push){
-        if (drawing && false){
+        if (drawing){
             for (i = 0; i < envelope_corners.length; i++) {
                 request.query.bool.filter.bool.should.push(geoShapeRequest(envelope_corners[i]));
             }
