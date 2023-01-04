@@ -53,7 +53,7 @@ function getParameterByName(name) {
 
 // Window constants
 const ES_HOST = 'https://elasticsearch.ceda.ac.uk/'
-var INDEX = "stac-flightfinder-items"; //getParameterByName('index') || 'eufar';
+var INDEX = "stac-flightfinder-items-test"; //getParameterByName('index') || 'eufar';
 var ES_URL = ES_HOST + INDEX + '/_search';
 var TRACK_COLOURS = [
     '#4D4D4D', '#5DA5DA', '#FAA43A',
@@ -110,7 +110,7 @@ function geoShapeRequest(envelope) {
     // Abstraction function to build the geo_shape query
     return {
         "geo_shape": {
-            "geometries.search": { // Can't do this yet
+            "geometry.search": { // Can't do this yet
                 "shape": {
                     "type": "envelope",
                     "coordinates": envelope
@@ -253,7 +253,7 @@ function createElasticsearchRequest(gmaps_corners, fpop, drawing) {
     if (is_push){
         if (drawing){
             for (i = 0; i < envelope_corners.length; i++) {
-                request.query.bool.filter.bool.should.push(geoShapeRequest(envelope_corners[i]));
+                request.query.bool.filter.bool.must.push(geoShapeRequest(envelope_corners[i]));
             }
         }
     // Add other filters from page to query
