@@ -18,6 +18,7 @@ function rectBounds() {
 
 function queryRect(map) {
     // create ES request, send and draw results.
+    cleanup();
     var request = createElasticsearchRequest(rectBounds(), FPOP, true);
     sendElasticsearchRequest(request, updateMap, map);
 
@@ -75,13 +76,6 @@ function rectToolToggle (map) {
             clearRect();
         }
 
-        // Clear all the satellite product objects to allow user to draw.
-        for (lines of geometries) {
-            for (geom of lines){
-                geom.setMap(null);
-            }
-        }
-
         map.setOptions({'draggable': false});
         map.setOptions({'keyboardShortcuts': false});
 
@@ -132,6 +126,7 @@ function rectToolToggle (map) {
             // update corner position
             document.getElementById('NW').innerHTML = ' Lat: ' + ne.lat().toFixed(2) + ' Lng: ' + sw.lng().toFixed(2);
             document.getElementById('SE').innerHTML = ' Lat: ' + sw.lat().toFixed(2) + ' Lng: ' + ne.lng().toFixed(2);
+
         })
     }
     else {
@@ -141,6 +136,8 @@ function rectToolToggle (map) {
         // Hide Rectangle Search accordian panel if open.
         $('#collapse_spatial').collapse('hide');
 
+        clearRect();
+
         // clear rectangle drawing listeners and reinstate boundschanged listener.
         google.maps.event.clearListeners(map, 'mousedown');
         google.maps.event.clearListeners(map, 'mouseup');
@@ -149,6 +146,8 @@ function rectToolToggle (map) {
         dragging = false;
         map.setOptions({draggable: true});
         map.keyboardShortcuts = true;
+        cleanup();
+        redrawMap(map, false, false);
 
     }
 
