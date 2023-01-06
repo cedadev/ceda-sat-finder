@@ -53,7 +53,7 @@ function getParameterByName(name) {
 
 // Window constants
 const ES_HOST = 'https://elasticsearch.ceda.ac.uk/'
-var INDEX = "stac-flightfinder-items-test"; //getParameterByName('index') || 'eufar';
+var INDEX = "stac-flightfinder-items"; //getParameterByName('index') || 'eufar';
 var ES_URL = ES_HOST + INDEX + '/_search';
 var TRACK_COLOURS = [
     '#4D4D4D', '#5DA5DA', '#FAA43A',
