@@ -1,26 +1,19 @@
 '''
-Data Coverage Python Script:
-----------------------------
 Script to be used as a cron job to make sure that the data coverage maps are up to date.
-
-    Author: Richard Smith
-    Email:  richard.d.smith@stfc.ac.uk
-    Date:   21st June 2017
-
-    Updated to Python 3
-    Author: Daniel Westwood
-    Email:  daniel.westwood@stfc.ac.uk
-    Date:   12th October 2022
+Author: Richard Smith
+Email:  richard.d.smith@stfc.ac.uk
+Date:   21st June 2017
 
 In order to run the script. 
-> python data_coverage.py <path_to_destination_folder>
+python data_coverage.py <path_to_destination_folder>
 
 In order to run this as a cron job in conjunction with Satellite Data Finder http://geo-search.ceda.ac.uk/:
 
 1st command line argument should direct to the server path ./img/coverage_maps
+
 '''
 
-# Imports
+
 import numpy as np
 from math import floor, ceil
 from elasticsearch import Elasticsearch
@@ -31,7 +24,7 @@ import cartopy.crs as ccrs
 # Setup matplotlib not to use x-based backend (for use on jasmin).
 import matplotlib
 matplotlib.use('Agg')
-import matplotlib.pyplot as plt
+from matplotlib import pyplot as plt
 
 ########################################### Function definitions #######################################################
 
@@ -56,10 +49,8 @@ def get_satellite_missions(es_index):
     }
 
     es = Elasticsearch(
-        ["https://elasticsearch.ceda.ac.uk/:9243"], 
-        )
-        #hosts=[{"host": "jasmin-es1.ceda.ac.uk", "port": 9200}]
-    #)
+        hosts=[{"host": "jasmin-es1.ceda.ac.uk", "port": 9200}]
+    )
 
     res = es.search(index=es_index, body=agg_query)
 
@@ -169,16 +160,16 @@ if __name__ == "__main__":
 
     if len(sys.argv) == 1:
         # No file path provided
-        print("Please provide a destination filepath for the plots")
+        print "Please provide a destination filepath for the plots"
         sys.exit()
     elif len(sys.argv) > 2:
         # Other arguments provided which will be ignored
-        print("Any arguments after the first will be ignored")
+        print "Any arguments after the first will be ignored"
         sys.exit()
     else:
         # An argument has been provided. Check that it is a valid directory.
         if not os.path.isdir(sys.argv[1]):
-            print("The path provided is not a valid directory. Please enter the path to an exisiting directory")
+            print "The path provided is not a valid directory. Please enter the path to an exisiting directory"
             sys.exit()
         else:
             # Argument is a valid directory. Strip trailing slash if it exists.
@@ -189,15 +180,13 @@ if __name__ == "__main__":
     resolution = 4
 
     es = Elasticsearch(
-        ["https://elasticsearch.ceda.ac.uk/:9243"], 
+            hosts=[{"host": "jasmin-es1.ceda.ac.uk", "port": 9200}]
         )
-            #hosts=[{"host": "jasmin-es1.ceda.ac.uk", "port": 9200, "scheme":""}],
-        #)
 
     for mission in get_satellite_missions("ceda-eo-test"):
 
-        print("\n")
-        print("Searching for matching dataset: {}".format(mission))
+        print "\n"
+        print "Searching for matching dataset: %s" % mission
 
         # Initialise the scroll
         page = es.search(
@@ -210,11 +199,11 @@ if __name__ == "__main__":
         total_hits  = page['hits']['total']
         scroll_size = total_hits
 
-        print("Total hits: {}".format(scroll_size))
+        print "Total hits: %d" % scroll_size
 
         # Exit the script if no data is found.
         if total_hits == 0:
-            print("No data found. Please check your satellite name.")
+            print "No data found. Please check your satellite name."
             sys.exit()
 
 
@@ -240,7 +229,7 @@ if __name__ == "__main__":
 
         # start scrolling
         progress = 0
-        print("Scrolling...")
+        print "Scrolling..."
         while scroll_size > 0:
             page = es.scroll(scroll_id=sid, scroll='1m')
             # Update the scroll ID
@@ -282,5 +271,4 @@ if __name__ == "__main__":
         plt.colorbar(label="Number of Datasets", orientation="horizontal")
         plt.title("%s Dataset Coverage: %s Degree Resolution" % (mission, resolution))
         fig.savefig('%s/%s.png' % (destination_folder, mission), dpi=fig.dpi)
-        # print
-    plt.show()
+        print

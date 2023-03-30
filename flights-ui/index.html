@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+
+    <!-- This is to force Internet Explorer to at least *try* to be standards-compliant -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>CEDA Flight Finder</title>
+
+    <!-- Web Links -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap-theme.min.css" type="text/css" />
+
+    <!-- Local Links -->
+    <link rel="stylesheet" href="./css/multi-select.css" type="text/css" />
+    <link rel="stylesheet" href="./css/bootstrap-datepicker.css" type="text/css" />
+    <link rel="stylesheet" href="./css/index.css" type="text/css" />
+    <link rel="shortcut icon" href="./img/favicon.ico">
+</head>
+<body>
+    <!-- Pop up Info Box -->
+    <div class="modal fade" id="export_modal" tabindex="-1" role="dialog" aria-labelledby="export_modal_label" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                        <span class="sr-only">Close</span>
+                    </button>
+                    <h4 class="modal-title" id="export_modal_label">Export Results</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center">
+                        <p><b>Note</b>: Only the first 100 results will be returned.</p>
+                        <button type="button" class="btn" id="raw_json">Raw JSON</button>
+                        <button type="button" class="btn" id="file_paths">File Paths</button>
+                        <button type="button" class="btn" id="dl_urls">Download URLs</button>
+                    </div>
+                    <div>
+                        <textarea id="results" placeholder="Results will appear here..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="export_modal_close" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="main">
+<!--navbar navbar-expand-lg fixed-top navbar-dark bg-primary-->
+
+<!-- src="https://artefacts.ceda.ac.uk/themes/orgtheme_ceda_serv/0.2/_assets/img/ncas_logo_transparent_blacktext.png"
+    https://artefacts.ceda.ac.uk/themes/orgtheme_ceda_serv/0.2/_assets/img/nceologo200.png
+ -->
+        <!--
+        <div class="topbar">
+            <a href="http://www.ceda.ac.uk/" alt="CEDA Website">
+                <img class="logo" 
+                src="./img/ceda.png" 
+                alt="CEDA logo" />
+            </a>
+            <a href="http://www.ncas.ac.uk/" alt="NCAS Website">
+                <img class="logo" 
+                src="https://artefacts.ceda.ac.uk/themes/orgtheme_ceda_serv/0.2/_assets/img/ncas_logo_transparent_blacktext.png"
+                alt="NCAS logo" />
+            </a>
+        </div>
+    -->
+
+        <!-- Selection UI-->
+        <div id="sidebar">
+            <!-- Top Description Section -->
+            <div id="filter">
+                <div class="wide text-center">
+                    <a href="http://www.ncas.ac.uk/" alt="NCAS Website">
+                        <img class="logo" 
+                        src="https://artefacts.ceda.ac.uk/themes/orgtheme_ceda_serv/0.2/_assets/img/ncas_logo_transparent_blacktext.png" 
+                        alt="NCAS logo" />
+                    </a>
+                    <a href="http://www.ceda.ac.uk/" alt="CEDA Website">
+                        <img class="logo" src="./img/ceda.png" alt="CEDA logo" />
+                    </a>
+                </div>
+                <h2>CEDA Flight Finder</h2>
+                <p>Search for flights within the CEDA flights index using the parameters below. Search for specific flights by Collection, Flight Code, Instrument or Keyword Search, or filter specific flights by temporal geospatial parameters. Flights from FAAM, NERC-ARSF, SAFIRE, AWI-Polar5, Kit-Enduro, and INTA-CASA aircraft and the APEX instrument flown on the DLR aircraft are now included.</p>
+                <p><strong>Up to the first 1000 flights will be plotted on the map with most recent on top. The default view is the 100 most recent flights.</strong></p>
+                <br>
+            <hr/>
+            <!-- UI Widgets and Panels -->
+
+                <p>Click an item to expand the panel.</p>
+                <div class="panel-group" id="accordions">
+   
+                    <!-- Map Search -->
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordions" href="#collapse_centre_map">
+                                    Set Map Centre
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapse_centre_map" class="panel-collapse collapse">
+                            <div class="panel-body">
+                                <form class="form-horizontal">
+                                    <fieldset>
+                                        <div class="form-group">
+                                            <label class="control-label" for="param">Centre Map on Location</label>
+                                            <span data-toggle="popover"
+                                                data-placement="top"
+                                                data-content="Search by latitude/longitude, postcode, or location name."
+                                                class="glyphicon glyphicon-question-sign"></span>
+
+                                            <input id="location" name="location"
+                                                    placeholder="e.g. Poland, or 51.5N 0.13W"
+                                                    class="form-control col-md-10 eightypc" type="text">
+                                        </div>
+                                    </fieldset>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Draw Rectangle Search -->
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a id="spatial_accordian" data-toggle="collapse" data-parent="#accordions" href="#collapse_spatial">
+                                    Geospatial Search
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapse_spatial" class="panel-collapse collapse">
+                            <div class="panel-body">
+                                <p>When "Geospatial Search" is toggled on, map dragging is off. Draw a rectangular bounding box on the map and drag the rectangle. To reenable map dragging, toggle geospatial search off.</p>
+                                <h5>Rectangle Corners</h5>
+                                <p><b>NW:</b><span id="NW"></span></p>
+                                <p><b>SE:</b><span id="SE"></span></p>
+                                <p><strong>Note: Geospatial Search is updated on moving the rectangle, not resizing.</strong></p>
+                                <div class="tools">
+                                    <table>
+                                        <tr>
+                                            <td class="vertical">
+                                                <h4>
+                                                    Geospatial search:
+                                                    <span><a role="button" data-toggle="collapse" class="glyphicon glyphicon-question-sign"
+                                                       href="#collapsePolygonInstructions" style="text-decoration: none;"></a></span>
+                                                </h4>
+                                            </td>
+                                            <td>
+                                                <label class="switch">
+                                                    <input id="polygon_draw" type="checkbox">
+                                                    <span class="slider round"></span>
+                                                </label>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <!--<h6 class="col-md-6" style="margin: 0px">--
+                                        --Rectangle search:--
+                                        <--<a role="button" data-toggle="collapse" class="glyphicon glyphicon-question-sign"--
+                                           <--href="#collapsePolygonInstructions" style="text-decoration: none;"></a>--
+                                    <--</h6>--
+                                    <--<label class="switch ">--
+                                        <--<input id="polygon_draw" type="checkbox">--
+                                        <--<span class="slider round"></span>--
+                                    <--</label>--
+                        
+                                </div>
+                            -->
+                                </div>
+                                <!-- instructions panel for the rectangle draw tool -->
+                                <div id="polygon-instructions">
+                                    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+                                        <div class="panel panel-default">
+                                            <div id="collapsePolygonInstructions" class="panel-collapse collapse" role="tabpanel"
+                                                 aria-labelledby="PolygonInstructions">
+                                                <div class="panel-body">
+                                                    <p>When toggled on, map panning is disabled. Turn off to enable panning.</p>
+                                                    <p>Click and drag over the map to set the area of interest. The shape can be resized, using
+                                                        the points, and moved.</p>
+                                                    <p>
+                                                        Click
+                                                        <a role="button" data-toggle="collapse" class="glyphicon glyphicon-question-sign"
+                                                           href="#collapsePolygonInstructions" style="text-decoration: none;">,</a>
+                                                        or start drawing, to hide this panel.
+                                                    </p>
+                        
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Flight Search-->
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordions" href="#collapse_flight">
+                                    Flight Search
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapse_flight" class="panel-collapse collapse">
+                            <div class="panel-body">
+                                <form class="form-horizontal">
+                                    <fieldset>
+                                        <div class="form-group">
+                                            <label class="control-label" for="param">Enter Flight Number or Project Code</label>
+                                            <span data-toggle="popover" data-content="Enter a specific flight number or project code to view a single flight set" class="glyphicon glyphicon-question-sign"></span>
+
+                                            <div class="controls">
+                                                <input id="fnumtext" name="fnumtext" placeholder="e.g. b527, 95_01 " class="form-control input-md" type="text">
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </form>
+                                <form class="form-horizontal">
+                                    <fieldset>
+                                        <div class="form-group">
+                                            <label class="control-label" for="param">Enter maximum number of flights to display</label>
+                                            <span data-toggle="popover" data-content="Cap Number of Retrieved Flights" class="glyphicon glyphicon-question-sign"></span>
+
+                                            <div class="controls">
+                                                <input id="fpoptext" name="fpoptext" placeholder="e.g. 40" class="form-control input-md" type="text">
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Keyword Search -->
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordions" href="#collapse_filter">
+                                    Keyword Search
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapse_filter" class="panel-collapse collapse">
+                            <div class="panel-body">
+                                <form class="form-horizontal">
+                                    <fieldset>
+                                        <div class="form-group">
+                                            <label class="control-label" for="param">Keyword Search</label>
+                                            <span data-toggle="popover" data-content="Search for any keyword, e.g.: 'eagle', 'nox', 'photography', etc." class="glyphicon glyphicon-question-sign"></span>
+                                            <div class="controls">
+                                                <input id="kwtext" name="kwtext" placeholder="Any text query, e.g. 'velocity', 'safire', etc" class="form-control input-md" type="text">
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Instrument Filter -->
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordions" href="#collapse_instrument">
+                                    Instrument Filter
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapse_instrument" class="panel-collapse collapse">
+                            <div class="panel-body">
+                                <form class="text-center">
+                                    <fieldset>
+                                        <label class="control-label" for="param">Instrument Name</label>
+                                        <span data-toggle="popover" data-content="A list of instruments. Click an instrument to only include files with that instrument." class="glyphicon glyphicon-question-sign"></span>
+                                        <select id="inst_multiselect" multiple="multiple">
+                                        </select>
+                                    </fieldset>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Collection Filter -->
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordions" href="#collapse_collection">
+                                    Aircraft Collection Filter
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapse_collection" class="panel-collapse collapse">
+                            <div class="panel-body">
+                                <form class="text-center">
+                                    <fieldset>
+                                        <label class="control-label" for="param">Aircraft Collection Name</label>
+                                        <span data-toggle="popover" data-content="A list of aircraft collections extracted from the flights index. Click a collection to only include files with that collection." class="glyphicon glyphicon-question-sign"></span>
+                                        <div id="coll_select">
+                                        </div>
+                                        </select>
+                                    </fieldset>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Variable Filter -->
+                    <!--
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordions" href="#collapse_variables">
+                                    Variable Filter
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapse_variables" class="panel-collapse collapse">
+                            <div class="panel-body">
+                                <form class="text-center">
+                                    <fieldset>
+                                        <label class="control-label" for="param">Variable Name</label>
+                                        <span data-toggle="popover" data-content="A list of variables extracted from the flights index. Click a variable to only include files with that variable." class="glyphicon glyphicon-question-sign"></span>
+                                        <select id="var_multiselect" multiple="multiple">
+                                        </select>
+                                    </fieldset>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    -->
+                    
+                    <!-- Temporal Filter -->
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordions" href="#collapse_temporal">
+                                    Temporal Filter
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapse_temporal" class="panel-collapse collapse">
+                            <div class="text-center panel-body">
+                                <label class="control-label">Refine Search via Time Range</label>
+                                <span data-toggle="popover" data-content="Choose a start and end time to refine the search by." class="glyphicon glyphicon-question-sign"></span>
+                                <p><strong>New: </strong>Click on the Histogram to apply a Time Range</p>
+                                <div class="input-daterange input-group" id="datepicker">
+                                    <input id="start_time" type="text" class="input-sm form-control" name="start" />
+                                    <span class="input-group-addon">to</span>
+                                    <input id="end_time" type="text" class="input-sm form-control" name="end" />
+                                </div>
+                                <div id="date_histogram"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Geospatial Filter -->
+                    <!--
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordions" href="#collapse_geospatial">
+                                    Geospatial Filter
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapse_geospatial" class="panel-collapse collapse">
+                            <div class="panel-body">
+                                <form class="text-center">
+                                    <fieldset>
+                                        <label class="control-label" for="param">Geospatial Filter</label>
+                                        <span data-toggle="popover" data-content="Select Maximum, minimum latitude and longitudes for flights" class="glyphicon glyphicon-question-sign"></span>
+                                        <select id="multiselect" multiple="multiple">
+                                        </select>
+                                    </fieldset>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    -->
+
+                </div>
+
+                <div class="form-group text-center">
+                    <div class="controls">
+                        <button type="button" id="applyfil" class="btn btn-success">Apply Filters</button>
+                        <button type="button" id="clearfil" class="btn btn-danger">Clear Filters</button>
+
+                        <div class="text-center buffer">
+                            <button type="button" id="export" class="btn" data-toggle="modal" data-target="#export_modal">Export Results</button>
+                        </div>
+                    </div>
+                </div>
+
+                <hr />
+                <div class="form-group">
+                    <p class="form-group row">
+                        <strong><span id="numresults">0</span></strong> Flights with current selection (<span id="resptime">0</span> ms)
+                    </p>
+                    <p class="form-group row">
+                        <strong><span id="numlines">0</span></strong> Line sequences with current selection.
+                    </p>
+
+                    <div class="form-group row">
+                        <p><strong>Mouse: </strong> <span id="mouse">123.123, 456.456</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Google Map API -->
+        <div id="map">
+        </div>
+    </div>
+
+    <!-- Web Links -->
+    <script src="https://maps.google.com/maps/api/js?v=quarterly&key=AIzaSyDEmU2-ccoeUPtJCtdAWxWOfhytE_ShWZc" type="text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.min.js" type="text/javascript"></script>
+
+    <!-- Local Links -->
+    <script src="./js/jquery.min.js" type="text/javascript"></script>
+    <script src="./js/bootstrap-datepicker.js" type="text/javascript"></script>
+    <script src="./js/transition.js" type="text/javascript"></script>
+    <script src="./js/collapse.js" type="text/javascript"></script>
+    <script src="./js/jquery.multi-select.js" type="text/javascript"></script>
+    <script src="./js/index.js" type="text/javascript"></script>
+    <!--<script src="./js/es-client.js" type="text/javascript"></script>-->
+    <script src="./js/GeoJSON.js" type="text/javascript"></script>
+    <script src="./js/widgets.js" type="text/javascript"></script>
+    <script src="./js/rectangleTool.js" type="text/javascript"></script>
+    <script src="./flights.js" type="text/javascript"></script>
+</body>
+</html>
