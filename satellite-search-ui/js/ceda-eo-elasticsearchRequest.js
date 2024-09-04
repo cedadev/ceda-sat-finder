@@ -53,7 +53,8 @@ function esRequest(size) {
         "aggs": {
             "data_count": {
                 "terms": {
-                    "field": "misc.platform.Satellite.raw"
+                    "field": "misc.platform.Satellite.raw",
+                    "size": 30
                 }
             },
             "all": {
